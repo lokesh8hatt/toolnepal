@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QR Code Generator — ToolNepal</title>
+
+  <meta name="description" content="Generate QR codes with size and color controls and download PNG instantly." />
+  <meta property="og:title" content="QR Code Generator — ToolNepal" />
+  <meta property="og:description" content="Generate QR codes with size and color controls and download PNG instantly." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="#" />
+  <meta property="og:url" content="#" />
+  <link rel="canonical" href="#" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+
+<body>
+  <div id="siteHeader"></div>
+
+  <main id="main" class="main">
+    <div class="container">
+
+      <div class="ad">
+        <strong>Ad Placeholder</strong>
+        <small>Top Banner</small>
+      </div>
+
+      <section class="card">
+        <h1>QR Code Generator</h1>
+        <p class="help">Enter text or a URL (example: https://www.youtube.com/@tseries). Generate and download as PNG.</p>
+
+        <div class="field">
+          <label for="qrText">Text / URL</label>
+          <input id="qrText" class="input" placeholder="Paste your text or URL..." />
+          <div class="help">Tip: Use dark foreground + light background for best scanning.</div>
+        </div>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
+          <div class="field">
+            <label for="qrSize">Size (px)</label>
+            <input id="qrSize" class="input" type="number" value="256" min="128" max="1024" />
+          </div>
+
+          <div class="field">
+            <label for="qrFg">Foreground</label>
+            <input id="qrFg" class="input" type="color" value="#000000" />
+          </div>
+
+          <div class="field" style="grid-column:1/-1">
+            <label for="qrBg">Background</label>
+            <input id="qrBg" class="input" type="color" value="#ffffff" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:1rem">
+          <button class="btn btn-primary" type="button" onclick="tnQrGenerate()">Generate</button>
+          <button class="btn btn-secondary" type="button" onclick="tnQrDownload()">Download PNG</button>
+        </div>
+
+        <!-- ✅ FIX: QRCode.js needs a DIV (not a canvas) -->
+        <div
+          id="qrOut"
+          style="margin-top:1rem; width:fit-content; padding:14px; border-radius:16px; border:1px solid var(--border); background:rgba(255,255,255,.65);"
+        ></div>
+
+        <div class="ad" style="margin-top:1rem">
+          <strong>Ad Placeholder</strong>
+          <small>In-content Ad</small>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div id="siteFooter"></div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">Success</h3>
+      <div id="modalBody" class="help"></div>
+      <div class="actions">
+        <button class="btn btn-secondary" type="button" onclick="tnCloseModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/main.js"></script>
+
+  <!-- ✅ QR library (QRCode.js) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- ✅ Your QR logic -->
+  <script src="../assets/js/qr.js"></script>
+
+  <!-- ✅ Live preview hook (works if your qr.js has tnQrLive, otherwise safe) -->
+  <script>
+    // If your qr.js includes tnQrLive(), enable it. If not, no error.
+    function _safeLive() {
+      if (typeof tnQrLive === "function") tnQrLive();
+    }
+    ["qrText","qrSize","qrFg","qrBg"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("input", _safeLive);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GPA ⇄ Percentage Converter — ToolNepal</title>
+
+  <meta name="description" content="Convert GPA to percentage and percentage to GPA (Nepal). Free converter with method options." />
+  <meta property="og:title" content="GPA ⇄ Percentage Converter — ToolNepal" />
+  <meta property="og:description" content="Convert GPA to percentage and percentage to GPA (Nepal). Free converter with method options." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="#" />
+  <meta property="og:url" content="#" />
+  <link rel="canonical" href="#" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+
+<body>
+<div id="siteHeader"></div>
+
+<main class="main">
+  <div class="container">
+
+    <div class="ad"><strong>Ad Placeholder</strong><small>Top Banner</small></div>
+
+    <section class="split">
+      <div class="card">
+        <h1>GPA ⇄ Percentage Converter (Nepal)</h1>
+        <p class="help">
+          Convert GPA to percentage and percentage to GPA using common estimates.
+          <b>Note:</b> Different colleges may use different conversion rules.
+        </p>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem">
+          <div class="field">
+            <label for="mode">Convert</label>
+            <select id="mode" class="input" onchange="resetOut()">
+              <option value="g2p" selected>GPA → Percentage</option>
+              <option value="p2g">Percentage → GPA</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="method">Method</label>
+            <select id="method" class="input" onchange="resetOut()">
+              <option value="linear" selected>Simple Estimate (×25)</option>
+              <option value="range">Grade Band Estimate</option>
+            </select>
+          </div>
+
+          <div class="field" style="grid-column:1/-1">
+            <label id="inputLabel" for="valueInput">Value</label>
+            <input id="valueInput" class="input" type="number" step="0.01" placeholder="e.g. 3.40">
+            <div id="hint" class="help">Enter GPA between 0.0 and 4.0</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:1rem">
+          <button class="btn btn-primary" type="button" onclick="convert()">Convert</button>
+          <button class="btn btn-secondary" type="button" onclick="resetAll()">Reset</button>
+        </div>
+
+        <div id="out" class="card" style="margin-top:1rem; padding:1rem; display:none"></div>
+
+        <div class="ad" style="margin-top:1rem"><strong>Ad Placeholder</strong><small>In-content Ad</small></div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="ad"><strong>Ad Placeholder</strong><small>Sidebar</small></div>
+
+        <div class="card">
+          <h3>Tips</h3>
+          <ul class="help" style="margin:0; padding-left:1.1rem">
+            <li>Use ×25 if your form asks for a quick estimate</li>
+            <li>Use grade band if your college uses ranges</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+
+  </div>
+</main>
+
+<div id="siteFooter"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/analytics.js"></script>
+
+<script>
+function clamp(n, min, max){
+  n = Number(n);
+  return Math.min(max, Math.max(min, n));
+}
+
+function gpaBand(gpa){
+  if (gpa >= 3.6) return {grade:"A+", label:"Outstanding", pmin:90, pmax:100};
+  if (gpa >= 3.2) return {grade:"A", label:"Excellent", pmin:80, pmax:89.99};
+  if (gpa >= 2.8) return {grade:"B+", label:"Very Good", pmin:70, pmax:79.99};
+  if (gpa >= 2.4) return {grade:"B", label:"Good", pmin:60, pmax:69.99};
+  if (gpa >= 2.0) return {grade:"C+", label:"Satisfactory", pmin:50, pmax:59.99};
+  if (gpa >= 1.6) return {grade:"C", label:"Acceptable", pmin:40, pmax:49.99};
+  return {grade:"D", label:"Below C", pmin:0, pmax:39.99};
+}
+
+function percentToBand(p){
+  // reverse bands (approx)
+  if (p >= 90) return {gmin:3.6, gmax:4.0, grade:"A+"};
+  if (p >= 80) return {gmin:3.2, gmax:3.59, grade:"A"};
+  if (p >= 70) return {gmin:2.8, gmax:3.19, grade:"B+"};
+  if (p >= 60) return {gmin:2.4, gmax:2.79, grade:"B"};
+  if (p >= 50) return {gmin:2.0, gmax:2.39, grade:"C+"};
+  if (p >= 40) return {gmin:1.6, gmax:1.99, grade:"C"};
+  return {gmin:0.0, gmax:1.59, grade:"D"};
+}
+
+function syncLabels(){
+  const mode = document.getElementById("mode").value;
+  const label = document.getElementById("inputLabel");
+  const hint = document.getElementById("hint");
+  const input = document.getElementById("valueInput");
+
+  if (mode === "g2p"){
+    label.textContent = "GPA (0.0 – 4.0)";
+    hint.textContent = "Enter GPA between 0.0 and 4.0";
+    input.placeholder = "e.g. 3.40";
+    input.min = "0"; input.max = "4"; input.step = "0.01";
+  } else {
+    label.textContent = "Percentage (0 – 100)";
+    hint.textContent = "Enter percentage between 0 and 100";
+    input.placeholder = "e.g. 78.5";
+    input.min = "0"; input.max = "100"; input.step = "0.01";
+  }
+}
+
+function resetOut(){
+  const out = document.getElementById("out");
+  out.style.display = "none";
+  out.innerHTML = "";
+  syncLabels();
+}
+
+function resetAll(){
+  document.getElementById("mode").value = "g2p";
+  document.getElementById("method").value = "linear";
+  document.getElementById("valueInput").value = "";
+  resetOut();
+  tnToast("Reset done");
+}
+
+function convert(){
+  const mode = document.getElementById("mode").value;
+  const method = document.getElementById("method").value;
+  const v = Number(document.getElementById("valueInput").value);
+  const out = document.getElementById("out");
+
+  if (mode === "g2p"){
+    if (!(v >= 0 && v <= 4)){ tnToast("Enter GPA 0.0–4.0"); return; }
+
+    out.style.display = "block";
+
+    if (method === "linear"){
+      const pct = clamp(v * 25, 0, 100);
+      out.innerHTML = `
+        <div style="font-weight:900; font-size:1.1rem">Result</div>
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:.8rem">
+          <div class="card" style="padding:1rem">
+            <div class="help">Estimated Percentage</div>
+            <div style="font-weight:900; font-size:1.6rem">${pct.toFixed(2)}%</div>
+          </div>
+          <div class="card" style="padding:1rem">
+            <div class="help">Method</div>
+            <div style="font-weight:900; font-size:1.2rem">GPA × 25</div>
+          </div>
+        </div>
+      `;
+    } else {
+      const b = gpaBand(v);
+      out.innerHTML = `
+        <div style="font-weight:900; font-size:1.1rem">Result</div>
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:.8rem">
+          <div class="card" style="padding:1rem">
+            <div class="help">Estimated Range</div>
+            <div style="font-weight:900; font-size:1.4rem">${b.pmin}% – ${b.pmax.toFixed(2)}%</div>
+          </div>
+          <div class="card" style="padding:1rem">
+            <div class="help">Grade Band</div>
+            <div style="font-weight:900; font-size:1.4rem">${b.grade}</div>
+            <div class="help">${b.label}</div>
+          </div>
+        </div>
+      `;
+    }
+
+  } else {
+    // Percentage -> GPA
+    if (!(v >= 0 && v <= 100)){ tnToast("Enter percentage 0–100"); return; }
+
+    out.style.display = "block";
+
+    if (method === "linear"){
+      const gpa = clamp(v / 25, 0, 4);
+      const b = gpaBand(gpa);
+      out.innerHTML = `
+        <div style="font-weight:900; font-size:1.1rem">Result</div>
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:.8rem">
+          <div class="card" style="padding:1rem">
+            <div class="help">Estimated GPA</div>
+            <div style="font-weight:900; font-size:1.6rem">${gpa.toFixed(2)}</div>
+          </div>
+          <div class="card" style="padding:1rem">
+            <div class="help">Grade Band</div>
+            <div style="font-weight:900; font-size:1.4rem">${b.grade}</div>
+            <div class="help">${b.label}</div>
+          </div>
+        </div>
+        <p class="help" style="margin-top:.8rem">Method used: Percentage ÷ 25</p>
+      `;
+    } else {
+      const b = percentToBand(v);
+      out.innerHTML = `
+        <div style="font-weight:900; font-size:1.1rem">Result</div>
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:.8rem">
+          <div class="card" style="padding:1rem">
+            <div class="help">Estimated GPA Range</div>
+            <div style="font-weight:900; font-size:1.4rem">${b.gmin.toFixed(2)} – ${b.gmax.toFixed(2)}</div>
+          </div>
+          <div class="card" style="padding:1rem">
+            <div class="help">Grade Band</div>
+            <div style="font-weight:900; font-size:1.4rem">${b.grade}</div>
+          </div>
+        </div>
+        <p class="help" style="margin-top:.8rem">This is a band estimate. Colleges may use different conversion.</p>
+      `;
+    }
+  }
+
+  tnToast("Converted");
+}
+
+syncLabels();
+</script>
+
+</body>
+</html>

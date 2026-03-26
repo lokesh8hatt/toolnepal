@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Merge PDF Online Free – ToolNepal</title>
+  <meta name="description" content="Merge multiple PDF files into one. Free, fast, secure and works offline.">
+
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+
+<body>
+<div id="siteHeader"></div>
+
+<main class="main">
+  <div class="container">
+    <section class="split">
+
+      <div class="card">
+        <h1>Merge PDF</h1>
+        <p class="help">Combine multiple PDF files into a single PDF. No upload. Works in your browser.</p>
+
+        <div class="field">
+          <label>Select PDF files</label>
+          <input id="mergeFiles" class="input" type="file" accept="application/pdf" multiple title="Select one or more PDF files to merge">
+        </div>
+
+        <div class="row" style="margin-top:1rem">
+          <button class="btn btn-primary" onclick="mergePdf()">Merge PDF</button>
+          <button class="btn btn-secondary" onclick="resetMerge()">Reset</button>
+        </div>
+
+        <div id="mergeStatus" class="help" style="margin-top:1rem"></div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="ad">Sidebar Ad</div>
+      </aside>
+
+    </section>
+  </div>
+</main>
+
+<div id="siteFooter"></div>
+
+<div id="toast" class="toast"></div>
+
+<!-- PDF library -->
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+
+<script src="../../assets/js/main.js"></script>
+
+<script>
+async function mergePdf() {
+  const input = document.getElementById("mergeFiles");
+  const status = document.getElementById("mergeStatus");
+
+  if (!input.files.length) {
+    tnToast("Select PDF files first");
+    return;
+  }
+
+  status.textContent = "Merging PDFs...";
+
+  const mergedPdf = await PDFLib.PDFDocument.create();
+
+  for (const file of input.files) {
+    const bytes = await file.arrayBuffer();
+    const pdf = await PDFLib.PDFDocument.load(bytes);
+    const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+    pages.forEach(p => mergedPdf.addPage(p));
+  }
+
+  const mergedBytes = await mergedPdf.save();
+  const blob = new Blob([mergedBytes], { type: "application/pdf" });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "merged-toolnepal.pdf";
+  a.click();
+
+  URL.revokeObjectURL(url);
+  status.textContent = "Done!";
+  tnToast("PDF merged successfully");
+}
+
+function resetMerge() {
+  document.getElementById("mergeFiles").value = "";
+  document.getElementById("mergeStatus").textContent = "";
+}
+</script>
+</body>
+</html>

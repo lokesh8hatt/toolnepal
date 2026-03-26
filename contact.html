@@ -1,0 +1,43 @@
+<!doctype html><html lang='en'><head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact — ToolNepal</title>
+  <meta name="description" content="Contact ToolNepal for support or to request a new tool." />
+  <meta property="og:title" content="Contact — ToolNepal" />
+  <meta property="og:description" content="Contact ToolNepal for support or to request a new tool." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="#" />
+  <meta property="og:url" content="#" />
+  <link rel="canonical" href="#" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head><body>
+<div id='siteHeader'></div>
+<main id='main' class='main'><div class='container'>
+<div class='ad'><strong>Ad Placeholder</strong><small>Top Banner</small></div>
+<section class='card'><h1>Contact</h1><p class='help'>No backend needed. Uses mailto fallback.</p>
+<form id='contactForm' class='stack' novalidate>
+<div class='field'><label for='cName'>Name</label><input id='cName' class='input' required placeholder='Your name'></div>
+<div class='field'><label for='cEmail'>Email</label><input id='cEmail' class='input' type='email' required placeholder='you@example.com'></div>
+<div class='field'><label for='cMsg'>Message</label><textarea id='cMsg' class='input' rows='5' required placeholder='Your message'></textarea></div>
+<div class='row'><button class='btn btn-primary' type='submit'>Send</button><button class='btn btn-secondary' type='button' onclick='tnContactMailto()'>Mailto Fallback</button></div>
+</form></section>
+</div></main>
+<div id='siteFooter'></div>
+<div id='toast' class='toast' role='status' aria-live='polite'></div>
+<div id='modalBackdrop' class='modal-backdrop' aria-hidden='true'><div class='modal' role='dialog' aria-modal='true' aria-labelledby='modalTitle'><h3 id='modalTitle'>Success</h3><div id='modalBody' class='help'></div><div class='actions'><button class='btn btn-secondary' type='button' onclick='tnCloseModal()'>Close</button></div></div></div>
+<script src='assets/js/main.js'></script><script src='assets/js/analytics.js'></script>
+<script>
+function tnContactMailto(){
+  const name=document.getElementById('cName').value.trim();
+  const email=document.getElementById('cEmail').value.trim();
+  const msg=document.getElementById('cMsg').value.trim();
+  const subject=encodeURIComponent('ToolNepal Contact: '+(name||'User'));
+  const body=encodeURIComponent('Name: '+name+'\nEmail: '+email+'\n\nMessage:\n'+msg);
+  location.href='mailto:you@example.com?subject='+subject+'&body='+body;
+}
+document.getElementById('contactForm').addEventListener('submit',(e)=>{e.preventDefault();tnOpenModal('Ready to Send ✅','<p class="help">We will open your email app using mailto.</p>');tnContactMailto();});
+</script>
+</body></html>

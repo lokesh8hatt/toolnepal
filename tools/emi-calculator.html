@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EMI Calculator — ToolNepal</title>
+
+  <meta name="description" content="Calculate EMI for loans in Nepal. Monthly EMI, total interest, total payment, and amortization summary." />
+  <meta property="og:title" content="EMI Calculator — ToolNepal" />
+  <meta property="og:description" content="Calculate EMI for loans in Nepal. Monthly EMI, total interest, total payment, and amortization summary." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="#" />
+  <meta property="og:url" content="#" />
+  <link rel="canonical" href="#" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+
+<body>
+<div id="siteHeader"></div>
+
+<main class="main">
+  <div class="container">
+
+    <div class="ad"><strong>Ad Placeholder</strong><small>Top Banner</small></div>
+
+    <section class="split">
+
+      <div class="card">
+        <h1>EMI / Loan Calculator</h1>
+        <p class="help">Calculate monthly EMI, total interest, and total payment. Useful for bank loans, education loans, and bike/car loans.</p>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem">
+          <div class="field">
+            <label for="loanAmount">Loan Amount (NPR)</label>
+            <input id="loanAmount" class="input" type="number" min="0" step="1000" placeholder="e.g. 500000">
+          </div>
+
+          <div class="field">
+            <label for="annualRate">Annual Interest Rate (%)</label>
+            <input id="annualRate" class="input" type="number" min="0" step="0.01" placeholder="e.g. 12.5">
+          </div>
+
+          <div class="field">
+            <label for="tenureYears">Tenure (Years)</label>
+            <input id="tenureYears" class="input" type="number" min="0" step="1" placeholder="e.g. 5">
+          </div>
+
+          <div class="field">
+            <label for="tenureMonths">Tenure (Months)</label>
+            <input id="tenureMonths" class="input" type="number" min="0" step="1" placeholder="e.g. 0">
+            <div class="help">You can use Years OR Months or both.</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:1rem">
+          <button class="btn btn-primary" type="button" onclick="calcEmi()">Calculate</button>
+          <button class="btn btn-secondary" type="button" onclick="resetEmi()">Reset</button>
+        </div>
+
+        <div id="emiOut" class="card" style="margin-top:1rem; padding:1rem; display:none"></div>
+
+        <details class="card" style="margin-top:1rem; padding:1rem">
+          <summary style="cursor:pointer; font-weight:900">Show amortization (first 12 months)</summary>
+          <div id="emiTableWrap" style="margin-top:1rem; overflow:auto"></div>
+        </details>
+
+        <div class="ad" style="margin-top:1rem"><strong>Ad Placeholder</strong><small>In-content Ad</small></div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="ad"><strong>Ad Placeholder</strong><small>Sidebar</small></div>
+
+        <div class="card">
+          <h3>Formula</h3>
+          <p class="help">
+            EMI = P × r × (1+r)<sup>n</sup> / ((1+r)<sup>n</sup> − 1)
+          </p>
+          <p class="help">
+            P = principal, r = monthly rate, n = total months.
+          </p>
+        </div>
+      </aside>
+
+    </section>
+  </div>
+</main>
+
+<div id="siteFooter"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/analytics.js"></script>
+
+<script>
+function npr(x){
+  if (!isFinite(x)) return "—";
+  return "NPR " + x.toLocaleString(undefined, {maximumFractionDigits: 2});
+}
+
+function clamp(n, min, max){
+  n = Number(n);
+  return Math.min(max, Math.max(min, n));
+}
+
+function calcEmi(){
+  const P = Number(document.getElementById("loanAmount").value);
+  const annual = Number(document.getElementById("annualRate").value);
+
+  const y = Number(document.getElementById("tenureYears").value || 0);
+  const m = Number(document.getElementById("tenureMonths").value || 0);
+  const n = Math.round(y * 12 + m);
+
+  const out = document.getElementById("emiOut");
+  const tableWrap = document.getElementById("emiTableWrap");
+
+  if (!(P > 0)) { tnToast("Enter loan amount"); return; }
+  if (!(annual > 0)) { tnToast("Enter interest rate"); return; }
+  if (!(n > 0)) { tnToast("Enter tenure"); return; }
+
+  const r = (annual / 100) / 12; // monthly rate
+
+  // EMI formula
+  const pow = Math.pow(1 + r, n);
+  const EMI = (P * r * pow) / (pow - 1);
+
+  // Totals
+  const totalPayment = EMI * n;
+  const totalInterest = totalPayment - P;
+
+  out.style.display = "block";
+  out.innerHTML = `
+    <div style="font-weight:900; font-size:1.1rem">Result</div>
+    <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:.8rem">
+      <div class="card" style="padding:1rem">
+        <div class="help">Monthly EMI</div>
+        <div style="font-weight:900; font-size:1.5rem">${npr(EMI)}</div>
+      </div>
+      <div class="card" style="padding:1rem">
+        <div class="help">Total Payment</div>
+        <div style="font-weight:900; font-size:1.5rem">${npr(totalPayment)}</div>
+      </div>
+      <div class="card" style="padding:1rem">
+        <div class="help">Total Interest</div>
+        <div style="font-weight:900; font-size:1.5rem">${npr(totalInterest)}</div>
+      </div>
+      <div class="card" style="padding:1rem">
+        <div class="help">Tenure</div>
+        <div style="font-weight:900; font-size:1.5rem">${n} months</div>
+      </div>
+    </div>
+    <div class="help" style="margin-top:.8rem">
+      Monthly rate: <b>${(r*100).toFixed(4)}%</b>
+    </div>
+  `;
+
+  // Amortization table (first 12 months)
+  const rows = [];
+  let balance = P;
+
+  const limit = Math.min(12, n);
+  for(let i=1;i<=limit;i++){
+    const interest = balance * r;
+    const principal = EMI - interest;
+    balance = Math.max(0, balance - principal);
+
+    rows.push({
+      month: i,
+      emi: EMI,
+      interest,
+      principal,
+      balance
+    });
+  }
+
+  tableWrap.innerHTML = `
+    <table style="width:100%; border-collapse:collapse">
+      <thead>
+        <tr>
+          <th style="text-align:left; padding:.6rem; border-bottom:1px solid var(--border)">Month</th>
+          <th style="text-align:right; padding:.6rem; border-bottom:1px solid var(--border)">EMI</th>
+          <th style="text-align:right; padding:.6rem; border-bottom:1px solid var(--border)">Interest</th>
+          <th style="text-align:right; padding:.6rem; border-bottom:1px solid var(--border)">Principal</th>
+          <th style="text-align:right; padding:.6rem; border-bottom:1px solid var(--border)">Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td style="padding:.6rem; border-bottom:1px solid var(--border)">${r.month}</td>
+            <td style="padding:.6rem; text-align:right; border-bottom:1px solid var(--border)">${npr(r.emi)}</td>
+            <td style="padding:.6rem; text-align:right; border-bottom:1px solid var(--border)">${npr(r.interest)}</td>
+            <td style="padding:.6rem; text-align:right; border-bottom:1px solid var(--border)">${npr(r.principal)}</td>
+            <td style="padding:.6rem; text-align:right; border-bottom:1px solid var(--border)">${npr(r.balance)}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    <div class="help" style="margin-top:.8rem">
+      Showing first ${limit} months only.
+    </div>
+  `;
+
+  tnToast("Calculated", "EMI ready");
+}
+
+function resetEmi(){
+  document.getElementById("loanAmount").value = "";
+  document.getElementById("annualRate").value = "";
+  document.getElementById("tenureYears").value = "";
+  document.getElementById("tenureMonths").value = "";
+  const out = document.getElementById("emiOut");
+  out.style.display = "none";
+  out.innerHTML = "";
+  document.getElementById("emiTableWrap").innerHTML = "";
+  tnToast("Reset done");
+}
+</script>
+
+</body>
+</html>

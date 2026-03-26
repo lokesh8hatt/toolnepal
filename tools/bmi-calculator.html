@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>BMI Calculator — Body Mass Index | ToolNepal</title>
+  <meta name="description" content="Free online BMI (Body Mass Index) calculator. Check your BMI and see if your weight is in the healthy range."/>
+  <link rel="canonical" href="https://toolnepal.com/tools/bmi-calculator.html"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    .bmi-gauge{width:100%;height:12px;border-radius:999px;background:#e5e7eb;margin:1.5rem 0 .5rem;position:relative;display:flex;overflow:hidden}
+    html[data-theme="dark"] .bmi-gauge{background:#1f2937}
+    .bmi-seg{height:100%}
+    .bmi-seg-1{width:18.5%;background:#3b82f6} /* Underweight < 18.5 */
+    .bmi-seg-2{width:6.5%;background:#22c55e}  /* Normal 18.5 - 24.9 */
+    .bmi-seg-3{width:5%;background:#eab308}    /* Overweight 25 - 29.9 */
+    .bmi-seg-4{width:70%;background:#ef4444}   /* Obese > 30 */
+    .bmi-marker{position:absolute;top:-6px;bottom:-6px;width:4px;background:var(--text);border-radius:2px;transform:translateX(-50%);transition:left .3s;box-shadow:0 0 0 2px var(--bg)}
+    .bmi-labels{display:flex;justify-content:space-between;font-size:.78rem;font-weight:800;color:var(--muted)}
+    .bmi-result-box{text-align:center;padding:1.5rem;border-radius:var(--radius);border:2px solid transparent;background:var(--panel);margin-top:1.5rem;transition:var(--t)}
+    .bmi-val{font-size:2.8rem;font-weight:900;line-height:1}
+    .bmi-cat{font-size:1.2rem;font-weight:800;margin-top:.4rem;text-transform:uppercase;letter-spacing:.05em}
+    .bmi-ideal{font-size:.9rem;font-weight:700;color:var(--muted);margin-top:.75rem}
+    /* Dynamic colors */
+    .cat-under{border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.05)} .cat-under .bmi-val,.cat-under .bmi-cat{color:#3b82f6}
+    .cat-norm{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.05)}  .cat-norm .bmi-val,.cat-norm .bmi-cat{color:#22c55e}
+    .cat-over{border-color:rgba(234,179,8,.3);background:rgba(234,179,8,.05)}  .cat-over .bmi-val,.cat-over .bmi-cat{color:#eab308}
+    .cat-obese{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05)} .cat-obese .bmi-val,.cat-obese .bmi-cat{color:#ef4444}
+    .uc-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+  </style>
+</head>
+<body>
+<div id="siteHeader"></div>
+<main id="main" class="main">
+  <div class="container">
+    <div class="ad"><strong>Ad Placeholder</strong><small>Top Banner</small></div>
+    <section class="split" style="margin-top:1.6rem">
+      <div class="stack">
+        <section class="card animate-fade">
+          <span class="badge" style="margin-bottom:.6rem">Health</span>
+          <h1>BMI Calculator</h1>
+          <p class="help" style="margin-bottom:1.5rem">Calculate your Body Mass Index to see if you're at a healthy weight.</p>
+
+          <div style="display:flex;gap:1.5rem;margin-bottom:1rem">
+            <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer"><input type="radio" name="bsys" value="metric" checked onchange="toggleSys()"/> Metric (cm / kg)</label>
+            <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer"><input type="radio" name="bsys" value="imperial" onchange="toggleSys()"/> Imperial (ft / lb)</label>
+          </div>
+
+          <div class="uc-row" id="grpMetric">
+            <div class="field"><label>Height (cm)</label><input id="bCm" type="number" class="input" value="170" oninput="calcBmi()"/></div>
+            <div class="field"><label>Weight (kg)</label><input id="bKg" type="number" class="input" value="65" oninput="calcBmi()"/></div>
+          </div>
+          
+          <div class="uc-row" id="grpImp" style="display:none">
+            <div class="field">
+              <label>Height (ft & in)</label>
+              <div style="display:flex;gap:.5rem">
+                <input id="bFt" type="number" class="input" placeholder="ft" oninput="calcBmi()"/>
+                <input id="bIn" type="number" class="input" placeholder="in" oninput="calcBmi()"/>
+              </div>
+            </div>
+            <div class="field"><label>Weight (lbs)</label><input id="bLb" type="number" class="input" oninput="calcBmi()"/></div>
+          </div>
+
+          <div class="bmi-result-box" id="bBox">
+            <div class="bmi-val" id="bVal">0.0</div>
+            <div class="bmi-cat" id="bCat">—</div>
+            <div class="bmi-gauge">
+              <div class="bmi-seg bmi-seg-1"></div>
+              <div class="bmi-seg bmi-seg-2"></div>
+              <div class="bmi-seg bmi-seg-3"></div>
+              <div class="bmi-seg bmi-seg-4"></div>
+              <div class="bmi-marker" id="bMark" style="left:0%"></div>
+            </div>
+            <div class="bmi-labels"><span>15</span><span>18.5</span><span>25</span><span>30</span><span>40+</span></div>
+            <div class="bmi-ideal" id="bIdeal">Enter details to see healthy weight range.</div>
+          </div>
+        </section>
+        <div class="ad"><strong>Ad Placeholder</strong><small>In-content</small></div>
+      </div>
+      <aside class="sidebar">
+        <div class="card">
+          <h3 style="margin-bottom:.75rem">BMI Categories</h3>
+          <div style="display:flex;flex-direction:column;gap:.45rem;font-size:.88rem;font-weight:700">
+            <div style="display:flex;justify-content:space-between"><span style="color:#3b82f6">Underweight</span><span>< 18.5</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:#22c55e">Normal weight</span><span>18.5 – 24.9</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:#eab308">Overweight</span><span>25 – 29.9</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:#ef4444">Obesity</span><span>≥ 30</span></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </div>
+</main>
+<div id="siteFooter"></div>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/analytics.js"></script>
+<script>
+function toggleSys(){
+  const isM = document.querySelector('input[name="bsys"]:checked').value==='metric';
+  document.getElementById('grpMetric').style.display = isM?'grid':'none';
+  document.getElementById('grpImp').style.display = isM?'none':'grid';
+  if(isM){
+    const lb = parseFloat(document.getElementById('bLb').value);
+    const ft = parseFloat(document.getElementById('bFt').value)||0;
+    const inc = parseFloat(document.getElementById('bIn').value)||0;
+    if(lb) document.getElementById('bKg').value = (lb*0.453592).toFixed(1);
+    const totIn = (ft*12)+inc;
+    if(totIn) document.getElementById('bCm').value = (totIn*2.54).toFixed(1);
+  }else{
+    const kg = parseFloat(document.getElementById('bKg').value);
+    const cm = parseFloat(document.getElementById('bCm').value);
+    if(kg) document.getElementById('bLb').value = (kg*2.20462).toFixed(1);
+    if(cm) {
+      const totIn = cm/2.54;
+      document.getElementById('bFt').value = Math.floor(totIn/12);
+      document.getElementById('bIn').value = Math.round(totIn%12*10)/10;
+    }
+  }
+  calcBmi();
+}
+
+function calcBmi(){
+  const isM = document.querySelector('input[name="bsys"]:checked').value==='metric';
+  let w, h;
+  if(isM){
+    w = parseFloat(document.getElementById('bKg').value);
+    h = parseFloat(document.getElementById('bCm').value)/100;
+  }else{
+    w = parseFloat(document.getElementById('bLb').value)*0.453592;
+    const ft = parseFloat(document.getElementById('bFt').value)||0;
+    const inc = parseFloat(document.getElementById('bIn').value)||0;
+    h = ((ft*12)+inc)*0.0254;
+  }
+  
+  if(!w || !h || w<=0 || h<=0){ setRes(0,0,'—','cat-norm', 'Enter valid height and weight'); return; }
+  
+  const bmi = w/(h*h);
+  let cls = 'cat-obese', cat = 'Obese';
+  if(bmi<18.5) { cls='cat-under'; cat='Underweight'; }
+  else if(bmi<25) { cls='cat-norm'; cat='Normal weight'; }
+  else if(bmi<30) { cls='cat-over'; cat='Overweight'; }
+  
+  // gauge 15 to 40+ (span 25 units)
+  let pct = ((Math.max(15, Math.min(bmi, 40)) - 15) / 25) * 100;
+  
+  const minW = 18.5*(h*h);
+  const maxW = 24.9*(h*h);
+  let ideal = '';
+  if(isM) ideal = `Healthy weight range: ${minW.toFixed(1)} - ${maxW.toFixed(1)} kg`;
+  else ideal = `Healthy weight range: ${(minW*2.20462).toFixed(1)} - ${(maxW*2.20462).toFixed(1)} lbs`;
+  
+  setRes(bmi, pct, cat, cls, ideal);
+}
+
+function setRes(val, pct, cat, cls, ideal) {
+  const box = document.getElementById('bBox');
+  document.getElementById('bVal').textContent = val ? val.toFixed(1) : '0.0';
+  document.getElementById('bCat').textContent = cat;
+  document.getElementById('bMark').style.left = pct + '%';
+  document.getElementById('bIdeal').textContent = ideal;
+  box.className = 'bmi-result-box ' + cls;
+}
+calcBmi();
+</script>
+</body>
+</html>

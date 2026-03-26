@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Unit Converter — Length, Weight, Temperature & More | ToolNepal</title>
+  <meta name="description" content="Free online unit converter. Convert length, weight, temperature, area, volume, speed and data units instantly."/>
+  <meta property="og:title" content="Unit Converter — ToolNepal"/>
+  <meta property="og:type" content="website"/>
+  <link rel="canonical" href="https://toolnepal.com/tools/unit-converter.html"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    .cat-pills{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.25rem}
+    .cat-pill{padding:.4rem .9rem;border-radius:999px;border:1px solid var(--border);font-size:.85rem;font-weight:800;cursor:pointer;background:transparent;color:var(--muted);transition:var(--t)}
+    .cat-pill.active{background:var(--red-500);color:#fff;border-color:var(--red-500)}
+    .uc-row{display:grid;grid-template-columns:1fr auto 1fr;gap:.75rem;align-items:end;margin-bottom:.75rem}
+    .swap-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:rgba(17,24,39,.04);cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:var(--t);flex-shrink:0;margin-bottom:2px}
+    .swap-btn:hover{background:var(--red-500);color:#fff;border-color:var(--red-500)}
+    html[data-theme="dark"] .swap-btn{background:rgba(238,243,255,.06)}
+    .result-band{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.6rem;margin-top:1rem}
+    .res-chip{border-radius:var(--radius-sm);border:1px solid var(--border);padding:.7rem 1rem}
+    .res-chip-val{font-size:1.05rem;font-weight:800;color:var(--red-500)}
+    .res-chip-label{font-size:.78rem;color:var(--muted);font-weight:700}
+  </style>
+</head>
+<body>
+<div id="siteHeader"></div>
+<main id="main" class="main">
+  <div class="container">
+    <div class="ad"><strong>Ad Placeholder</strong><small>Top Banner</small></div>
+    <section class="split" style="margin-top:1.6rem">
+      <div class="stack">
+        <section class="card animate-fade">
+          <span class="badge" style="margin-bottom:.6rem">Daily</span>
+          <h1>Unit Converter</h1>
+          <p class="help" style="margin-bottom:1rem">Convert any unit — length, weight, temperature, area, volume, speed, data.</p>
+
+          <!-- Category pills -->
+          <div class="cat-pills" id="catPills"></div>
+
+          <!-- From/To -->
+          <div class="uc-row">
+            <div class="field">
+              <label for="ucFrom">From</label>
+              <select id="ucFrom" class="input" onchange="ucConvert()"></select>
+            </div>
+            <button class="swap-btn" onclick="ucSwap()" title="Swap units">⇄</button>
+            <div class="field">
+              <label for="ucTo">To</label>
+              <select id="ucTo" class="input" onchange="ucConvert()"></select>
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom:.75rem">
+            <label for="ucInput">Value</label>
+            <input id="ucInput" class="input" type="number" value="1" oninput="ucConvert()" placeholder="Enter value..."/>
+          </div>
+
+          <div class="result" id="ucResult">
+            <div class="help">Result</div>
+            <div style="font-size:1.7rem;font-weight:800;margin:.3rem 0" id="ucMain">—</div>
+            <div class="help" id="ucFormula">—</div>
+          </div>
+
+          <!-- All conversions band -->
+          <div class="result-band" id="ucBand"></div>
+        </section>
+        <div class="ad"><strong>Ad Placeholder</strong><small>In-content</small></div>
+      </div>
+      <aside class="sidebar">
+        <div class="card">
+          <h3 style="margin-bottom:.75rem">Categories</h3>
+          <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.9rem;font-weight:700;color:var(--muted)">
+            <div>📏 Length</div><div>⚖️ Weight</div><div>🌡️ Temperature</div>
+            <div>📐 Area</div><div>🧪 Volume</div><div>💨 Speed</div><div>💾 Data</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:.5rem">Tip</h3>
+          <p style="color:var(--muted);font-weight:700;font-size:.88rem;margin:0">Tap ⇄ to quickly swap the from/to units.</p>
+        </div>
+      </aside>
+    </section>
+  </div>
+</main>
+<div id="siteFooter"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">Info</h3><div id="modalBody" class="help"></div>
+    <div class="actions"><button class="btn btn-secondary" onclick="tnCloseModal()">Close</button></div>
+  </div>
+</div>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/analytics.js"></script>
+<script>
+const CATS = {
+  '📏 Length': {
+    base: 'meter',
+    units: {
+      'Meter (m)':        { key:'meter',       factor:1 },
+      'Kilometer (km)':   { key:'km',          factor:1000 },
+      'Centimeter (cm)':  { key:'cm',          factor:0.01 },
+      'Millimeter (mm)':  { key:'mm',          factor:0.001 },
+      'Mile':             { key:'mile',        factor:1609.344 },
+      'Yard':             { key:'yard',        factor:0.9144 },
+      'Foot (ft)':        { key:'foot',        factor:0.3048 },
+      'Inch (in)':        { key:'inch',        factor:0.0254 },
+      'Nautical Mile':    { key:'nmile',       factor:1852 },
+    }
+  },
+  '⚖️ Weight': {
+    base: 'gram',
+    units: {
+      'Gram (g)':         { key:'gram',        factor:1 },
+      'Kilogram (kg)':    { key:'kg',          factor:1000 },
+      'Milligram (mg)':   { key:'mg',          factor:0.001 },
+      'Metric Ton (t)':   { key:'ton',         factor:1e6 },
+      'Pound (lb)':       { key:'pound',       factor:453.592 },
+      'Ounce (oz)':       { key:'oz',          factor:28.3495 },
+      'Tola (Nepal)':     { key:'tola',        factor:11.6638 },
+    }
+  },
+  '🌡️ Temperature': {
+    base: 'C', special: true,
+    units: { 'Celsius (°C)':{key:'C'}, 'Fahrenheit (°F)':{key:'F'}, 'Kelvin (K)':{key:'K'} }
+  },
+  '📐 Area': {
+    base: 'sqm',
+    units: {
+      'Sq Meter (m²)':   { key:'sqm',   factor:1 },
+      'Sq Kilometer':    { key:'sqkm',  factor:1e6 },
+      'Sq Foot':         { key:'sqft',  factor:0.092903 },
+      'Sq Yard':         { key:'sqyd',  factor:0.836127 },
+      'Acre':            { key:'acre',  factor:4046.86 },
+      'Hectare':         { key:'ha',    factor:10000 },
+      'Ropani (Nepal)':  { key:'ropani',factor:508.72 },
+      'Anna (Nepal)':    { key:'anna',  factor:31.795 },
+    }
+  },
+  '🧪 Volume': {
+    base: 'liter',
+    units: {
+      'Liter (L)':       { key:'liter', factor:1 },
+      'Milliliter (mL)': { key:'ml',    factor:0.001 },
+      'Cubic Meter':     { key:'cbm',   factor:1000 },
+      'Gallon (US)':     { key:'gal',   factor:3.78541 },
+      'Fluid Oz (US)':   { key:'floz',  factor:0.0295735 },
+      'Cup (US)':        { key:'cup',   factor:0.236588 },
+      'Pint (US)':       { key:'pint',  factor:0.473176 },
+    }
+  },
+  '💨 Speed': {
+    base: 'mps',
+    units: {
+      'm/s':             { key:'mps',   factor:1 },
+      'km/h':            { key:'kmh',   factor:1/3.6 },
+      'mph':             { key:'mph',   factor:0.44704 },
+      'Knot':            { key:'knot',  factor:0.514444 },
+      'Mach':            { key:'mach',  factor:343 },
+    }
+  },
+  '💾 Data': {
+    base: 'byte',
+    units: {
+      'Byte (B)':        { key:'byte',  factor:1 },
+      'Kilobyte (KB)':   { key:'kb',    factor:1024 },
+      'Megabyte (MB)':   { key:'mb',    factor:1048576 },
+      'Gigabyte (GB)':   { key:'gb',    factor:1073741824 },
+      'Terabyte (TB)':   { key:'tb',    factor:1.0995e12 },
+      'Bit':             { key:'bit',   factor:0.125 },
+      'Kilobit (Kb)':    { key:'kbit',  factor:128 },
+      'Megabit (Mb)':    { key:'mbit',  factor:131072 },
+    }
+  },
+};
+
+let currentCat = '📏 Length';
+
+function buildPills() {
+  const c = document.getElementById('catPills');
+  c.innerHTML = Object.keys(CATS).map(k =>
+    `<button class="cat-pill${k===currentCat?' active':''}" onclick="selectCat('${k}')">${k}</button>`
+  ).join('');
+}
+
+function buildSelects() {
+  const cat = CATS[currentCat];
+  const keys = Object.keys(cat.units);
+  const opts = keys.map(k => `<option value="${k}">${k}</option>`).join('');
+  document.getElementById('ucFrom').innerHTML = opts;
+  document.getElementById('ucTo').innerHTML = opts;
+  document.getElementById('ucTo').selectedIndex = 1;
+}
+
+function selectCat(k) {
+  currentCat = k;
+  buildPills();
+  buildSelects();
+  ucConvert();
+}
+
+function toBase(val, unitName) {
+  const cat = CATS[currentCat];
+  const u = cat.units[unitName];
+  if (cat.special) {
+    if (u.key==='C') return val;
+    if (u.key==='F') return (val - 32) * 5/9;
+    if (u.key==='K') return val - 273.15;
+  }
+  return val * u.factor;
+}
+
+function fromBase(base, unitName) {
+  const cat = CATS[currentCat];
+  const u = cat.units[unitName];
+  if (cat.special) {
+    if (u.key==='C') return base;
+    if (u.key==='F') return base * 9/5 + 32;
+    if (u.key==='K') return base + 273.15;
+  }
+  return base / u.factor;
+}
+
+function ucConvert() {
+  const input = parseFloat(document.getElementById('ucInput').value);
+  if (isNaN(input)) { document.getElementById('ucMain').textContent = '—'; return; }
+  const fromName = document.getElementById('ucFrom').value;
+  const toName   = document.getElementById('ucTo').value;
+  const base = toBase(input, fromName);
+  const result = fromBase(base, toName);
+  const fmt = n => Math.abs(n) < 1e-6 || Math.abs(n) > 1e9 ? n.toExponential(4) : parseFloat(n.toPrecision(7)).toString();
+  document.getElementById('ucMain').textContent = `${fmt(result)} ${toName.split('(')[0].trim()}`;
+  document.getElementById('ucFormula').textContent = `${input} ${fromName} = ${fmt(result)} ${toName}`;
+
+  // band: all units
+  const cat = CATS[currentCat];
+  const band = document.getElementById('ucBand');
+  band.innerHTML = Object.keys(cat.units).map(name => {
+    const v = fromBase(base, name);
+    return `<div class="res-chip"><div class="res-chip-val">${fmt(v)}</div><div class="res-chip-label">${name}</div></div>`;
+  }).join('');
+}
+
+function ucSwap() {
+  const f = document.getElementById('ucFrom');
+  const t = document.getElementById('ucTo');
+  const tmp = f.value; f.value = t.value; t.value = tmp;
+  ucConvert();
+}
+
+buildPills(); buildSelects(); ucConvert();
+</script>
+</body>
+</html>

@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Watermark Remover — ToolNepal</title>
+  <meta name="description" content="Remove watermarks from images for free. Paint over the watermark area and our smart fill tool inpaints it using surrounding pixels. 100% local, no uploads." />
+  <meta property="og:title" content="Watermark Remover — ToolNepal" />
+  <meta property="og:description" content="Remove watermarks from images for free. Paint over the watermark area and our smart fill tool inpaints it using surrounding pixels. 100% local, no uploads." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://toolnepal.com/assets/img/og-image.jpg" />
+  <meta property="og:url" content="https://toolnepal.com/tools/watermark-remover.html" />
+  <link rel="canonical" href="https://toolnepal.com/tools/watermark-remover.html" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <style>
+    /* ── Tool-specific Styles ── */
+    #wmCanvasWrap {
+      position: relative;
+      width: 100%;
+      margin-top: 1rem;
+      border-radius: var(--radius);
+      border: 2px dashed var(--border);
+      background: repeating-conic-gradient(rgba(17,24,39,.06) 0% 25%, transparent 0% 50%) 0 0 / 20px 20px;
+      overflow: hidden;
+      min-height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color .2s;
+      cursor: crosshair;
+    }
+    #wmCanvasWrap.drag-over {
+      border-color: var(--red-500);
+      background-color: rgba(211,47,47,.06);
+    }
+    #wmDropPrompt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .75rem;
+      color: var(--muted);
+      padding: 2rem;
+      pointer-events: none;
+      text-align: center;
+    }
+    #wmDropPrompt svg { opacity: .45; }
+    #wmCanvas {
+      display: none;
+      max-width: 100%;
+      cursor: crosshair;
+      touch-action: none;
+      border-radius: var(--radius-sm);
+    }
+    /* Brush cursor indicator */
+    #wmBrushCursor {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid rgba(211,47,47,.85);
+      background: rgba(211,47,47,.18);
+      pointer-events: none;
+      display: none;
+      transform: translate(-50%, -50%);
+      transition: width .1s, height .1s;
+    }
+    /* Controls strip */
+    .wm-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem 1.25rem;
+      align-items: center;
+      margin-top: 1rem;
+      padding: 1rem var(--s4);
+      border-radius: var(--radius);
+      background: rgba(17,24,39,.03);
+      border: 1px solid var(--border);
+    }
+    html[data-theme="dark"] .wm-controls { background: rgba(238,243,255,.04); }
+    .wm-control-item { display: flex; flex-direction: column; gap: .3rem; font-size: .9rem; font-weight: 700; }
+    .wm-control-item input[type="range"] { accent-color: var(--red-500); width: 120px; }
+    .wm-control-item span { color: var(--muted); font-weight: 800; font-size: .85rem; }
+    /* Status bar */
+    #wmStatus {
+      margin-top: .75rem;
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--muted);
+      min-height: 1.4em;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    #wmStatus .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+    }
+    #wmStatus.ready .dot { background: #22c55e; }
+    #wmStatus.working .dot {
+      background: var(--red-500);
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    /* Stats */
+    .wm-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .75rem;
+      margin-top: .75rem;
+    }
+    .wm-stat {
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      padding: .75rem 1rem;
+      text-align: center;
+    }
+    .wm-stat-val { font-size: 1.35rem; font-weight: 800; color: var(--red-500); }
+    .wm-stat-label { font-size: .8rem; color: var(--muted); font-weight: 700; }
+    /* Mode toggle pills */
+    .mode-pills {
+      display: inline-flex;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(17,24,39,.04);
+      overflow: hidden;
+    }
+    html[data-theme="dark"] .mode-pills { background: rgba(238,243,255,.06); }
+    .mode-pill {
+      padding: .42rem .9rem;
+      font-size: .88rem;
+      font-weight: 800;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      transition: var(--t);
+    }
+    .mode-pill.active {
+      background: var(--red-500);
+      color: #fff;
+    }
+    /* Sidebar tip cards */
+    .tip-card {
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(211,47,47,.22);
+      background: radial-gradient(600px 200px at 20% 0%, rgba(211,47,47,.08), transparent 60%);
+      padding: .9rem 1rem;
+      font-size: .88rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .tip-card strong { color: var(--text); display: block; margin-bottom: .3rem; }
+    /* Upload btn overlay */
+    #wmFileLabel {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .7rem 1.3rem;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--red-500), var(--red-700));
+      color: #fff;
+      font-weight: 900;
+      cursor: pointer;
+      transition: var(--t);
+      box-shadow: 0 8px 20px rgba(211,47,47,.25);
+      pointer-events: auto;
+    }
+    #wmFileLabel:hover { box-shadow: 0 12px 28px rgba(211,47,47,.38); }
+    #wmFile { display: none; }
+  </style>
+</head>
+
+<body>
+  <div id="siteHeader"></div>
+
+  <main id="main" class="main">
+    <div class="container">
+
+      <div class="ad"><strong>Ad Placeholder</strong><small>Top Banner</small></div>
+
+      <section class="split" style="margin-top:1.6rem">
+        <div class="stack">
+
+          <!-- Main Card -->
+          <section class="card animate-fade">
+            <span class="badge" style="margin-bottom:.6rem">Images</span>
+            <h1>Watermark Remover</h1>
+            <p class="help" style="margin-bottom:1rem">
+              Paint over the watermark with our smart brush. The tool intelligently fills the area using surrounding pixel patterns — 100% local, nothing uploaded.
+            </p>
+
+            <!-- Mode pills -->
+            <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:.5rem">
+              <span style="font-weight:800;font-size:.9rem">Mode:</span>
+              <div class="mode-pills">
+                <button id="modePaint" class="mode-pill active" onclick="wmSetMode('paint')">🖌️ Paint</button>
+                <button id="modeErase" class="mode-pill" onclick="wmSetMode('erase')">⬜ Erase Mask</button>
+              </div>
+            </div>
+
+            <!-- Canvas wrapper -->
+            <div id="wmCanvasWrap">
+              <div id="wmDropPrompt">
+                <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="3"/>
+                  <path d="M3 9l4-4 4 4 4-4 4 4"/>
+                  <path d="M3 15l4 4 4-4 4 4 4-4"/>
+                </svg>
+                <p style="font-size:1rem;font-weight:800;margin:0">Drop image here or</p>
+                <label id="wmFileLabel" for="wmFile">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Choose Image
+                </label>
+                <input id="wmFile" type="file" accept="image/*" onchange="wmLoadFile(this)" />
+                <small style="font-size:.82rem">JPG, PNG, WEBP — processed locally</small>
+              </div>
+              <canvas id="wmCanvas"></canvas>
+              <div id="wmBrushCursor"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="wm-controls" id="wmControls" style="display:none">
+              <div class="wm-control-item">
+                <label for="wmBrushSize" style="font-size:.85rem">Brush Size</label>
+                <input id="wmBrushSize" type="range" min="5" max="120" value="30" oninput="wmUpdateBrush()">
+                <span id="wmBrushVal">30 px</span>
+              </div>
+              <div class="wm-control-item">
+                <label for="wmStrength" style="font-size:.85rem">Fill Strength</label>
+                <input id="wmStrength" type="range" min="1" max="10" value="5" oninput="document.getElementById('wmStrVal').textContent=this.value">
+                <span id="wmStrVal">5</span>
+              </div>
+              <div class="wm-control-item">
+                <label for="wmRadius" style="font-size:.85rem">Sample Radius</label>
+                <input id="wmRadius" type="range" min="2" max="20" value="8" oninput="document.getElementById('wmRadVal').textContent=this.value+'px'">
+                <span id="wmRadVal">8 px</span>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="row" style="margin-top:1rem" id="wmActions" style="display:none">
+              <button id="wmRemoveBtn" class="btn btn-primary" type="button" onclick="wmRemoveWatermark()" style="display:none">
+                ✨ Remove Watermark
+              </button>
+              <button id="wmUndoBtn" class="btn btn-secondary" type="button" onclick="wmUndo()" style="display:none">
+                ↩ Undo
+              </button>
+              <button id="wmResetBtn" class="btn btn-ghost" type="button" onclick="wmReset()" style="display:none">
+                🗑 Reset
+              </button>
+              <button id="wmDownloadBtn" class="btn btn-secondary" type="button" onclick="wmDownload()" style="display:none">
+                ⬇ Download
+              </button>
+              <label class="btn btn-ghost" for="wmFile" style="cursor:pointer" id="wmChangeBtn">
+                📁 Change Image
+              </label>
+            </div>
+
+            <!-- Status -->
+            <div id="wmStatus">
+              <span class="dot"></span>
+              <span id="wmStatusText">Upload an image to start.</span>
+            </div>
+
+            <!-- Stats -->
+            <div class="wm-stats" id="wmStats" style="display:none">
+              <div class="wm-stat">
+                <div class="wm-stat-val" id="statW">—</div>
+                <div class="wm-stat-label">Width (px)</div>
+              </div>
+              <div class="wm-stat">
+                <div class="wm-stat-val" id="statH">—</div>
+                <div class="wm-stat-label">Height (px)</div>
+              </div>
+              <div class="wm-stat">
+                <div class="wm-stat-val" id="statPainted">0</div>
+                <div class="wm-stat-label">Pixels Masked</div>
+              </div>
+            </div>
+          </section>
+
+          <div class="ad"><strong>Ad Placeholder</strong><small>In-content Ad</small></div>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+          <div class="card">
+            <h3 style="margin-bottom:.75rem">How It Works</h3>
+            <ol style="padding-left:1.2rem;color:var(--muted);font-weight:700;display:flex;flex-direction:column;gap:.55rem;font-size:.9rem">
+              <li>Upload any image (JPG, PNG, WEBP)</li>
+              <li>Paint over the watermark area with the brush</li>
+              <li>Click <strong style="color:var(--text)">Remove Watermark</strong></li>
+              <li>Download the cleaned image</li>
+            </ol>
+          </div>
+
+          <div class="tip-card">
+            <strong>💡 Best Results</strong>
+            Use a slightly larger brush than the watermark. The tool samples surrounding pixels so works best on textured backgrounds.
+          </div>
+
+          <div class="tip-card">
+            <strong>🔒 100% Private</strong>
+            Your image never leaves your device. All processing happens in your browser using the Canvas API.
+          </div>
+
+          <div class="tip-card">
+            <strong>🎨 Multiple Passes</strong>
+            For stubborn watermarks, run Remove Watermark 2–3 times on the same area for a smoother blend.
+          </div>
+
+          <div class="card">
+            <h3 style="margin-bottom:.75rem">Keyboard Shortcuts</h3>
+            <div style="display:flex;flex-direction:column;gap:.45rem;font-size:.88rem;font-weight:700;color:var(--muted)">
+              <div style="display:flex;justify-content:space-between"><span>Undo</span><kbd style="background:rgba(17,24,39,.08);padding:.15rem .5rem;border-radius:6px;color:var(--text)">Ctrl+Z</kbd></div>
+              <div style="display:flex;justify-content:space-between"><span>Download</span><kbd style="background:rgba(17,24,39,.08);padding:.15rem .5rem;border-radius:6px;color:var(--text)">Ctrl+S</kbd></div>
+              <div style="display:flex;justify-content:space-between"><span>Clear Mask</span><kbd style="background:rgba(17,24,39,.08);padding:.15rem .5rem;border-radius:6px;color:var(--text)">Escape</kbd></div>
+              <div style="display:flex;justify-content:space-between"><span>[ / ] Brush</span><kbd style="background:rgba(17,24,39,.08);padding:.15rem .5rem;border-radius:6px;color:var(--text)">[ ]</kbd></div>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+    </div>
+  </main>
+
+  <div id="siteFooter"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">Info</h3>
+      <div id="modalBody" class="help"></div>
+      <div class="actions">
+        <button class="btn btn-secondary" type="button" onclick="tnCloseModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/analytics.js"></script>
+
+  <script>
+  /* ═══════════════════════════════════════════════════════════
+     Watermark Remover — Core Logic
+     Strategy: Weighted exemplar-based inpainting
+       1. User paints a mask over the watermark area
+       2. On removal, for each masked pixel we sample from
+          an expanding ring of nearby non-masked pixels,
+          weighted by inverse distance (similar to Telea method)
+       3. Multiple passes improve quality
+  ═══════════════════════════════════════════════════════════ */
+
+  const wmState = {
+    img: null,         // original HTMLImageElement
+    origData: null,    // original ImageData (for undo stack)
+    maskCtx: null,     // offscreen mask canvas context
+    workCtx: null,     // offscreen working image context
+    dispCtx: null,     // display canvas context
+    dispCanvas: null,
+    maskCanvas: null,
+    workCanvas: null,
+    naturalW: 0,
+    naturalH: 0,
+    scaleX: 1,
+    scaleY: 1,
+    painting: false,
+    mode: 'paint',     // 'paint' | 'erase'
+    brushSize: 30,
+    undoStack: [],
+    fileName: 'image.png',
+    paintedPixels: 0,
+  };
+
+  /* ─── DOM helpers ─── */
+  const $ = id => document.getElementById(id);
+
+  function wmShow(ids) { ids.forEach(id => { const el=$(id); if(el) el.style.display=''; }); }
+  function wmHide(ids) { ids.forEach(id => { const el=$(id); if(el) el.style.display='none'; }); }
+
+  function wmSetStatus(msg, state='') {
+    const s = $('wmStatus');
+    s.className = 'wmStatus ' + state;
+    $('wmStatusText').textContent = msg;
+  }
+
+  function wmUpdatePaintedStat() {
+    if (!wmState.maskCtx) return;
+    const d = wmState.maskCtx.getImageData(0, 0, wmState.naturalW, wmState.naturalH).data;
+    let c = 0;
+    for (let i = 3; i < d.length; i += 4) if (d[i] > 128) c++;
+    wmState.paintedPixels = c;
+    $('statPainted').textContent = c > 999 ? (c/1000).toFixed(1)+'k' : c;
+  }
+
+  /* ─── Mode ─── */
+  function wmSetMode(m) {
+    wmState.mode = m;
+    $('modePaint').classList.toggle('active', m === 'paint');
+    $('modeErase').classList.toggle('active', m === 'erase');
+  }
+
+  /* ─── Load image ─── */
+  function wmLoadFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    wmState.fileName = file.name.replace(/\.[^.]+$/, '') + '_no_watermark.png';
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => wmInitCanvas(img);
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function wmInitCanvas(img) {
+    wmState.img = img;
+    const W = img.naturalWidth;
+    const H = img.naturalHeight;
+    wmState.naturalW = W;
+    wmState.naturalH = H;
+
+    /* Display canvas */
+    const dc = $('wmCanvas');
+    dc.width = W; dc.height = H;
+    wmState.dispCanvas = dc;
+    wmState.dispCtx = dc.getContext('2d');
+
+    /* Offscreen work canvas (holds current pixels) */
+    wmState.workCanvas = document.createElement('canvas');
+    wmState.workCanvas.width = W; wmState.workCanvas.height = H;
+    wmState.workCtx = wmState.workCanvas.getContext('2d');
+    wmState.workCtx.drawImage(img, 0, 0);
+
+    /* Offscreen mask canvas (alpha = painted) */
+    wmState.maskCanvas = document.createElement('canvas');
+    wmState.maskCanvas.width = W; wmState.maskCanvas.height = H;
+    wmState.maskCtx = wmState.maskCanvas.getContext('2d');
+    wmState.maskCtx.clearRect(0, 0, W, H);
+
+    /* Save original pixels for undo */
+    wmState.origData = wmState.workCtx.getImageData(0, 0, W, H);
+    wmState.undoStack = [];
+
+    wmRenderDisplay();
+    wmAfterLoad(W, H);
+  }
+
+  function wmAfterLoad(W, H) {
+    $('wmCanvas').style.display = 'block';
+    $('wmDropPrompt').style.display = 'none';
+    $('wmControls').style.display = '';
+    $('wmStats').style.display = '';
+    wmShow(['wmRemoveBtn','wmUndoBtn','wmResetBtn','wmDownloadBtn','wmChangeBtn']);
+    $('statW').textContent = W;
+    $('statH').textContent = H;
+    $('statPainted').textContent = '0';
+    wmSetStatus('Ready — paint over the watermark, then click Remove.', 'ready');
+  }
+
+  /* ─── Render display (composite image + mask overlay) ─── */
+  function wmRenderDisplay() {
+    const { dispCtx, workCanvas, maskCtx, naturalW: W, naturalH: H } = wmState;
+    dispCtx.clearRect(0, 0, W, H);
+    dispCtx.drawImage(workCanvas, 0, 0);
+
+    /* Draw mask overlay in semi-transparent red */
+    const maskData = maskCtx.getImageData(0, 0, W, H);
+    const d = maskData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i+3] > 128) {
+        d[i]   = 211;
+        d[i+1] = 47;
+        d[i+2] = 47;
+        d[i+3] = 110;
+      }
+    }
+    dispCtx.putImageData(maskData, 0, 0);
+  }
+
+  /* ─── Brush drawing ─── */
+  function wmGetCanvasXY(e) {
+    const rect = wmState.dispCanvas.getBoundingClientRect();
+    const touch = e.touches ? e.touches[0] : e;
+    wmState.scaleX = wmState.naturalW / rect.width;
+    wmState.scaleY = wmState.naturalH / rect.height;
+    return {
+      x: (touch.clientX - rect.left) * wmState.scaleX,
+      y: (touch.clientY - rect.top)  * wmState.scaleY,
+      cx: touch.clientX - rect.left,
+      cy: touch.clientY - rect.top,
+    };
+  }
+
+  function wmPaint(e) {
+    if (!wmState.painting || !wmState.maskCtx) return;
+    const { x, y } = wmGetCanvasXY(e);
+    const r = wmState.brushSize / 2;
+    const mc = wmState.maskCtx;
+
+    if (wmState.mode === 'erase') {
+      mc.globalCompositeOperation = 'destination-out';
+      mc.fillStyle = 'rgba(0,0,0,1)';
+    } else {
+      mc.globalCompositeOperation = 'source-over';
+      mc.fillStyle = 'rgba(255,255,255,1)';
+    }
+    mc.beginPath();
+    mc.arc(x, y, r, 0, Math.PI * 2);
+    mc.fill();
+    mc.globalCompositeOperation = 'source-over';
+
+    wmRenderDisplay();
+    wmUpdatePaintedStat();
+  }
+
+  /* Brush cursor */
+  function wmMoveCursor(e) {
+    const wrap = $('wmCanvasWrap');
+    const cursor = $('wmBrushCursor');
+    if (!wmState.img) { cursor.style.display='none'; return; }
+    const rect = wmState.dispCanvas.getBoundingClientRect();
+    const touch = e.touches ? e.touches[0] : e;
+    const cx = touch.clientX - rect.left;
+    const cy = touch.clientY - rect.top;
+    const dispSize = wmState.brushSize / wmState.scaleX * (rect.width / wmState.naturalW);
+    if (cx < 0 || cy < 0 || cx > rect.width || cy > rect.height) {
+      cursor.style.display = 'none'; return;
+    }
+    cursor.style.display = 'block';
+    cursor.style.width  = dispSize + 'px';
+    cursor.style.height = dispSize + 'px';
+    cursor.style.left = cx + 'px';
+    cursor.style.top  = cy + 'px';
+  }
+
+  /* ─── Canvas event listeners ─── */
+  function wmBindEvents() {
+    const dc = $('wmCanvas');
+    const wrap = $('wmCanvasWrap');
+
+    dc.addEventListener('mousedown', e => { wmState.painting=true; wmPaint(e); });
+    dc.addEventListener('mousemove', e => { wmMoveCursor(e); wmPaint(e); });
+    dc.addEventListener('mouseup',   () => { wmState.painting=false; });
+    dc.addEventListener('mouseleave',() => { wmState.painting=false; $('wmBrushCursor').style.display='none'; });
+    dc.addEventListener('touchstart', e => { e.preventDefault(); wmState.painting=true; wmPaint(e); }, {passive:false});
+    dc.addEventListener('touchmove',  e => { e.preventDefault(); wmMoveCursor(e); wmPaint(e); }, {passive:false});
+    dc.addEventListener('touchend',   () => { wmState.painting=false; });
+
+    /* Drag & drop */
+    wrap.addEventListener('dragover', e => { e.preventDefault(); wrap.classList.add('drag-over'); });
+    wrap.addEventListener('dragleave', () => wrap.classList.remove('drag-over'));
+    wrap.addEventListener('drop', e => {
+      e.preventDefault();
+      wrap.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        wmState.fileName = file.name.replace(/\.[^.]+$/, '') + '_no_watermark.png';
+        const reader = new FileReader();
+        reader.onload = ev => { const img=new Image(); img.onload=()=>wmInitCanvas(img); img.src=ev.target.result; };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+  wmBindEvents();
+
+  /* ─── Brush size control ─── */
+  function wmUpdateBrush() {
+    wmState.brushSize = parseInt($('wmBrushSize').value);
+    $('wmBrushVal').textContent = wmState.brushSize + ' px';
+  }
+
+  /* ─── Core inpainting algorithm ─── */
+  /* Weighted exemplar / radial sweep — pure JS, no WASM needed */
+  function wmRemoveWatermark() {
+    if (!wmState.maskCtx) { tnToast('Please load an image first.'); return; }
+
+    wmSetStatus('Processing… please wait.', 'working');
+    $('wmRemoveBtn').disabled = true;
+
+    // Push current state to undo stack
+    const snap = wmState.workCtx.getImageData(0, 0, wmState.naturalW, wmState.naturalH);
+    wmState.undoStack.push(snap);
+    if (wmState.undoStack.length > 8) wmState.undoStack.shift();
+
+    // Run after a tiny delay so the status renders
+    setTimeout(() => {
+      try {
+        wmInpaint();
+        wmSetStatus('Done! Mask cleared — paint again or download.', 'ready');
+        tnToast('Watermark removed! ✨');
+        // Clear mask after removal
+        wmState.maskCtx.clearRect(0, 0, wmState.naturalW, wmState.naturalH);
+        wmRenderDisplay();
+        wmUpdatePaintedStat();
+      } catch(err) {
+        wmSetStatus('Error: ' + err.message, '');
+        tnToast('Processing failed. Try a smaller area.');
+        console.error(err);
+      }
+      $('wmRemoveBtn').disabled = false;
+    }, 30);
+  }
+
+  function wmInpaint() {
+    const W = wmState.naturalW;
+    const H = wmState.naturalH;
+    const passes = parseInt($('wmStrength').value);
+    const sampleR = parseInt($('wmRadius').value);
+
+    const maskData = wmState.maskCtx.getImageData(0, 0, W, H).data;
+    const imgData  = wmState.workCtx.getImageData(0, 0, W, H);
+    const px = imgData.data;
+
+    /* Build boolean mask array */
+    const isMasked = new Uint8Array(W * H);
+    for (let i = 0; i < W*H; i++) isMasked[i] = maskData[i*4+3] > 128 ? 1 : 0;
+
+    /* Run multiple diffusion passes */
+    for (let pass = 0; pass < passes; pass++) {
+      const updated = new Float32Array(px.length);
+      const weight  = new Float32Array(W * H);
+
+      for (let py = 0; py < H; py++) {
+        for (let qx = 0; qx < W; qx++) {
+          const idx = py * W + qx;
+          if (!isMasked[idx]) continue;
+
+          let sumR=0, sumG=0, sumB=0, sumW=0;
+          let found = false;
+
+          /* Expand search radius until we find enough samples */
+          for (let r = 1; r <= sampleR && !found; r++) {
+            for (let dy = -r; dy <= r; dy++) {
+              for (let dx = -r; dx <= r; dx++) {
+                if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue; // ring only
+                const nx = qx + dx, ny = py + dy;
+                if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+                const ni = ny * W + nx;
+                if (isMasked[ni]) continue;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const w = 1 / (dist * dist + 1e-4);
+                const pi4 = ni * 4;
+                sumR += px[pi4] * w;
+                sumG += px[pi4+1] * w;
+                sumB += px[pi4+2] * w;
+                sumW += w;
+                found = true;
+              }
+            }
+          }
+
+          if (sumW > 0) {
+            const pi4 = idx * 4;
+            updated[pi4]   = sumR / sumW;
+            updated[pi4+1] = sumG / sumW;
+            updated[pi4+2] = sumB / sumW;
+            updated[pi4+3] = 255;
+            weight[idx] = sumW;
+          }
+        }
+      }
+
+      /* Apply updates */
+      for (let i = 0; i < W*H; i++) {
+        if (isMasked[i] && weight[i] > 0) {
+          const pi4 = i * 4;
+          px[pi4]   = Math.round(updated[pi4]);
+          px[pi4+1] = Math.round(updated[pi4+1]);
+          px[pi4+2] = Math.round(updated[pi4+2]);
+          px[pi4+3] = 255;
+        }
+      }
+    }
+
+    wmState.workCtx.putImageData(imgData, 0, 0);
+    wmRenderDisplay();
+  }
+
+  /* ─── Undo ─── */
+  function wmUndo() {
+    if (wmState.undoStack.length === 0) { tnToast('Nothing to undo.'); return; }
+    const prev = wmState.undoStack.pop();
+    wmState.workCtx.putImageData(prev, 0, 0);
+    wmRenderDisplay();
+    wmSetStatus('Undone. You can undo ' + wmState.undoStack.length + ' more time(s).', 'ready');
+    tnToast('Undo successful.');
+  }
+
+  /* ─── Reset ─── */
+  function wmReset() {
+    if (!wmState.origData) return;
+    wmState.workCtx.putImageData(wmState.origData, 0, 0);
+    wmState.maskCtx.clearRect(0, 0, wmState.naturalW, wmState.naturalH);
+    wmState.undoStack = [];
+    wmRenderDisplay();
+    wmUpdatePaintedStat();
+    wmSetStatus('Reset to original image.', 'ready');
+    tnToast('Reset to original.');
+  }
+
+  /* ─── Download ─── */
+  function wmDownload() {
+    if (!wmState.workCtx) { tnToast('Load an image first.'); return; }
+    // Export the work canvas (without the red overlay)
+    const a = document.createElement('a');
+    a.href = wmState.workCanvas.toDataURL('image/png');
+    a.download = wmState.fileName;
+    a.click();
+    tnToast('Image downloaded!');
+  }
+
+  /* ─── Keyboard shortcuts ─── */
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'z' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); wmUndo(); }
+    if (e.key === 's' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); wmDownload(); }
+    if (e.key === 'Escape') { if(wmState.maskCtx) { wmState.maskCtx.clearRect(0,0,wmState.naturalW,wmState.naturalH); wmRenderDisplay(); wmUpdatePaintedStat(); tnToast('Mask cleared.'); } }
+    if (e.key === '[') { const s=$('wmBrushSize'); s.value=Math.max(5,+s.value-5); wmUpdateBrush(); }
+    if (e.key === ']') { const s=$('wmBrushSize'); s.value=Math.min(120,+s.value+5); wmUpdateBrush(); }
+  });
+  </script>
+</body>
+</html>

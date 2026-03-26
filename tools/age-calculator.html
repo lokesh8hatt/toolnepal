@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Age Calculator — ToolNepal</title>
+
+  <meta name="description" content="Calculate exact age in years, months, days, and total days. Free age calculator for Nepal." />
+  <meta property="og:title" content="Age Calculator — ToolNepal" />
+  <meta property="og:description" content="Calculate exact age in years, months, days, and total days. Free age calculator for Nepal." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="#" />
+  <meta property="og:url" content="#" />
+  <link rel="canonical" href="#" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+
+<body>
+<div id="siteHeader"></div>
+
+<main class="main">
+  <div class="container">
+
+    <div class="ad"><strong>Ad Placeholder</strong><small>Top Banner</small></div>
+
+    <section class="split">
+
+      <div class="card">
+        <h1>Age Calculator</h1>
+        <p class="help">Get exact age in years, months, days. Useful for forms, passport, license, banking, and KYC.</p>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem">
+          <div class="field">
+            <label for="dob">Date of Birth</label>
+            <input id="dob" class="input" type="date">
+          </div>
+
+          <div class="field">
+            <label for="asof">As of Date</label>
+            <input id="asof" class="input" type="date">
+            <div class="help">Default: today</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:1rem">
+          <button class="btn btn-primary" type="button" onclick="calcAge()">Calculate</button>
+          <button class="btn btn-secondary" type="button" onclick="resetAge()">Reset</button>
+        </div>
+
+        <div id="ageOut" class="card" style="margin-top:1rem; padding:1rem; display:none"></div>
+
+        <div class="ad" style="margin-top:1rem"><strong>Ad Placeholder</strong><small>In-content Ad</small></div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="ad"><strong>Ad Placeholder</strong><small>Sidebar</small></div>
+
+        <div class="card">
+          <h3>FAQ</h3>
+          <p class="help"><b>Does it work for Nepal forms?</b> Yes. It shows exact years, months, days.</p>
+          <p class="help"><b>Is it accurate?</b> Yes, based on calendar dates (not approximation).</p>
+        </div>
+      </aside>
+
+    </section>
+  </div>
+</main>
+
+<div id="siteFooter"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/analytics.js"></script>
+
+<script>
+function toDate(v){
+  const d = new Date(v);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function daysInMonth(y, m){ // m:0-11
+  return new Date(y, m+1, 0).getDate();
+}
+
+function diffYMD(from, to){
+  // Ensure from <= to
+  let start = new Date(from), end = new Date(to);
+  if (start > end) [start, end] = [end, start];
+
+  let y = end.getFullYear() - start.getFullYear();
+  let m = end.getMonth() - start.getMonth();
+  let d = end.getDate() - start.getDate();
+
+  if (d < 0) {
+    m -= 1;
+    const prevMonth = (end.getMonth() - 1 + 12) % 12;
+    const prevYear = prevMonth === 11 ? end.getFullYear() - 1 : end.getFullYear();
+    d += daysInMonth(prevYear, prevMonth);
+  }
+  if (m < 0) {
+    y -= 1;
+    m += 12;
+  }
+  return { y, m, d, start, end };
+}
+
+function fmtDate(d){
+  return d.toISOString().slice(0,10);
+}
+
+function calcAge(){
+  const dobEl = document.getElementById("dob");
+  const asofEl = document.getElementById("asof");
+  const out = document.getElementById("ageOut");
+
+  if(!dobEl.value){
+    tnToast("Select date of birth");
+    dobEl.focus();
+    return;
+  }
+
+  const dob = toDate(dobEl.value);
+  const asof = asofEl.value ? toDate(asofEl.value) : toDate(new Date());
+
+  const { y, m, d, start, end } = diffYMD(dob, asof);
+  const totalDays = Math.round((end - start) / (1000*60*60*24));
+
+  const direction = (dob <= asof) ? "" : " (DOB is after As-of date — swapped)";
+
+  out.style.display = "block";
+  out.innerHTML = `
+    <div style="font-weight:900; font-size:1.1rem">Result${direction}</div>
+    <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:.8rem">
+      <div class="card" style="padding:1rem">
+        <div class="help">Exact Age</div>
+        <div style="font-weight:900; font-size:1.4rem">${y} years ${m} months ${d} days</div>
+      </div>
+      <div class="card" style="padding:1rem">
+        <div class="help">Total Days</div>
+        <div style="font-weight:900; font-size:1.4rem">${totalDays.toLocaleString()} days</div>
+      </div>
+    </div>
+    <div class="help" style="margin-top:.8rem">
+      From <b>${fmtDate(start)}</b> to <b>${fmtDate(end)}</b>
+    </div>
+  `;
+
+  tnToast("Calculated");
+}
+
+function resetAge(){
+  document.getElementById("dob").value = "";
+  document.getElementById("asof").value = "";
+  const out = document.getElementById("ageOut");
+  out.style.display = "none";
+  out.innerHTML = "";
+  tnToast("Reset done");
+}
+
+// Default As-of date = today
+(function(){
+  const asofEl = document.getElementById("asof");
+  if(asofEl){
+    const t = new Date();
+    asofEl.value = t.toISOString().slice(0,10);
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VAT Calculator (Nepal) — ToolNepal</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+<div id="siteHeader"></div>
+<main id="main" class="main">
+  <div class="container">
+    <section class="split">
+      <div class="stack">
+        <div class="card">
+          <h1>VAT Calculator</h1>
+          <p class="help">Calculate 13% VAT quickly.</p>
+          <div class="field" style="margin-top: 1.5rem">
+            <label for="vatInput">Amount</label>
+            <input id="vatInput" class="input" type="number" placeholder="Enter amount">
+          </div>
+          <div class="field" style="margin-top: 1.2rem">
+            <label for="vatType">Calculation Type</label>
+            <select id="vatType" class="input">
+              <option value="add">Add VAT (Exclusive)</option>
+              <option value="remove">Remove VAT (Inclusive)</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" style="margin-top: 1.5rem" onclick="tnCalcVat()">Calculate</button>
+          
+          <div id="vatOutput" style="margin-top: 1.5rem"></div>
+        </div>
+      </div>
+      <aside class="sidebar">
+        <div class="card help">VAT in Nepal is fixed at 13%. Use this to easily find the taxable price or total billing price.</div>
+      </aside>
+    </section>
+  </div>
+</main>
+<div id="siteFooter"></div>
+<script src="../assets/js/main.js"></script>
+<script>
+  function tnCalcVat() {
+    const amt = parseFloat(document.getElementById("vatInput").value);
+    if (isNaN(amt) || amt < 0) return;
+    const type = document.getElementById("vatType").value;
+    const out = document.getElementById("vatOutput");
+    let base, vat, total;
+    
+    if (type === "add") {
+      base = amt;
+      vat = amt * 0.13;
+      total = amt + vat;
+    } else {
+      total = amt;
+      base = amt / 1.13;
+      vat = total - base;
+    }
+    
+    out.innerHTML = `
+      <div class="result">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:.5rem;margin-bottom:.5rem"><span>Base Amount:</span><strong>Rs. ${base.toFixed(2)}</strong></div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:.5rem;margin-bottom:.5rem;color:var(--red-600)"><span>VAT (13%):</span><strong>Rs. ${vat.toFixed(2)}</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:1.2rem"><span>Total:</span><strong>Rs. ${total.toFixed(2)}</strong></div>
+      </div>`;
+  }
+</script>
+</body>
+</html>

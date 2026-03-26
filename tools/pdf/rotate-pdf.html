@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rotate PDF Online Free – ToolNepal</title>
+  <meta name="description" content="Rotate PDF pages by 90/180/270 degrees. Free, fast, secure and works in your browser.">
+
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+
+<body>
+<div id="siteHeader"></div>
+
+<main class="main">
+  <div class="container">
+    <section class="split">
+
+      <!-- MAIN TOOL -->
+      <div class="card">
+        <h1>Rotate PDF</h1>
+        <p class="help">
+          Rotate PDF pages and download the new file. No upload — everything runs in your browser.
+        </p>
+
+        <div class="field">
+          <label>Select PDF file</label>
+          <input id="rotFile" class="input" type="file" accept="application/pdf">
+        </div>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem">
+          <div class="field">
+            <label>Rotate by</label>
+            <select id="rotDeg" class="input">
+              <option value="90">90° (Right)</option>
+              <option value="180">180°</option>
+              <option value="270">270° (Left)</option>
+            </select>
+            <div class="help">Tip: 90° rotates clockwise.</div>
+          </div>
+
+          <div class="field">
+            <label>Pages to rotate</label>
+            <input id="rotRange" class="input" placeholder="blank = all, e.g. 1-3,5,7">
+            <div class="help">Pages start from 1.</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:1rem">
+          <button class="btn btn-primary" type="button" onclick="rotatePdf()">Rotate PDF</button>
+          <button class="btn btn-secondary" type="button" onclick="resetRotate()">Reset</button>
+        </div>
+
+        <div id="rotStatus" class="help" style="margin-top:1rem"></div>
+
+        <div class="ad" style="margin-top:1rem"><strong>Ad Placeholder</strong><small>In-content Ad</small></div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="ad"><strong>Ad Placeholder</strong><small>Sidebar</small></div>
+
+        <div class="card">
+          <h3>Common Uses</h3>
+          <ul class="help" style="margin:0; padding-left:1.1rem">
+            <li>Fix scanned documents</li>
+            <li>Rotate sideways pages</li>
+            <li>Rotate only selected pages</li>
+          </ul>
+        </div>
+      </aside>
+
+    </section>
+  </div>
+</main>
+
+<div id="siteFooter"></div>
+<div id="toast" class="toast"></div>
+
+<!-- PDF library -->
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+<script src="../../assets/js/main.js"></script>
+
+<script>
+function parseRangeToIndexes(range, totalPages) {
+  if (!range || !range.trim()) {
+    // All pages
+    return Array.from({ length: totalPages }, (_, i) => i);
+  }
+
+  const pages = new Set();
+  range.split(",").forEach(part => {
+    part = part.trim();
+    if (!part) return;
+
+    if (part.includes("-")) {
+      const [a, b] = part.split("-").map(x => Number(x.trim()));
+      if (!a || !b) return;
+      for (let i = a; i <= b; i++) {
+        if (i >= 1 && i <= totalPages) pages.add(i - 1);
+      }
+    } else {
+      const p = Number(part);
+      if (p >= 1 && p <= totalPages) pages.add(p - 1);
+    }
+  });
+
+  return Array.from(pages).sort((x, y) => x - y);
+}
+
+async function rotatePdf() {
+  const input = document.getElementById("rotFile");
+  const deg = Number(document.getElementById("rotDeg").value || 90);
+  const range = document.getElementById("rotRange").value;
+  const status = document.getElementById("rotStatus");
+
+  if (!input.files.length) {
+    tnToast("Select a PDF file first");
+    return;
+  }
+
+  status.textContent = "Loading PDF...";
+
+  try {
+    const bytes = await input.files[0].arrayBuffer();
+    const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+    const total = pdfDoc.getPageCount();
+
+    const idxs = parseRangeToIndexes(range, total);
+    if (!idxs.length) {
+      tnToast("Invalid page range");
+      status.textContent = "";
+      return;
+    }
+
+    status.textContent = `Rotating ${idxs.length} page(s)...`;
+
+    // pdf-lib rotation is in degrees (must be multiples of 90)
+    idxs.forEach(i => {
+      const page = pdfDoc.getPage(i);
+      const current = page.getRotation().angle || 0;
+      page.setRotation(PDFLib.degrees((current + deg) % 360));
+    });
+
+    const outBytes = await pdfDoc.save();
+    const blob = new Blob([outBytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "rotated-toolnepal.pdf";
+    a.click();
+
+    URL.revokeObjectURL(url);
+    status.textContent = "Done ✅";
+    tnToast("PDF rotated", "Downloaded");
+
+  } catch (err) {
+    console.error(err);
+    tnToast("Failed to rotate PDF");
+    status.textContent = "";
+  }
+}
+
+function resetRotate() {
+  document.getElementById("rotFile").value = "";
+  document.getElementById("rotDeg").value = "90";
+  document.getElementById("rotRange").value = "";
+  document.getElementById("rotStatus").textContent = "";
+  tnToast("Reset done");
+}
+</script>
+
+</body>
+</html>

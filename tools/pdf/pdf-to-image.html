@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDF to Image Online Free – ToolNepal</title>
+  <meta name="description" content="Convert PDF pages to PNG images. Free, fast and secure. Works in your browser.">
+
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+
+<body>
+<div id="siteHeader"></div>
+
+<main class="main">
+  <div class="container">
+    <section class="split">
+
+      <!-- MAIN -->
+      <div class="card">
+        <h1>PDF to Image</h1>
+        <p class="help">
+          Convert PDF pages into PNG images. No upload. Works in your browser.
+        </p>
+
+        <div class="field">
+          <label>Select PDF file</label>
+          <input id="pdfImgFile" class="input" type="file" accept="application/pdf">
+        </div>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem">
+          <div class="field">
+            <label>Pages</label>
+            <input id="pdfImgRange" class="input" placeholder="e.g. 1-3,5 (blank = all)">
+            <div class="help">Pages start from 1.</div>
+          </div>
+
+          <div class="field">
+            <label>Quality (Scale)</label>
+            <select id="pdfImgScale" class="input">
+              <option value="1">Normal (1x)</option>
+              <option value="1.5" selected>High (1.5x)</option>
+              <option value="2">Very High (2x)</option>
+            </select>
+            <div class="help">Higher = clearer but slower.</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:1rem">
+          <button class="btn btn-primary" type="button" onclick="pdfToImages()">Convert</button>
+          <button class="btn btn-secondary" type="button" onclick="resetPdfToImages()">Reset</button>
+        </div>
+
+        <div id="pdfImgStatus" class="help" style="margin-top:1rem"></div>
+
+        <div id="pdfImgResults" class="grid grid-3" style="margin-top:1rem"></div>
+
+        <div class="ad" style="margin-top:1rem"><strong>Ad Placeholder</strong><small>In-content Ad</small></div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="ad"><strong>Ad Placeholder</strong><small>Sidebar</small></div>
+
+        <div class="card">
+          <h3>Tips</h3>
+          <ul class="help" style="margin:0; padding-left:1.1rem">
+            <li>Use 1.5x for good balance</li>
+            <li>Large PDFs may take time</li>
+            <li>Download each page image</li>
+          </ul>
+        </div>
+      </aside>
+
+    </section>
+  </div>
+</main>
+
+<div id="siteFooter"></div>
+<div id="toast" class="toast"></div>
+
+<script src="../../assets/js/main.js"></script>
+
+<!-- ✅ PDF.js (browser PDF renderer) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.js"></script>
+
+<script>
+  // Make PDF.js work without extra file paths
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js";
+
+  function parseRange(range, total) {
+    if (!range || !range.trim()) {
+      return Array.from({ length: total }, (_, i) => i + 1); // all pages 1..total
+    }
+    const out = new Set();
+    range.split(",").forEach(part => {
+      part = part.trim();
+      if (!part) return;
+      if (part.includes("-")) {
+        const [a, b] = part.split("-").map(x => Number(x.trim()));
+        if (!a || !b) return;
+        for (let i = a; i <= b; i++) if (i >= 1 && i <= total) out.add(i);
+      } else {
+        const p = Number(part);
+        if (p >= 1 && p <= total) out.add(p);
+      }
+    });
+    return Array.from(out).sort((x, y) => x - y);
+  }
+
+  function downloadDataUrl(dataUrl, filename) {
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  async function pdfToImages() {
+    const fileInput = document.getElementById("pdfImgFile");
+    const status = document.getElementById("pdfImgStatus");
+    const results = document.getElementById("pdfImgResults");
+    const scale = Number(document.getElementById("pdfImgScale").value || 1.5);
+
+    results.innerHTML = "";
+    status.textContent = "";
+
+    if (!fileInput.files.length) {
+      tnToast("Select a PDF file first");
+      return;
+    }
+
+    try {
+      status.textContent = "Loading PDF...";
+      const buf = await fileInput.files[0].arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      const totalPages = pdf.numPages;
+
+      const rangeText = document.getElementById("pdfImgRange").value;
+      const pages = parseRange(rangeText, totalPages);
+
+      if (!pages.length) {
+        tnToast("Invalid page range");
+        status.textContent = "";
+        return;
+      }
+
+      status.textContent = `Converting ${pages.length} page(s)...`;
+
+      for (let i = 0; i < pages.length; i++) {
+        const pageNo = pages[i];
+        status.textContent = `Rendering page ${pageNo} (${i + 1}/${pages.length})...`;
+
+        const page = await pdf.getPage(pageNo);
+        const viewport = page.getViewport({ scale });
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d", { alpha: false });
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+
+        await page.render({ canvasContext: ctx, viewport }).promise;
+
+        const dataUrl = canvas.toDataURL("image/png");
+        const fileName = `toolnepal-page-${pageNo}.png`;
+
+        // Show preview card
+        const card = document.createElement("div");
+        card.className = "card";
+        card.style.padding = "1rem";
+
+        card.innerHTML = `
+          <div style="font-weight:900;margin-bottom:.5rem">Page ${pageNo}</div>
+          <img src="${dataUrl}" alt="Page ${pageNo}" style="width:100%;border-radius:12px;border:1px solid var(--border)">
+          <div class="row" style="margin-top:.8rem">
+            <button class="btn btn-secondary" type="button">Download PNG</button>
+          </div>
+        `;
+
+        card.querySelector("button").addEventListener("click", () => {
+          downloadDataUrl(dataUrl, fileName);
+          tnToast("Downloaded", fileName);
+        });
+
+        results.appendChild(card);
+      }
+
+      status.textContent = "Done ✅";
+      tnToast("Converted", "Download images below");
+
+    } catch (err) {
+      console.error(err);
+      tnToast("Failed to convert PDF");
+      status.textContent = "";
+    }
+  }
+
+  function resetPdfToImages() {
+    document.getElementById("pdfImgFile").value = "";
+    document.getElementById("pdfImgRange").value = "";
+    document.getElementById("pdfImgScale").value = "1.5";
+    document.getElementById("pdfImgStatus").textContent = "";
+    document.getElementById("pdfImgResults").innerHTML = "";
+    tnToast("Reset done");
+  }
+</script>
+
+</body>
+</html>

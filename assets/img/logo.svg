@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="36" viewBox="0 0 140 36" fill="none">
+<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="36"><stop stop-color="#D32F2F"/><stop offset="1" stop-color="#B71C1C"/></linearGradient></defs>
+<rect x="0" y="4" width="34" height="28" rx="10" fill="url(#g)"/>
+<path d="M11 12h12v3h-9v11h-3V12z" fill="white"/>
+<circle cx="24.5" cy="15.5" r="1.5" fill="white" opacity=".9"/>
+<text x="42" y="24" font-family="Inter, Arial" font-size="18" font-weight="900" fill="#D32F2F">ToolNepal</text>
+</svg>

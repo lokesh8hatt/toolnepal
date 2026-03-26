@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDF to Word Converter Free – ToolNepal</title>
+  <meta name="description" content="Convert PDF to Word document (.docx) online for free. Preserves formatting, images, and text styles. Works in your browser.">
+
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <style>
+    .progress-bar { width:100%; height:8px; background:var(--border); border-radius:4px; overflow:hidden; margin-top:0.5rem; }
+    .progress-bar-fill { height:100%; background:linear-gradient(90deg,var(--red-500),var(--red-600)); transition:width 0.3s; }
+    .option-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem; }
+    @media(max-width:620px) { .option-grid { grid-template-columns:1fr; } }
+    .checkbox-field { display:flex; align-items:center; gap:0.5rem; }
+    .checkbox-field input[type="checkbox"] { width:18px; height:18px; accent-color:var(--red-500); }
+  </style>
+</head>
+
+<body>
+<div id="siteHeader"></div>
+
+<main class="main">
+  <div class="container">
+    <section class="split">
+
+      <div class="card">
+        <span class="badge">PDF Tools</span>
+        <h1>PDF to Word</h1>
+        <p class="help">Convert PDF files to editable Word documents (.docx) with formatting, images, and styles preserved.</p>
+
+        <div class="field" style="margin-top:1rem">
+          <label for="pdfFile">Select PDF file</label>
+          <input id="pdfFile" class="input" type="file" accept="application/pdf" title="Select a PDF file to convert">
+        </div>
+
+        <div class="option-grid">
+          <div class="checkbox-field">
+            <input type="checkbox" id="optImages" checked>
+            <label for="optImages">Extract images</label>
+          </div>
+          <div class="checkbox-field">
+            <input type="checkbox" id="optFormatting" checked>
+            <label for="optFormatting">Detect formatting</label>
+          </div>
+          <div class="checkbox-field">
+            <input type="checkbox" id="optHeadings" checked>
+            <label for="optHeadings">Auto-detect headings</label>
+          </div>
+          <div class="checkbox-field">
+            <input type="checkbox" id="optPageBreaks" checked>
+            <label for="optPageBreaks">Preserve page breaks</label>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:1.5rem">
+          <button class="btn btn-primary" id="convertBtn" onclick="convertPdfToWord()">Convert to Word</button>
+          <button class="btn btn-secondary" onclick="resetConverter()">Reset</button>
+        </div>
+
+        <div id="conversionStatus" style="margin-top:1rem"></div>
+
+        <div id="conversionResult" style="margin-top:1rem"></div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="card">
+          <h3>Features</h3>
+          <ul class="help" style="margin:0; padding-left:1.2rem;">
+            <li>Extracts text with formatting</li>
+            <li>Preserves bold, italic styles</li>
+            <li>Auto-detects headings</li>
+            <li>Extracts embedded images</li>
+            <li>Maintains paragraph structure</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Limitations</h3>
+          <p class="help">Scanned PDFs (images only) won't have extractable text. Complex tables and multi-column layouts may not convert perfectly.</p>
+        </div>
+        <div class="ad">Sidebar Ad</div>
+      </aside>
+
+    </section>
+  </div>
+</main>
+
+<div id="siteFooter"></div>
+
+<div id="toast" class="toast"></div>
+
+<div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">Success</h3>
+    <div id="modalBody" class="help"></div>
+    <div class="actions">
+      <button class="btn btn-secondary" type="button" onclick="tnCloseModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- PDF.js for reading PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<!-- docx.js for creating Word documents -->
+<script src="https://unpkg.com/docx@8.2.2/build/index.umd.js"></script>
+
+<script src="../../assets/js/main.js"></script>
+
+<script>
+// Set PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// Conversion state
+let isConverting = false;
+
+function updateProgress(percent, message) {
+  const status = document.getElementById("conversionStatus");
+  status.innerHTML = `
+    <div class="help"><strong>${message}</strong></div>
+    <div class="progress-bar"><div class="progress-bar-fill" style="width:${percent}%"></div></div>
+  `;
+}
+
+// Extract images from a PDF page
+async function extractImagesFromPage(page, pageNum) {
+  const images = [];
+  try {
+    const operatorList = await page.getOperatorList();
+    const commonObjs = page.commonObjs;
+    const objs = page.objs;
+    
+    for (let i = 0; i < operatorList.fnArray.length; i++) {
+      if (operatorList.fnArray[i] === pdfjsLib.OPS.paintImageXObject ||
+          operatorList.fnArray[i] === pdfjsLib.OPS.paintJpegXObject) {
+        const imgName = operatorList.argsArray[i][0];
+        try {
+          const imgData = await new Promise((resolve, reject) => {
+            const checkObj = (objStore) => {
+              if (objStore._objs && objStore._objs[imgName]) {
+                resolve(objStore._objs[imgName]);
+                return true;
+              }
+              return false;
+            };
+            if (!checkObj(objs) && !checkObj(commonObjs)) {
+              objs.get(imgName, resolve);
+            }
+          });
+          
+          if (imgData && imgData.data) {
+            // Convert image data to base64
+            const canvas = document.createElement('canvas');
+            canvas.width = imgData.width;
+            canvas.height = imgData.height;
+            const ctx = canvas.getContext('2d');
+            
+            const imgDataObj = ctx.createImageData(imgData.width, imgData.height);
+            
+            // Handle different image formats
+            if (imgData.data.length === imgData.width * imgData.height * 4) {
+              imgDataObj.data.set(imgData.data);
+            } else if (imgData.data.length === imgData.width * imgData.height * 3) {
+              // RGB to RGBA
+              for (let j = 0, k = 0; j < imgData.data.length; j += 3, k += 4) {
+                imgDataObj.data[k] = imgData.data[j];
+                imgDataObj.data[k + 1] = imgData.data[j + 1];
+                imgDataObj.data[k + 2] = imgData.data[j + 2];
+                imgDataObj.data[k + 3] = 255;
+              }
+            } else {
+              // Grayscale
+              for (let j = 0, k = 0; j < imgData.data.length; j++, k += 4) {
+                imgDataObj.data[k] = imgData.data[j];
+                imgDataObj.data[k + 1] = imgData.data[j];
+                imgDataObj.data[k + 2] = imgData.data[j];
+                imgDataObj.data[k + 3] = 255;
+              }
+            }
+            
+            ctx.putImageData(imgDataObj, 0, 0);
+            
+            const base64 = canvas.toDataURL('image/png').split(',')[1];
+            images.push({
+              data: base64,
+              width: imgData.width,
+              height: imgData.height,
+              pageNum: pageNum
+            });
+          }
+        } catch (e) {
+          // Skip problematic images
+          console.log('Could not extract image:', imgName);
+        }
+      }
+    }
+  } catch (e) {
+    console.log('Image extraction error:', e);
+  }
+  return images;
+}
+
+// Enhanced text extraction with formatting
+async function extractContentFromPdf(file, options) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  
+  const pages = [];
+  const totalPages = pdf.numPages;
+  
+  for (let i = 1; i <= totalPages; i++) {
+    updateProgress(Math.round((i / totalPages) * 50), `Extracting page ${i} of ${totalPages}...`);
+    
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const viewport = page.getViewport({ scale: 1 });
+    
+    // Extract images if enabled
+    let images = [];
+    if (options.extractImages) {
+      images = await extractImagesFromPage(page, i);
+    }
+    
+    // Process text items with formatting info
+    const textItems = [];
+    let maxFontSize = 0;
+    let minFontSize = Infinity;
+    let avgFontSize = 0;
+    let fontSizeSum = 0;
+    
+    content.items.forEach(item => {
+      if (item.str && item.str.trim()) {
+        const fontSize = Math.abs(item.transform[0]) || Math.abs(item.transform[3]) || 12;
+        fontSizeSum += fontSize;
+        maxFontSize = Math.max(maxFontSize, fontSize);
+        minFontSize = Math.min(minFontSize, fontSize);
+        
+        textItems.push({
+          str: item.str,
+          x: item.transform[4],
+          y: item.transform[5],
+          width: item.width,
+          height: item.height,
+          fontSize: fontSize,
+          fontName: item.fontName || '',
+          // Detect bold/italic from font name
+          isBold: /bold|black|heavy/i.test(item.fontName || ''),
+          isItalic: /italic|oblique/i.test(item.fontName || '')
+        });
+      }
+    });
+    
+    avgFontSize = textItems.length > 0 ? fontSizeSum / textItems.length : 12;
+    
+    // Group text items into lines by y-position
+    const lineThreshold = avgFontSize * 0.5;
+    const lines = [];
+    
+    // Sort by y (descending) then x (ascending)
+    textItems.sort((a, b) => {
+      const yDiff = b.y - a.y;
+      if (Math.abs(yDiff) > lineThreshold) return yDiff;
+      return a.x - b.x;
+    });
+    
+    let currentLine = null;
+    textItems.forEach(item => {
+      if (!currentLine || Math.abs(currentLine.y - item.y) > lineThreshold) {
+        currentLine = { y: item.y, items: [], fontSize: item.fontSize };
+        lines.push(currentLine);
+      }
+      currentLine.items.push(item);
+      currentLine.fontSize = Math.max(currentLine.fontSize, item.fontSize);
+    });
+    
+    // Sort items within each line by x position
+    lines.forEach(line => {
+      line.items.sort((a, b) => a.x - b.x);
+    });
+    
+    // Determine heading thresholds
+    const headingThreshold = avgFontSize * 1.3;
+    const subheadingThreshold = avgFontSize * 1.15;
+    
+    // Group lines into paragraphs
+    const paragraphs = [];
+    const paragraphGap = avgFontSize * 1.5;
+    
+    lines.forEach((line, idx) => {
+      const prevLine = lines[idx - 1];
+      const lineGap = prevLine ? prevLine.y - line.y : 0;
+      const isNewParagraph = !prevLine || lineGap > paragraphGap;
+      
+      // Determine if this line is a heading
+      let headingLevel = 0;
+      if (options.detectHeadings) {
+        if (line.fontSize >= headingThreshold) headingLevel = 1;
+        else if (line.fontSize >= subheadingThreshold) headingLevel = 2;
+      }
+      
+      // Build formatted text segments
+      const segments = [];
+      line.items.forEach((item, i) => {
+        const prevItem = line.items[i - 1];
+        const gap = prevItem ? item.x - (prevItem.x + prevItem.width) : 0;
+        
+        // Add space if there's a gap between items
+        if (gap > avgFontSize * 0.3 && segments.length > 0) {
+          segments.push({ text: ' ', isBold: false, isItalic: false });
+        }
+        
+        segments.push({
+          text: item.str,
+          isBold: options.detectFormatting ? item.isBold : false,
+          isItalic: options.detectFormatting ? item.isItalic : false
+        });
+      });
+      
+      if (isNewParagraph || headingLevel > 0) {
+        paragraphs.push({
+          segments: segments,
+          headingLevel: headingLevel,
+          fontSize: line.fontSize
+        });
+      } else if (paragraphs.length > 0) {
+        // Append to previous paragraph
+        const lastPara = paragraphs[paragraphs.length - 1];
+        lastPara.segments.push({ text: ' ', isBold: false, isItalic: false });
+        lastPara.segments.push(...segments);
+      } else {
+        paragraphs.push({
+          segments: segments,
+          headingLevel: 0,
+          fontSize: line.fontSize
+        });
+      }
+    });
+    
+    pages.push({
+      pageNum: i,
+      paragraphs: paragraphs,
+      images: images,
+      width: viewport.width,
+      height: viewport.height
+    });
+  }
+  
+  return pages;
+}
+
+// Create Word document with formatting
+async function createWordDocument(pages, filename, options) {
+  const { 
+    Document, Packer, Paragraph, TextRun, PageBreak, 
+    HeadingLevel, ImageRun, AlignmentType, convertInchesToTwip
+  } = docx;
+  
+  const children = [];
+  const totalPages = pages.length;
+  
+  for (let i = 0; i < pages.length; i++) {
+    const page = pages[i];
+    updateProgress(50 + Math.round(((i + 1) / totalPages) * 45), `Creating page ${i + 1} of ${totalPages}...`);
+    
+    // Add images at the start of each page
+    if (options.extractImages && page.images.length > 0) {
+      for (const img of page.images) {
+        try {
+          // Limit image size for Word document
+          const maxWidth = 500;
+          const maxHeight = 700;
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > maxWidth) {
+            height = Math.round(height * (maxWidth / width));
+            width = maxWidth;
+          }
+          if (height > maxHeight) {
+            width = Math.round(width * (maxHeight / height));
+            height = maxHeight;
+          }
+          
+          children.push(
+            new Paragraph({
+              children: [
+                new ImageRun({
+                  data: Uint8Array.from(atob(img.data), c => c.charCodeAt(0)),
+                  transformation: { width, height },
+                  type: 'png'
+                })
+              ],
+              spacing: { after: 200 }
+            })
+          );
+        } catch (e) {
+          console.log('Could not add image to document:', e);
+        }
+      }
+    }
+    
+    // Add paragraphs
+    for (const para of page.paragraphs) {
+      const textRuns = para.segments.map(seg => 
+        new TextRun({
+          text: seg.text,
+          bold: seg.isBold,
+          italics: seg.isItalic,
+          size: para.headingLevel === 1 ? 32 : para.headingLevel === 2 ? 28 : 24
+        })
+      );
+      
+      const paragraphOptions = {
+        children: textRuns,
+        spacing: { after: para.headingLevel > 0 ? 240 : 120 }
+      };
+      
+      if (para.headingLevel === 1) {
+        paragraphOptions.heading = HeadingLevel.HEADING_1;
+      } else if (para.headingLevel === 2) {
+        paragraphOptions.heading = HeadingLevel.HEADING_2;
+      }
+      
+      children.push(new Paragraph(paragraphOptions));
+    }
+    
+    // Add page break between pages (except last)
+    if (options.preservePageBreaks && i < pages.length - 1) {
+      children.push(
+        new Paragraph({
+          children: [new PageBreak()]
+        })
+      );
+    }
+  }
+  
+  const doc = new Document({
+    sections: [{
+      properties: {},
+      children: children
+    }]
+  });
+  
+  return await Packer.toBlob(doc);
+}
+
+async function convertPdfToWord() {
+  if (isConverting) return;
+  
+  const input = document.getElementById("pdfFile");
+  const status = document.getElementById("conversionStatus");
+  const result = document.getElementById("conversionResult");
+  const convertBtn = document.getElementById("convertBtn");
+  
+  if (!input.files || !input.files[0]) {
+    tnToast("Select a PDF file first");
+    return;
+  }
+  
+  const file = input.files[0];
+  
+  if (!file.type.includes("pdf")) {
+    tnToast("Please select a valid PDF file");
+    return;
+  }
+  
+  // Get options
+  const options = {
+    extractImages: document.getElementById("optImages").checked,
+    detectFormatting: document.getElementById("optFormatting").checked,
+    detectHeadings: document.getElementById("optHeadings").checked,
+    preservePageBreaks: document.getElementById("optPageBreaks").checked
+  };
+  
+  isConverting = true;
+  convertBtn.disabled = true;
+  convertBtn.textContent = "Converting...";
+  result.innerHTML = '';
+  
+  try {
+    updateProgress(5, 'Starting conversion...');
+    
+    const pages = await extractContentFromPdf(file, options);
+    
+    // Check if any text was extracted
+    const hasText = pages.some(p => p.paragraphs.length > 0);
+    const hasImages = pages.some(p => p.images.length > 0);
+    
+    if (!hasText && !hasImages) {
+      status.innerHTML = '<div class="result" style="border-color:var(--red-500)"><span style="color:var(--red-600)">⚠️ No extractable content found.</span><p class="help">This PDF might be scanned or contain only vector graphics.</p></div>';
+      tnToast("No content found", "PDF may be scanned");
+      return;
+    }
+    
+    updateProgress(50, 'Creating Word document...');
+    
+    const originalName = file.name.replace(/\.pdf$/i, '');
+    const blob = await createWordDocument(pages, originalName, options);
+    
+    updateProgress(100, 'Done!');
+    
+    // Calculate stats
+    const totalChars = pages.reduce((sum, p) => 
+      sum + p.paragraphs.reduce((s, para) => 
+        s + para.segments.reduce((c, seg) => c + seg.text.length, 0), 0), 0);
+    const totalImages = pages.reduce((sum, p) => sum + p.images.length, 0);
+    const totalParagraphs = pages.reduce((sum, p) => sum + p.paragraphs.length, 0);
+    
+    // Create download link
+    const url = URL.createObjectURL(blob);
+    
+    result.innerHTML = `
+      <div class="result">
+        <strong>✅ Conversion complete!</strong>
+        <div class="help" style="margin-top:0.5rem">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+            <div>Pages: <b>${pages.length}</b></div>
+            <div>Paragraphs: <b>${totalParagraphs.toLocaleString()}</b></div>
+            <div>Characters: <b>${totalChars.toLocaleString()}</b></div>
+            <div>Images: <b>${totalImages}</b></div>
+          </div>
+        </div>
+        <a id="downloadLink" class="btn btn-primary" href="${url}" download="${originalName}.docx" style="margin-top:1rem;display:inline-flex">
+          Download Word Document
+        </a>
+      </div>
+    `;
+    
+    status.innerHTML = '';
+    tnToast("Conversion successful", "Ready to download");
+    tnOpenModal("Conversion Complete ✅", `<p class='help'>Your Word document is ready with <b>${totalParagraphs}</b> paragraphs and <b>${totalImages}</b> images. Click <b>Download</b> to save it.</p>`);
+    
+  } catch (error) {
+    console.error("Conversion error:", error);
+    status.innerHTML = `<div class="result" style="border-color:var(--red-500)"><span style="color:var(--red-600)">❌ Error: ${error.message || 'Failed to convert PDF'}</span></div>`;
+    tnToast("Conversion failed", "See error above");
+  } finally {
+    isConverting = false;
+    convertBtn.disabled = false;
+    convertBtn.textContent = "Convert to Word";
+  }
+}
+
+function resetConverter() {
+  if (isConverting) return;
+  document.getElementById("pdfFile").value = "";
+  document.getElementById("conversionStatus").innerHTML = "";
+  document.getElementById("conversionResult").innerHTML = "";
+  // Reset options to default
+  document.getElementById("optImages").checked = true;
+  document.getElementById("optFormatting").checked = true;
+  document.getElementById("optHeadings").checked = true;
+  document.getElementById("optPageBreaks").checked = true;
+  tnToast("Reset complete");
+}
+</script>
+</body>
+</html>

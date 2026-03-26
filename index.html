@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang='en'>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ToolNepal — Fast Free Online Tools for Nepal</title>
+  <meta name="description"
+    content="Premium, mobile-first tools for Nepal: CGPA, percentage, word counter, password generator, image compressor and QR generator." />
+  <meta property="og:title" content="ToolNepal — Fast Free Online Tools for Nepal" />
+  <meta property="og:description"
+    content="Premium, mobile-first tools for Nepal: CGPA, percentage, word counter, password generator, image compressor and QR generator." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://toolnepal.com/assets/img/og-image.jpg" />
+  <meta property="og:url" content="https://toolnepal.com/" />
+  <link rel="canonical" href="https://toolnepal.com/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+
+<body>
+  <div id='siteHeader'></div>
+  <main id='main' class='main'>
+    <div class='container'>
+      <div class='ad'><strong>Ad Placeholder</strong><small>Top Banner (responsive)</small></div>
+      <section class='hero'>
+        <div class='card'>
+          <span class='badge'>Automatic Traffic • SEO Tools</span>
+          <h1>Next‑level tools built for Nepal 🇳🇵</h1>
+          <p class='help'>Fast loading. Clean SaaS UI. Works on mobile. Runs fully in your browser (no uploads).</p>
+          <div class='row' style='margin-top:1rem'>
+            <a class='btn btn-primary' href='tools.html'>Explore Tools</a>
+            <a class='btn btn-secondary' href='tools/qr-code-generator.html'>Generate QR</a>
+            <button class='btn btn-ghost' type='button'
+              onclick="navigator.clipboard.writeText(location.href).then(()=>tnToast('Link copied','Share it'))">Copy
+              Site Link</button>
+          </div>
+          <div class='grid' style='grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1.2rem'>
+            <div class='result'>
+              <div class='help'>Privacy</div><strong>100%</strong>
+              <div class='help'>No upload needed</div>
+            </div>
+            <div class='result'>
+              <div class='help'>Performance</div><strong>Fast</strong>
+              <div class='help'>Minimal JS</div>
+            </div>
+            <div class='result'>
+              <div class='help'>Design</div><strong>SaaS</strong>
+              <div class='help'>Premium UI</div>
+            </div>
+          </div>
+        </div>
+        <div class='card'>
+          <div id='recentTools'></div>
+          <h2>Popular tools</h2>
+          <p class='help'>Start with what most Nepal users need daily.</p>
+          <div class='stack' style='margin-top:.75rem'>
+            <a class='tool-card' href='tools/cgpa-calculator.html'>
+              <h3>CGPA Calculator</h3>
+              <p>TU/BCA multi-semester SGPA → CGPA + grade estimate.</p>
+            </a>
+            <a class='tool-card' href='tools/image-compressor.html'>
+              <h3>Image Compressor</h3>
+              <p>Compress locally. Compare sizes. Download instantly.</p>
+            </a>
+            <a class='tool-card' href='tools/qr-code-generator.html'>
+              <h3>QR Code Generator</h3>
+              <p>Live preview + download as PNG.</p>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div id='siteFooter'></div>
+  <div id='toast' class='toast' role='status' aria-live='polite'></div>
+  <div id='modalBackdrop' class='modal-backdrop' aria-hidden='true'>
+    <div class='modal' role='dialog' aria-modal='true' aria-labelledby='modalTitle'>
+      <h3 id='modalTitle'>Success</h3>
+      <div id='modalBody' class='help'></div>
+      <div class='actions'><button class='btn btn-secondary' type='button' onclick='tnCloseModal()'>Close</button></div>
+    </div>
+  </div>
+  <script src='assets/js/main.js'></script>
+  <script src='assets/js/analytics.js'></script>
+</body>
+
+</html>

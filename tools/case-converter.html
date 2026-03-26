@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Case Converter — UPPER, lower, Title, camelCase | ToolNepal</title>
+  <meta name="description" content="Free online text case converter. Convert text to UPPERCASE, lowercase, Title Case, Sentence case, camelCase, PascalCase, snake_case and kebab-case instantly."/>
+  <link rel="canonical" href="https://toolnepal.com/tools/case-converter.html"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    .case-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.65rem;margin-top:1rem}
+    .case-card{border-radius:var(--radius-sm);border:1px solid var(--border);padding:.85rem 1rem;cursor:pointer;transition:var(--t);position:relative}
+    .case-card:hover{border-color:rgba(211,47,47,.4);background:rgba(211,47,47,.05)}
+    .case-card.active{border-color:var(--red-500);background:rgba(211,47,47,.08)}
+    .case-label{font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.3rem}
+    .case-preview{font-size:.95rem;font-weight:700;color:var(--text);word-break:break-all}
+    .copy-icon{position:absolute;top:.6rem;right:.6rem;opacity:0;transition:var(--t);font-size:.85rem}
+    .case-card:hover .copy-icon{opacity:1}
+    textarea.input{resize:vertical;min-height:130px;font-family:inherit;line-height:1.6}
+    .stats-row{display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.85rem;font-weight:700;color:var(--muted);margin-top:.4rem}
+    .stats-row span{color:var(--text)}
+  </style>
+</head>
+<body>
+<div id="siteHeader"></div>
+<main id="main" class="main">
+  <div class="container">
+    <div class="ad"><strong>Ad Placeholder</strong><small>Top Banner</small></div>
+    <section class="split" style="margin-top:1.6rem">
+      <div class="stack">
+        <section class="card animate-fade">
+          <span class="badge" style="margin-bottom:.6rem">Writing</span>
+          <h1>Case Converter</h1>
+          <p class="help" style="margin-bottom:1rem">Type or paste text, then click any case card to copy it.</p>
+          <div class="field">
+            <label for="ccInput">Your Text</label>
+            <textarea id="ccInput" class="input" placeholder="Type or paste your text here…" oninput="ccUpdate()"></textarea>
+            <div class="stats-row">
+              <div>Words: <span id="ccWords">0</span></div>
+              <div>Chars: <span id="ccChars">0</span></div>
+              <div>Lines: <span id="ccLines">0</span></div>
+            </div>
+          </div>
+          <div class="row" style="margin-top:.75rem">
+            <button class="btn btn-ghost" onclick="ccClear()">🗑 Clear</button>
+            <button class="btn btn-ghost" onclick="ccPaste()">📋 Paste</button>
+          </div>
+          <div class="case-grid" id="ccGrid"></div>
+        </section>
+        <div class="ad"><strong>Ad Placeholder</strong><small>In-content</small></div>
+      </div>
+      <aside class="sidebar">
+        <div class="card">
+          <h3 style="margin-bottom:.75rem">Case Types</h3>
+          <div style="display:flex;flex-direction:column;gap:.45rem;font-size:.88rem;font-weight:700">
+            <div><code style="color:var(--red-500)">UPPERCASE</code></div>
+            <div><code style="color:var(--red-500)">lowercase</code></div>
+            <div><code style="color:var(--red-500)">Title Case</code></div>
+            <div><code style="color:var(--red-500)">Sentence case</code></div>
+            <div><code style="color:var(--red-500)">camelCase</code></div>
+            <div><code style="color:var(--red-500)">PascalCase</code></div>
+            <div><code style="color:var(--red-500)">snake_case</code></div>
+            <div><code style="color:var(--red-500)">kebab-case</code></div>
+            <div><code style="color:var(--red-500)">CONSTANT_CASE</code></div>
+            <div><code style="color:var(--red-500)">aLtErNaTiNg</code></div>
+          </div>
+        </div>
+        <div class="card"><h3 style="margin-bottom:.5rem">Tip</h3><p style="color:var(--muted);font-weight:700;font-size:.88rem;margin:0">Click any case card to instantly copy that variation to your clipboard.</p></div>
+      </aside>
+    </section>
+  </div>
+</main>
+<div id="siteFooter"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">Info</h3><div id="modalBody" class="help"></div>
+    <div class="actions"><button class="btn btn-secondary" onclick="tnCloseModal()">Close</button></div>
+  </div>
+</div>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/analytics.js"></script>
+<script>
+const cases=[
+  {label:'UPPERCASE',fn:s=>s.toUpperCase()},
+  {label:'lowercase',fn:s=>s.toLowerCase()},
+  {label:'Title Case',fn:s=>s.toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase())},
+  {label:'Sentence case',fn:s=>s.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g,c=>c.toUpperCase())},
+  {label:'camelCase',fn:s=>s.trim().toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g,(_,c)=>c.toUpperCase())},
+  {label:'PascalCase',fn:s=>{const r=s.trim().toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g,(_,c)=>c.toUpperCase());return r.charAt(0).toUpperCase()+r.slice(1);}},
+  {label:'snake_case',fn:s=>s.trim().toLowerCase().replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_|_$/g,'')},
+  {label:'kebab-case',fn:s=>s.trim().toLowerCase().replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-|-$/g,'')},
+  {label:'CONSTANT_CASE',fn:s=>s.trim().toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'')},
+  {label:'aLtErNaTiNg',fn:s=>[...s].map((c,i)=>i%2?c.toUpperCase():c.toLowerCase()).join('')},
+];
+function ccUpdate(){
+  const t=document.getElementById('ccInput').value;
+  document.getElementById('ccWords').textContent=t.trim()?t.trim().split(/\s+/).length:0;
+  document.getElementById('ccChars').textContent=t.length;
+  document.getElementById('ccLines').textContent=t?t.split('\n').length:0;
+  renderCards(t);
+}
+function renderCards(text){
+  const sample=text||'Your text will appear here';
+  document.getElementById('ccGrid').innerHTML=cases.map((c,i)=>{
+    const cv=c.fn(sample);
+    const pr=cv.length>60?cv.slice(0,57)+'…':cv;
+    return `<div class="case-card" onclick="ccApply(${i})"><div class="copy-icon">📋</div><div class="case-label">${c.label}</div><div class="case-preview">${escapeHtml(pr)}</div></div>`;
+  }).join('');
+}
+function ccApply(i){
+  const text=document.getElementById('ccInput').value;
+  const result=cases[i].fn(text);
+  navigator.clipboard.writeText(result).then(()=>{
+    document.getElementById('ccInput').value=result;
+    ccUpdate();
+    tnToast('Copied as '+cases[i].label+'!');
+    document.querySelectorAll('.case-card').forEach((c,j)=>c.classList.toggle('active',j===i));
+  }).catch(()=>tnToast('Copy failed'));
+}
+function ccClear(){document.getElementById('ccInput').value='';ccUpdate();}
+async function ccPaste(){try{const t=await navigator.clipboard.readText();document.getElementById('ccInput').value=t;ccUpdate();}catch{tnToast('Paste with Ctrl+V');}}
+renderCards('');
+</script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compress PDF Online Free – ToolNepal</title>
+  <meta name="description" content="Compress PDF size online. Free, fast, secure and runs in your browser. Best for scanned PDFs.">
+
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+
+<body>
+<div id="siteHeader"></div>
+
+<main class="main">
+  <div class="container">
+    <section class="split">
+
+      <!-- MAIN TOOL -->
+      <div class="card">
+        <h1>Compress PDF (Basic)</h1>
+        <p class="help">
+          Best for scanned/image-heavy PDFs. This tool re-renders pages to reduce size (no upload).
+        </p>
+
+        <div class="field">
+          <label>Select PDF file</label>
+          <input id="cmpFile" class="input" type="file" accept="application/pdf">
+        </div>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem">
+          <div class="field">
+            <label>Quality</label>
+            <select id="cmpQuality" class="input">
+              <option value="0.55">Small (0.55) – High compression</option>
+              <option value="0.7" selected>Medium (0.70) – Recommended</option>
+              <option value="0.85">Large (0.85) – Better quality</option>
+            </select>
+            <div class="help">Lower quality = smaller size.</div>
+          </div>
+
+          <div class="field">
+            <label>Render Scale</label>
+            <select id="cmpScale" class="input">
+              <option value="1" selected>Normal (1x)</option>
+              <option value="1.5">High (1.5x)</option>
+              <option value="2">Very High (2x)</option>
+            </select>
+            <div class="help">Higher scale = sharper but bigger.</div>
+          </div>
+
+          <div class="field" style="grid-column:1/-1">
+            <label>Output file name</label>
+            <input id="cmpName" class="input" value="compressed-toolnepal.pdf" placeholder="compressed-toolnepal.pdf">
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:1rem">
+          <button class="btn btn-primary" type="button" onclick="compressPdf()">Compress PDF</button>
+          <button class="btn btn-secondary" type="button" onclick="resetCompress()">Reset</button>
+        </div>
+
+        <div id="cmpStatus" class="help" style="margin-top:1rem"></div>
+        <div id="cmpStats" class="help" style="margin-top:.6rem"></div>
+
+        <div class="ad" style="margin-top:1rem"><strong>Ad Placeholder</strong><small>In-content Ad</small></div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="ad"><strong>Ad Placeholder</strong><small>Sidebar</small></div>
+
+        <div class="card">
+          <h3>Works best for</h3>
+          <ul class="help" style="margin:0; padding-left:1.1rem">
+            <li>Scanned PDFs</li>
+            <li>Image-heavy documents</li>
+            <li>Certificates/photos in PDF</li>
+          </ul>
+          <p class="help" style="margin-top:.8rem">
+            For text-only PDFs, size reduction may be small.
+          </p>
+        </div>
+      </aside>
+
+    </section>
+  </div>
+</main>
+
+<div id="siteFooter"></div>
+<div id="toast" class="toast"></div>
+
+<script src="../../assets/js/main.js"></script>
+
+<!-- ✅ PDF.js (to render pages) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js";
+</script>
+
+<!-- ✅ pdf-lib (to rebuild PDF) -->
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+
+<script>
+function bytesToSize(b){
+  const u=["B","KB","MB","GB"]; let i=0,x=b;
+  while(x>=1024 && i<u.length-1){x/=1024;i++;}
+  return (i===0?x.toFixed(0):x.toFixed(2))+" "+u[i];
+}
+
+function clamp(n, min, max){
+  n = Number(n);
+  return Math.min(max, Math.max(min, n));
+}
+
+async function compressPdf(){
+  const input = document.getElementById("cmpFile");
+  const status = document.getElementById("cmpStatus");
+  const stats = document.getElementById("cmpStats");
+
+  if(!input.files.length){
+    tnToast("Select a PDF file first");
+    return;
+  }
+
+  let outName = (document.getElementById("cmpName").value || "compressed-toolnepal.pdf").trim();
+  if(!outName.toLowerCase().endsWith(".pdf")) outName += ".pdf";
+
+  const quality = clamp(document.getElementById("cmpQuality").value, 0.3, 0.95);
+  const scale = clamp(document.getElementById("cmpScale").value, 0.8, 3);
+
+  const srcFile = input.files[0];
+  const originalSize = srcFile.size;
+
+  status.textContent = "Loading PDF...";
+  stats.textContent = "";
+
+  try {
+    const buf = await srcFile.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+
+    const outPdf = await PDFLib.PDFDocument.create();
+
+    const total = pdf.numPages;
+    status.textContent = `Rendering ${total} page(s)...`;
+
+    for(let p=1;p<=total;p++){
+      status.textContent = `Processing page ${p}/${total}...`;
+
+      const page = await pdf.getPage(p);
+      const viewport = page.getViewport({ scale });
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d", { alpha:false });
+
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+
+      await page.render({ canvasContext: ctx, viewport }).promise;
+
+      // Convert canvas to JPEG (smaller than PNG)
+      const jpegDataUrl = canvas.toDataURL("image/jpeg", quality);
+      const jpgBytes = await fetch(jpegDataUrl).then(r=>r.arrayBuffer());
+      const jpgEmbed = await outPdf.embedJpg(jpgBytes);
+
+      // New PDF page size matches rendered image size
+      const newPage = outPdf.addPage([canvas.width, canvas.height]);
+      newPage.drawImage(jpgEmbed, { x:0, y:0, width: canvas.width, height: canvas.height });
+    }
+
+    status.textContent = "Finalizing PDF...";
+    const outBytes = await outPdf.save();
+    const blob = new Blob([outBytes], { type: "application/pdf" });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = outName;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    const newSize = blob.size;
+    const saved = originalSize - newSize;
+    const pct = originalSize > 0 ? ((saved / originalSize) * 100) : 0;
+
+    status.textContent = "Done ✅";
+    stats.innerHTML =
+      `<b>Original:</b> ${bytesToSize(originalSize)} • <b>Compressed:</b> ${bytesToSize(newSize)} • <b>Saved:</b> ${bytesToSize(saved)} (${pct.toFixed(1)}%)`;
+
+    tnToast("PDF compressed", "Downloaded");
+
+  } catch(err){
+    console.error(err);
+    tnToast("Compression failed");
+    status.textContent = "";
+    stats.textContent = "";
+  }
+}
+
+function resetCompress(){
+  document.getElementById("cmpFile").value = "";
+  document.getElementById("cmpQuality").value = "0.7";
+  document.getElementById("cmpScale").value = "1";
+  document.getElementById("cmpName").value = "compressed-toolnepal.pdf";
+  document.getElementById("cmpStatus").textContent = "";
+  document.getElementById("cmpStats").textContent = "";
+  tnToast("Reset done");
+}
+</script>
+
+</body>
+</html>

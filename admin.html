@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard — ToolNepal</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    .metric { padding: 1.5rem; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); text-align: center; }
+    .metric h3 { font-size: 2.5rem; color: var(--red-600); margin: 0; }
+    .metric p { margin: 0; color: var(--muted); font-weight: bold; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .nav-admin { display: flex; gap: 1.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { text-align: left; padding: 1rem .8rem; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-size: .85rem; text-transform: uppercase; }
+    tr:hover { background: rgba(17,24,39,.02); }
+    html[data-theme="dark"] tr:hover { background: rgba(238,243,255,.02); }
+  </style>
+</head>
+<body>
+<div id="siteHeader"></div>
+<main id="main" class="main">
+  <div class="container">
+    
+    <div id="authBlock" class="card" style="max-width:400px;margin:4rem auto;text-align:center;padding:3rem 2rem;">
+      <h2 style="margin-bottom:0.5rem">Admin Login</h2>
+      <p class="help">Private Dashboard. Enter PIN.</p>
+      <input type="password" id="adminPin" class="input" placeholder="••••" style="margin:1.5rem 0;text-align:center;font-size:1.5rem;letter-spacing:0.2em">
+      <button class="btn btn-primary" onclick="checkPin()" style="width:100%">Access Analytics</button>
+      <div class="help" style="margin-top:1rem;font-size:0.8rem">Demo PIN is: 1234</div>
+    </div>
+
+    <div id="dashBlock" style="display:none">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 1rem;">
+        <div>
+          <h1>Admin Analytics</h1>
+          <p class="help">Live revenue and traffic tracking.</p>
+        </div>
+      </div>
+
+      <div class="nav-admin">
+        <a href="#" style="color:var(--text);font-weight:bold;border-bottom:2px solid var(--red-500);padding-bottom:.5rem">Overview</a>
+        <a href="#" onclick="resetData()" style="color:var(--muted)">Reset Data</a>
+      </div>
+
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 2rem;">
+        <div class="metric">
+          <p>Total Page Views</p>
+          <h3 id="statViews">0</h3>
+        </div>
+        <div class="metric">
+          <p>Ad Clicks</p>
+          <h3 id="statClicks">0</h3>
+        </div>
+        <div class="metric">
+          <p>Click-Through Rate</p>
+          <h3 id="statCtr">0.0%</h3>
+        </div>
+        <div class="metric" style="background: radial-gradient(circle at top right, rgba(211,47,47,.1), transparent); border: 2px solid var(--red-500);">
+          <p style="color:var(--red-600)">Est. Earnings</p>
+          <h3 id="statEarn">$0.00</h3>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Recent Ad Clicks</h2>
+        <div style="overflow-x:auto;">
+          <table id="clickTable">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Page Source</th>
+                <th>Estimated Rev</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</main>
+<div id="siteFooter"></div>
+
+<script src="assets/js/main.js"></script>
+<script>
+  function checkPin() {
+    if(document.getElementById("adminPin").value === "1234"){
+      document.getElementById("authBlock").style.display = "none";
+      document.getElementById("dashBlock").style.display = "block";
+      loadData();
+    } else {
+      alert("Invalid PIN. Use 1234 for the demo.");
+    }
+  }
+
+  function loadData() {
+    let db;
+    try { db = JSON.parse(localStorage.getItem('tn_db') || '{"views":[],"clicks":[]}'); }
+    catch(e) { db = {views:[], clicks:[]}; }
+
+    const v = db.views.length;
+    const c = db.clicks.length;
+    // Calculation: $0.001 per view + $0.05 per click
+    const earn = (v * 0.001) + (c * 0.05);
+    const ctr = v > 0 ? ((c/v)*100).toFixed(2) : 0;
+
+    document.getElementById("statViews").innerText = v.toLocaleString();
+    document.getElementById("statClicks").innerText = c.toLocaleString();
+    document.getElementById("statCtr").innerText = ctr + '%';
+    document.getElementById("statEarn").innerText = '$' + earn.toFixed(2);
+
+    const tb = document.querySelector("#clickTable tbody");
+    tb.innerHTML = "";
+    
+    const recentClicks = [...db.clicks].reverse().slice(0,10);
+    
+    if(recentClicks.length === 0) {
+      tb.innerHTML = "<tr><td colspan='3' style='text-align:center;color:var(--muted);padding:2rem 0'>No clicks yet. Try clicking a sponsored ad block on the site!</td></tr>";
+    } else {
+      recentClicks.forEach(clk => {
+        const d = new Date(clk.time).toLocaleString();
+        tb.innerHTML += `<tr>
+          <td><strong style="color:var(--text)">${d}</strong></td>
+          <td class="help">${clk.path}</td>
+          <td style="color:#059669; font-weight:bold;">+$0.05</td>
+        </tr>`;
+      });
+    }
+  }
+
+  function resetData() {
+    if(confirm("Are you sure you want to wipe all analytics data?")){ 
+      localStorage.removeItem("tn_db"); 
+      loadData(); 
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SEE GPA to Percentage — ToolNepal</title>
+
+  <meta name="description" content="Convert SEE GPA to percentage using a simple estimate. Useful for Nepal students and form filling." />
+  <meta property="og:title" content="SEE GPA to Percentage — ToolNepal" />
+  <meta property="og:description" content="Convert SEE GPA to percentage using a simple estimate. Useful for Nepal students and form filling." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="#" />
+  <meta property="og:url" content="#" />
+  <link rel="canonical" href="#" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+
+<body>
+<div id="siteHeader"></div>
+
+<main class="main">
+  <div class="container">
+
+    <div class="ad"><strong>Ad Placeholder</strong><small>Top Banner</small></div>
+
+    <section class="split">
+      <div class="card">
+        <h1>SEE GPA → Percentage</h1>
+        <p class="help">
+          Convert SEE GPA to an estimated percentage for forms and applications.
+          <b>Note:</b> Different institutions may use different formulas.
+        </p>
+
+        <div class="field" style="margin-top:1rem">
+          <label for="seeGpa">SEE GPA (0.0 – 4.0)</label>
+          <input id="seeGpa" class="input" type="number" min="0" max="4" step="0.01" placeholder="e.g. 3.45">
+        </div>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem">
+          <div class="field">
+            <label for="seeMode">Conversion Method</label>
+            <select id="seeMode" class="input">
+              <option value="linear" selected>Simple Estimate (×25)</option>
+              <option value="range">Grade Range Estimate</option>
+            </select>
+            <div class="help">Choose the method your college/form accepts.</div>
+          </div>
+
+          <div class="field">
+            <label for="seeClamp">Clamp to 0–100%</label>
+            <select id="seeClamp" class="input">
+              <option value="yes" selected>Yes</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:1rem">
+          <button class="btn btn-primary" type="button" onclick="calcSee()">Convert</button>
+          <button class="btn btn-secondary" type="button" onclick="resetSee()">Reset</button>
+        </div>
+
+        <div id="seeOut" class="card" style="margin-top:1rem; padding:1rem; display:none"></div>
+
+        <div class="ad" style="margin-top:1rem"><strong>Ad Placeholder</strong><small>In-content Ad</small></div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="ad"><strong>Ad Placeholder</strong><small>Sidebar</small></div>
+
+        <div class="card">
+          <h3>How we estimate</h3>
+          <p class="help">
+            Method 1: Percentage ≈ GPA × 25
+          </p>
+          <p class="help">
+            Method 2: Uses a rough range based on GPA bands.
+          </p>
+          <p class="help">
+            Always confirm with your college/admission office.
+          </p>
+        </div>
+      </aside>
+
+    </section>
+
+  </div>
+</main>
+
+<div id="siteFooter"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/analytics.js"></script>
+
+<script>
+function clamp(n, min, max){
+  n = Number(n);
+  return Math.min(max, Math.max(min, n));
+}
+
+function gpaToRangePercent(gpa){
+  // A reasonable "range estimate" for forms.
+  // This is not an official rule; it’s a practical approximation.
+  if (gpa >= 3.6) return {min: 90, max: 100, label: "A+ / Outstanding"};
+  if (gpa >= 3.2) return {min: 80, max: 89.99, label: "A / Excellent"};
+  if (gpa >= 2.8) return {min: 70, max: 79.99, label: "B+ / Very Good"};
+  if (gpa >= 2.4) return {min: 60, max: 69.99, label: "B / Good"};
+  if (gpa >= 2.0) return {min: 50, max: 59.99, label: "C+ / Satisfactory"};
+  if (gpa >= 1.6) return {min: 40, max: 49.99, label: "C / Acceptable"};
+  return {min: 0, max: 39.99, label: "Below C"};
+}
+
+function calcSee(){
+  const gpaEl = document.getElementById("seeGpa");
+  const mode = document.getElementById("seeMode").value;
+  const clampYes = document.getElementById("seeClamp").value === "yes";
+  const out = document.getElementById("seeOut");
+
+  const gpa = Number(gpaEl.value);
+
+  if (!(gpa >= 0 && gpa <= 4)) {
+    tnToast("Enter GPA between 0.0 and 4.0");
+    gpaEl.focus();
+    return;
+  }
+
+  out.style.display = "block";
+
+  if (mode === "linear") {
+    let pct = gpa * 25;
+    if (clampYes) pct = clamp(pct, 0, 100);
+
+    out.innerHTML = `
+      <div style="font-weight:900; font-size:1.1rem">Result</div>
+      <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:.8rem">
+        <div class="card" style="padding:1rem">
+          <div class="help">Estimated Percentage</div>
+          <div style="font-weight:900; font-size:1.5rem">${pct.toFixed(2)}%</div>
+        </div>
+        <div class="card" style="padding:1rem">
+          <div class="help">Method</div>
+          <div style="font-weight:900; font-size:1.2rem">GPA × 25</div>
+        </div>
+      </div>
+      <p class="help" style="margin-top:.8rem">
+        This is a common estimate used in many contexts. Always check your college/institution requirements.
+      </p>
+    `;
+
+  } else {
+    const r = gpaToRangePercent(gpa);
+    out.innerHTML = `
+      <div style="font-weight:900; font-size:1.1rem">Result</div>
+      <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:.8rem">
+        <div class="card" style="padding:1rem">
+          <div class="help">Estimated Range</div>
+          <div style="font-weight:900; font-size:1.4rem">${r.min.toFixed(0)}% – ${r.max.toFixed(2)}%</div>
+        </div>
+        <div class="card" style="padding:1rem">
+          <div class="help">Grade Band</div>
+          <div style="font-weight:900; font-size:1.2rem">${r.label}</div>
+        </div>
+      </div>
+      <p class="help" style="margin-top:.8rem">
+        Range estimates vary by institution. Use the method that matches your form requirement.
+      </p>
+    `;
+  }
+
+  tnToast("Converted");
+}
+
+function resetSee(){
+  document.getElementById("seeGpa").value = "";
+  document.getElementById("seeMode").value = "linear";
+  document.getElementById("seeClamp").value = "yes";
+  const out = document.getElementById("seeOut");
+  out.style.display = "none";
+  out.innerHTML = "";
+  tnToast("Reset done");
+}
+</script>
+
+</body>
+</html>

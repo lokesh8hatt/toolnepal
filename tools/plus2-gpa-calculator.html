@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>+2 GPA Calculator — ToolNepal</title>
+
+  <meta name="description" content="Calculate +2 (NEB) GPA from subject GPAs. Includes grade band estimate and reset support." />
+  <meta property="og:title" content="+2 GPA Calculator — ToolNepal" />
+  <meta property="og:description" content="Calculate +2 (NEB) GPA from subject GPAs. Includes grade band estimate and reset support." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="#" />
+  <meta property="og:url" content="#" />
+  <link rel="canonical" href="#" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+
+<body>
+<div id="siteHeader"></div>
+
+<main class="main">
+  <div class="container">
+
+    <div class="ad"><strong>Ad Placeholder</strong><small>Top Banner</small></div>
+
+    <section class="split">
+      <div class="card">
+        <h1>+2 GPA Calculator (NEB)</h1>
+        <p class="help">
+          Enter subject GPA values (0.0 – 4.0) to calculate overall +2 GPA.
+          <b>Tip:</b> Use your mark sheet’s GPA values.
+        </p>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem">
+          <div class="field">
+            <label>Subject 1 GPA</label>
+            <input class="input gpa" type="number" min="0" max="4" step="0.01" placeholder="e.g. 3.25">
+          </div>
+          <div class="field">
+            <label>Subject 2 GPA</label>
+            <input class="input gpa" type="number" min="0" max="4" step="0.01" placeholder="e.g. 3.75">
+          </div>
+          <div class="field">
+            <label>Subject 3 GPA</label>
+            <input class="input gpa" type="number" min="0" max="4" step="0.01" placeholder="e.g. 3.10">
+          </div>
+          <div class="field">
+            <label>Subject 4 GPA</label>
+            <input class="input gpa" type="number" min="0" max="4" step="0.01" placeholder="e.g. 2.95">
+          </div>
+          <div class="field">
+            <label>Subject 5 GPA</label>
+            <input class="input gpa" type="number" min="0" max="4" step="0.01" placeholder="e.g. 3.40">
+          </div>
+          <div class="field">
+            <label>Subject 6 GPA</label>
+            <input class="input gpa" type="number" min="0" max="4" step="0.01" placeholder="optional">
+          </div>
+          <div class="field" style="grid-column:1/-1">
+            <label>Subject 7 GPA (optional)</label>
+            <input class="input gpa" type="number" min="0" max="4" step="0.01" placeholder="optional">
+            <div class="help">Leave blank if you have fewer subjects.</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:1rem">
+          <button class="btn btn-primary" type="button" onclick="calcPlus2()">Calculate GPA</button>
+          <button class="btn btn-secondary" type="button" onclick="resetPlus2()">Reset</button>
+        </div>
+
+        <div id="p2Out" class="card" style="margin-top:1rem; padding:1rem; display:none"></div>
+
+        <div class="ad" style="margin-top:1rem"><strong>Ad Placeholder</strong><small>In-content Ad</small></div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="ad"><strong>Ad Placeholder</strong><small>Sidebar</small></div>
+
+        <div class="card">
+          <h3>FAQ</h3>
+          <p class="help"><b>Do I need credits?</b> This version averages entered subject GPAs equally. If your college uses credit weighting, we can add that later.</p>
+          <p class="help"><b>What if I have 5 subjects?</b> Fill 5, leave others blank.</p>
+        </div>
+      </aside>
+
+    </section>
+
+  </div>
+</main>
+
+<div id="siteFooter"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/analytics.js"></script>
+
+<script>
+function bandFromGpa(gpa){
+  if (gpa >= 3.6) return {grade:"A+", label:"Outstanding"};
+  if (gpa >= 3.2) return {grade:"A", label:"Excellent"};
+  if (gpa >= 2.8) return {grade:"B+", label:"Very Good"};
+  if (gpa >= 2.4) return {grade:"B", label:"Good"};
+  if (gpa >= 2.0) return {grade:"C+", label:"Satisfactory"};
+  if (gpa >= 1.6) return {grade:"C", label:"Acceptable"};
+  return {grade:"D", label:"Below C"};
+}
+
+function calcPlus2(){
+  const inputs = Array.from(document.querySelectorAll(".gpa"));
+  const values = inputs
+    .map(i => i.value.trim())
+    .filter(v => v !== "")
+    .map(Number);
+
+  if (!values.length){
+    tnToast("Enter at least one subject GPA");
+    return;
+  }
+
+  for (const v of values){
+    if (!(v >= 0 && v <= 4)){
+      tnToast("GPA must be between 0.0 and 4.0");
+      return;
+    }
+  }
+
+  const sum = values.reduce((a,b)=>a+b,0);
+  const gpa = sum / values.length;
+
+  const band = bandFromGpa(gpa);
+  const out = document.getElementById("p2Out");
+
+  out.style.display = "block";
+  out.innerHTML = `
+    <div style="font-weight:900; font-size:1.1rem">Result</div>
+    <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:.8rem">
+      <div class="card" style="padding:1rem">
+        <div class="help">Overall GPA</div>
+        <div style="font-weight:900; font-size:1.6rem">${gpa.toFixed(2)}</div>
+        <div class="help">Based on ${values.length} subject(s)</div>
+      </div>
+      <div class="card" style="padding:1rem">
+        <div class="help">Grade Band</div>
+        <div style="font-weight:900; font-size:1.6rem">${band.grade}</div>
+        <div class="help">${band.label}</div>
+      </div>
+    </div>
+  `;
+
+  tnToast("Calculated");
+}
+
+function resetPlus2(){
+  document.querySelectorAll(".gpa").forEach(i => i.value = "");
+  const out = document.getElementById("p2Out");
+  out.style.display = "none";
+  out.innerHTML = "";
+  tnToast("Reset done");
+}
+</script>
+
+</body>
+</html>
