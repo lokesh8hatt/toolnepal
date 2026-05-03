@@ -76,7 +76,8 @@ function tnInjectLayout(){
               <a data-nav href="${base}about.html">About</a>
               <a data-nav href="${base}contact.html">Contact</a>
             </nav>
-            <div class="header-actions">
+            <div class="header-actions" style="display:flex; align-items:center; gap:0.5rem">
+              <button id="pwaInstallBtn" class="btn btn-secondary" style="display:none; padding:0.3rem 0.8rem; font-size:0.85rem; border-color:var(--red-500); color:var(--red-500); background:transparent">📲 Install App</button>
               <button class="icon-btn" type="button" onclick="tnToggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">☾</button>
               <a class="btn btn-primary" href="${base}tools.html">Explore</a>
             </div>
@@ -89,7 +90,10 @@ function tnInjectLayout(){
       <footer class="site-footer">
         <div class="container">
           <div class="footer-inner">
-            <div>© <span id="tnYear"></span> ToolNepal • Built for Nepal 🇳🇵</div>
+            <div>
+              <div style="font-weight:700">© <span id="tnYear"></span> ToolNepal — Built for simplicity and speed</div>
+              <div style="color:var(--muted); font-size:0.88rem; margin-top:0.3rem">Made for users in Nepal 🇳🇵</div>
+            </div>
             <div class="row">
               <a href="${base}about.html">Privacy</a>
               <a href="${base}contact.html">Support</a>
@@ -127,3 +131,36 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register(tnBasePath() + "sw.js").catch(()=>{});
   });
 }
+
+// Global PWA Install Logic
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevent Chrome 67+ from automatically showing the prompt
+  e.preventDefault();
+  // Stash the event so it can be triggered later.
+  deferredPrompt = e;
+  // Update UI to notify the user they can add to home screen
+  const installBtn = document.getElementById('pwaInstallBtn');
+  if (installBtn) {
+    installBtn.style.display = 'inline-block';
+    installBtn.addEventListener('click', async () => {
+      // Hide the app provided install promotion
+      installBtn.style.display = 'none';
+      // Show the install prompt
+      deferredPrompt.prompt();
+      // Wait for the user to respond to the prompt
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to the install prompt: ${outcome}`);
+      // We've used the prompt, and can't use it again, throw it away
+      deferredPrompt = null;
+    });
+  }
+});
+window.addEventListener('appinstalled', () => {
+  // Hide the app-provided install promotion
+  const installBtn = document.getElementById('pwaInstallBtn');
+  if (installBtn) installBtn.style.display = 'none';
+  // Clear the deferredPrompt so it can be garbage collected
+  deferredPrompt = null;
+  console.log('PWA was installed successfully');
+});

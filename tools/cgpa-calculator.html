@@ -1,8 +1,8 @@
 <!doctype html><html lang='en'><head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CGPA Calculator — ToolNepal</title>
-  <meta name="description" content="Calculate CGPA from multiple semesters." />
+  <title>TU / PU / BCA CGPA Calculator Nepal | ToolNepal</title>
+  <meta name="description" content="Calculate your SGPA and CGPA easily for Tribhuvan University (TU), Pokhara University (PU), Purbanchal University, BCA, BIT, and CSIT with our free online grading tool."/>
   <meta property="og:title" content="CGPA Calculator — ToolNepal" />
   <meta property="og:description" content="Calculate CGPA from multiple semesters." />
   <meta property="og:type" content="website" />
@@ -13,4 +13,69 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css" />
-</head><body><div id='siteHeader'></div><main id='main' class='main'><div class='container'><div class='ad'><strong>Ad Placeholder</strong><small>Top Banner</small></div><section class='split'><div class='card'><span class='badge'>Students</span><h1>CGPA Calculator</h1><p class='help'>Enter SGPA per semester.</p><div id='cgpaSemWrap' class='stack' style='margin-top:1rem'></div><div class='row' style='margin-top:1rem'><button class='btn btn-secondary' type='button' onclick='tnCgpaAddSemester()'>+ Add Semester</button><button class='btn btn-primary' type='button' onclick='tnCgpaCalculate()'>Calculate</button><button class='btn btn-ghost' type='button' onclick='tnCgpaReset()'>Reset</button></div><div id='cgpaOutput' style='margin-top:1rem'></div></div><aside class='sidebar'><div class='ad'><strong>Ad Placeholder</strong><small>Sidebar</small></div></aside></section></div></main><div id='siteFooter'></div><div id='toast' class='toast' role='status' aria-live='polite'></div><div id='modalBackdrop' class='modal-backdrop' aria-hidden='true'><div class='modal' role='dialog' aria-modal='true' aria-labelledby='modalTitle'><h3 id='modalTitle'>Success</h3><div id='modalBody' class='help'></div><div class='actions'><button class='btn btn-secondary' type='button' onclick='tnCloseModal()'>Close</button></div></div></div><script src='../assets/js/main.js'></script><script src='../assets/js/tools.js'></script><script src='../assets/js/analytics.js'></script><script>document.addEventListener('DOMContentLoaded',()=>tnCgpaAddSemester());</script></body></html>
+
+  <!-- SEO Schema Markup -->
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "TU / PU / BCA CGPA Calculator Nepal",
+  "operatingSystem": "All",
+  "applicationCategory": "UtilitiesApplication",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+  </script>
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How is TU BCA CGPA calculated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "For TU BCA, you multiply your subject credit hours with the grade points obtained, sum them up for the semester to get SGPA, and then average your SGPAs across 8 semesters to find your final CGPA."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What CGPA is required for Distinction in TU?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Generally, a CGPA of 3.6 to 4.0 is considered Distinction in Tribhuvan University programs like BBA, BCA, and BIT."
+      }
+    }
+  ]
+}
+  </script>
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+</head><body><div id='siteHeader'></div><main id='main' class='main'><div class='container'><div class="ad"><strong>Tools Placeholder</strong></div><section class='split'><div class='card'><span class='badge'>Students</span><h1>CGPA Calculator</h1><p class='help'>Enter SGPA per semester.</p><div id='cgpaSemWrap' class='stack' style='margin-top:1rem'></div><div class='row' style='margin-top:1rem'><button class='btn btn-secondary' type='button' onclick='tnCgpaAddSemester()'>+ Add Semester</button><button class='btn btn-primary' type='button' onclick='tnCgpaCalculate()'>Calculate</button><button class='btn btn-ghost' type='button' onclick='tnCgpaReset()'>Reset</button></div><div id='cgpaOutput' style='margin-top:1rem'></div></div><aside class='sidebar'><div class="ad"><strong>Tools Placeholder</strong></div></aside></section></div>
+
+        <div class='container' style='max-width:800px; margin:2rem auto; padding:0 1rem'>
+            <div class="card">
+                <h2>How to Calculate CGPA in Nepal?</h2>
+                <div class="help" style="margin-top:1rem; line-height:1.7; font-size:0.95rem">
+                    <p>Calculating your Cumulative Grade Point Average (CGPA) can be confusing with different universities (TU, PU, KU) having varying credit hours and grading systems. Our <strong>free online CGPA Calculator for Nepal</strong> simplifies this process beautifully.</p>
+                    <h3 style="margin-top:1.5rem">The CGPA Formula</h3>
+                    <p>The standard formula used by most Nepali universities (including TU BCA, CSIT, and engineering programs) is:<br>
+                    <code style="display:inline-block; margin-top:0.5rem; padding:0.5rem; background:rgba(0,0,0,0.05); border-radius:4px">CGPA = Total Grade Points Earned / Total Credit Hours Attempted</code></p>
+                    <p style="margin-top:1rem">To use this tool, simply input the Semester Grade Point Average (SGPA) you received for each semester. The tool averages them out equally. If your university uses dynamic credit hours per semester, you can estimate your final percentage directly from the final result.</p>
+                    <h3 style="margin-top:1.5rem">Why use ToolNepal?</h3>
+                    <p>Unlike other messy calculators, ToolNepal requires absolutely <strong>no downloads or sign-ups</strong>, and your academic data never leaves your browser. It's 100% private and instantly calculates your final degree class (Distinction, First Division, etc.).</p>
+                </div>
+            </div>
+        </div>
+        
+</main><div id='siteFooter'></div><div id='toast' class='toast' role='status' aria-live='polite'></div><div id='modalBackdrop' class='modal-backdrop' aria-hidden='true'><div class='modal' role='dialog' aria-modal='true' aria-labelledby='modalTitle'><h3 id='modalTitle'>Success</h3><div id='modalBody' class='help'></div><div class='actions'><button class='btn btn-secondary' type='button' onclick='tnCloseModal()'>Close</button></div></div></div><script src='../assets/js/main.js'></script><script src='../assets/js/tools.js'></script><script src='../assets/js/analytics.js'></script><script>document.addEventListener('DOMContentLoaded',()=>tnCgpaAddSemester());</script></body></html>

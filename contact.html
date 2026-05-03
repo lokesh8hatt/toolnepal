@@ -13,31 +13,154 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css" />
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </head><body>
 <div id='siteHeader'></div>
 <main id='main' class='main'><div class='container'>
-<div class='ad'><strong>Ad Placeholder</strong><small>Top Banner</small></div>
-<section class='card'><h1>Contact</h1><p class='help'>No backend needed. Uses mailto fallback.</p>
-<form id='contactForm' class='stack' novalidate>
-<div class='field'><label for='cName'>Name</label><input id='cName' class='input' required placeholder='Your name'></div>
-<div class='field'><label for='cEmail'>Email</label><input id='cEmail' class='input' type='email' required placeholder='you@example.com'></div>
-<div class='field'><label for='cMsg'>Message</label><textarea id='cMsg' class='input' rows='5' required placeholder='Your message'></textarea></div>
-<div class='row'><button class='btn btn-primary' type='submit'>Send</button><button class='btn btn-secondary' type='button' onclick='tnContactMailto()'>Mailto Fallback</button></div>
-</form></section>
+<section class='split'>
+  <div class='stack'>
+    <section class='card animate-fade'>
+      <span class='badge' style='margin-bottom:.6rem'>📞 Support</span>
+      <h1 style='font-size:2rem'>Contact & Feedback</h1>
+      <p class='help' style='margin-top:.5rem; line-height:1.7; font-size:1.05rem'>
+        Found a bug? Have a brilliant idea for a new tool that Nepalis desperately need? Or just want to say hi? We read every single message. Drop us a line below!
+      </p>
+
+      <form id='contactForm' class='stack' style='margin-top:2rem' onsubmit="submitContactForm(event)">
+        <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem">
+          <div class='field'>
+            <label for='cName'>Your Full Name</label>
+            <input id='cName' name='name' class='input' required placeholder='e.g., Ram Bahadur'>
+          </div>
+          <div class='field'>
+            <label for='cEmail'>Email Address</label>
+            <input id='cEmail' name='email' class='input' type='email' required placeholder='ram@example.com'>
+          </div>
+        </div>
+        
+        <div class='field' style='margin-top:1rem'>
+          <label for='cSubject'>What is this regarding?</label>
+          <select id='cSubject' name='_subject' class='input'>
+            <option value='ToolNepal: Feature Request'>New Tool Idea / Feature Request</option>
+            <option value='ToolNepal: Bug Report'>Found a Bug / Something is broken</option>
+            <option value='ToolNepal: General Inquiry'>General Inquiry / Business</option>
+          </select>
+        </div>
+
+        <div class='field' style='margin-top:1rem'>
+          <label for='cMsg'>Your Message</label>
+          <textarea id='cMsg' name='message' class='input' rows='6' required placeholder='I noticed that the tax calculator needs...'></textarea>
+        </div>
+        
+        <!-- Anti-Spam hidden fields for FormSubmit.co -->
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_template" value="table">
+
+        <div class='row' style='margin-top:1.5rem; justify-content:flex-end'>
+          <button id='submitBtn' class='btn btn-primary' type='submit' style='min-width:150px'>Send Message 🚀</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <aside class='sidebar'>
+    <div class='card'>
+      <h3 style='margin-bottom:.75rem'>Direct Connections</h3>
+      <div class='stack' style='gap:1rem; margin-top:1rem'>
+        <div style='display:flex; align-items:center; gap:0.8rem'>
+          <div style='width:40px;height:40px;background:var(--bg);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem'>✉️</div>
+          <div>
+            <div style='font-weight:700;font-size:0.9rem'>Email Us</div>
+            <div class='help'>toolnepalofficial@gmail.com</div>
+          </div>
+        </div>
+        <div style='display:flex; align-items:center; gap:0.8rem'>
+          <div style='width:40px;height:40px;background:var(--bg);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:#22c55e'>💬</div>
+          <div>
+            <div style='font-weight:700;font-size:0.9rem'>WhatsApp Chat</div>
+            <div class='help'>Available 10AM - 5PM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ad" style="margin-top:1rem"><strong>Tools Placeholder</strong></div>
+  </aside>
+</section>
 </div></main>
 <div id='siteFooter'></div>
 <div id='toast' class='toast' role='status' aria-live='polite'></div>
-<div id='modalBackdrop' class='modal-backdrop' aria-hidden='true'><div class='modal' role='dialog' aria-modal='true' aria-labelledby='modalTitle'><h3 id='modalTitle'>Success</h3><div id='modalBody' class='help'></div><div class='actions'><button class='btn btn-secondary' type='button' onclick='tnCloseModal()'>Close</button></div></div></div>
-<script src='assets/js/main.js'></script><script src='assets/js/analytics.js'></script>
+<div id='modalBackdrop' class='modal-backdrop' aria-hidden='true'>
+  <div class='modal' role='dialog' aria-modal='true' aria-labelledby='modalTitle'>
+    <h3 id='modalTitle'>Message Sent</h3>
+    <div id='modalBody' class='help'></div>
+    <div class='actions'><button class='btn btn-secondary' type='button' onclick='tnCloseModal()'>Close</button></div>
+  </div>
+</div>
+<script src='assets/js/main.js'></script>
+<script src='assets/js/analytics.js'></script>
 <script>
-function tnContactMailto(){
-  const name=document.getElementById('cName').value.trim();
-  const email=document.getElementById('cEmail').value.trim();
-  const msg=document.getElementById('cMsg').value.trim();
-  const subject=encodeURIComponent('ToolNepal Contact: '+(name||'User'));
-  const body=encodeURIComponent('Name: '+name+'\nEmail: '+email+'\n\nMessage:\n'+msg);
-  location.href='mailto:you@example.com?subject='+subject+'&body='+body;
+// Configure your email below. The first time you submit, FormSubmit will send you an activation email to this address.
+const ADMIN_EMAIL = "toolnepalofficial@gmail.com";
+
+async function submitContactForm(e) {
+  e.preventDefault();
+  
+  const btn = document.getElementById('submitBtn');
+  const name = document.getElementById('cName').value.trim();
+  const email = document.getElementById('cEmail').value.trim();
+  const subject = document.getElementById('cSubject').value;
+  const message = document.getElementById('cMsg').value.trim();
+
+  if(!name || !email || !message) {
+    tnToast("Please fill all required fields", "Form incomplete");
+    return;
+  }
+
+  btn.textContent = "Sending...";
+  btn.disabled = true;
+  btn.style.opacity = "0.7";
+
+  try {
+    const response = await fetch(`https://formsubmit.co/ajax/${ADMIN_EMAIL}`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        _subject: subject,
+        message: message,
+        _template: "table"
+      })
+    });
+
+    if(response.ok) {
+      tnOpenModal("Message sent successfully! 🎉", "Thank you for reaching out. Your feedback helps us build better tools for Nepal. We will get back to you shortly.");
+      document.getElementById('contactForm').reset();
+    } else {
+      tnToast("Server error. Could not send message.", "Error");
+    }
+  } catch (err) {
+    console.error(err);
+    // Fallback if APIs are blocked or failing
+    tnToast("Using standard email fallback due to network error", "Fallback active");
+    const subEsc = encodeURIComponent(subject);
+    const bodyEsc = encodeURIComponent("Name: " + name + "\nEmail: " + email + "\n\nMessage:\n" + message);
+    window.location.href = `mailto:${ADMIN_EMAIL}?subject=${subEsc}&body=${bodyEsc}`;
+  } finally {
+    btn.textContent = "Send Message 🚀";
+    btn.disabled = false;
+    btn.style.opacity = "1";
+  }
 }
-document.getElementById('contactForm').addEventListener('submit',(e)=>{e.preventDefault();tnOpenModal('Ready to Send ✅','<p class="help">We will open your email app using mailto.</p>');tnContactMailto();});
 </script>
 </body></html>

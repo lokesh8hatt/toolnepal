@@ -18,56 +18,74 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css" />
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </head>
 
 <body>
   <div id='siteHeader'></div>
   <main id='main' class='main'>
     <div class='container'>
-      <div class='ad'><strong>Ad Placeholder</strong><small>Top Banner (responsive)</small></div>
+      <div class="ad"><strong>Tools Placeholder</strong></div>
       <section class='hero'>
         <div class='card'>
           <span class='badge'>Automatic Traffic • SEO Tools</span>
-          <h1>Next‑level tools built for Nepal 🇳🇵</h1>
-          <p class='help'>Fast loading. Clean SaaS UI. Works on mobile. Runs fully in your browser (no uploads).</p>
+          <h1>Simple, fast tools built for everyday use in Nepal</h1>
+          <p class='help'>ToolNepal provides a collection of essential online tools designed for students, creators, and everyday users. No downloads, no complexity — just fast and reliable tools that work directly in your browser.</p>
           <div class='row' style='margin-top:1rem'>
             <a class='btn btn-primary' href='tools.html'>Explore Tools</a>
-            <a class='btn btn-secondary' href='tools/qr-code-generator.html'>Generate QR</a>
+            <a class='btn btn-secondary' href='tools/qr-code-generator.html'>Create QR Code</a>
             <button class='btn btn-ghost' type='button'
-              onclick="navigator.clipboard.writeText(location.href).then(()=>tnToast('Link copied','Share it'))">Copy
-              Site Link</button>
+              onclick="navigator.clipboard.writeText(location.href).then(()=>tnToast('Link copied','Share it'))">Share ToolNepal</button>
           </div>
           <div class='grid' style='grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1.2rem'>
             <div class='result'>
-              <div class='help'>Privacy</div><strong>100%</strong>
-              <div class='help'>No upload needed</div>
+              <div class='help'>🔒 Privacy First</div><strong>Private</strong>
+              <div class='help'>No uploads, no storage</div>
             </div>
             <div class='result'>
-              <div class='help'>Performance</div><strong>Fast</strong>
-              <div class='help'>Minimal JS</div>
+              <div class='help'>⚡ Fast & Lightweight</div><strong>Fast</strong>
+              <div class='help'>Minimal loading time</div>
             </div>
             <div class='result'>
-              <div class='help'>Design</div><strong>SaaS</strong>
-              <div class='help'>Premium UI</div>
+              <div class='help'>🎯 Clean & Easy to Use</div><strong>Simple</strong>
+              <div class='help'>Quick access and usability</div>
             </div>
           </div>
         </div>
+        
+        <!-- NEW SECTION: Why ToolNepal? -->
+        <div class='card'>
+          <h2>Why ToolNepal?</h2>
+          <p class='help' style='margin-top:.75rem'>ToolNepal is built to simplify everyday digital tasks. Whether you're a student calculating grades or someone generating QR codes, our goal is to provide tools that are fast, reliable, and easy to use — without unnecessary complexity.</p>
+        </div>
+
         <div class='card'>
           <div id='recentTools'></div>
           <h2>Popular tools</h2>
-          <p class='help'>Start with what most Nepal users need daily.</p>
+          <p class='help'>Popular tools commonly used by students and professionals in Nepal.</p>
           <div class='stack' style='margin-top:.75rem'>
-            <a class='tool-card' href='tools/cgpa-calculator.html'>
-              <h3>CGPA Calculator</h3>
-              <p>TU/BCA multi-semester SGPA → CGPA + grade estimate.</p>
+            <a class='tool-card' href='tools/roman-to-nepali.html'>
+              <h3>Roman to Nepali Typing</h3>
+              <p>Type English spelling and hit Space to instantly get perfect Nepali Unicode.</p>
             </a>
-            <a class='tool-card' href='tools/image-compressor.html'>
-              <h3>Image Compressor</h3>
-              <p>Compress locally. Compare sizes. Download instantly.</p>
+            <a class='tool-card' href='tools/ipo-calculator.html'>
+              <h3>Nepal IPO Profit Calculator</h3>
+              <p>Find your exact NEPSE profit cutting SEBON, Broker fees, and 5% CGT.</p>
             </a>
-            <a class='tool-card' href='tools/qr-code-generator.html'>
-              <h3>QR Code Generator</h3>
-              <p>Live preview + download as PNG.</p>
+            <a class='tool-card' href='tools/salary-tax-calculator.html'>
+              <h3>Salary Tax Calculator FY 2081/82</h3>
+              <p>TDS, 1% Bracket, and exact monthly SSF income tax deductions.</p>
+            </a>
+            <a class='tool-card' href='tools/preeti-to-unicode.html'>
+              <h3>Preeti to Unicode Converter</h3>
+              <p>Instant bi-directional Nepali font converter.</p>
             </a>
           </div>
         </div>

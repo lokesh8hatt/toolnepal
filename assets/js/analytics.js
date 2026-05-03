@@ -31,12 +31,6 @@
       const cDb = getDb();
       cDb.clicks.push({ path: location.pathname, time: Date.now() });
       saveDb(cDb);
-      
-      // Show notification to user (optional, for demo impact)
-      if(typeof tnToast === 'function') {
-        tnToast("Ad Clicked!", "+$0.05 Revenue Tracked");
-      }
-      console.log("Earnings Updated! Check /admin.html");
     }
   });
 })();

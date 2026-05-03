@@ -3,21 +3,64 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>QR Code Generator — ToolNepal</title>
+  <title>Free QR Code Generator in Nepal – Custom, Logo & SVG Download | ToolNepal</title>
 
-  <meta name="description" content="Generate QR codes with size and color controls and download PNG instantly." />
-  <meta property="og:title" content="QR Code Generator — ToolNepal" />
-  <meta property="og:description" content="Generate QR codes with size and color controls and download PNG instantly." />
+  <meta name="description" content="Create custom, non-expiring QR codes instantly for your business, Wi-Fi, or URLs in Nepal. Add logos, colors, and download as SVG or high-res PNG. 100% free."/>
+  <meta property="og:title" content="Free QR Code Generator in Nepal – Custom, Logo & SVG Download | ToolNepal" />
+  <meta property="og:description" content="Generate custom QR codes with size and color controls. Download high-res PNG or SVG instantly." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="#" />
-  <meta property="og:url" content="#" />
-  <link rel="canonical" href="#" />
+  <meta property="og:image" content="/assets/img/logo.svg" />
+  <meta property="og:url" content="https://toolnepal.com/tools/qr-code-generator.html" />
+  <link rel="canonical" href="https://toolnepal.com/tools/qr-code-generator.html" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <!-- SEO Schema Markup -->
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Free QR Code Generator Nepal",
+  "operatingSystem": "All",
+  "applicationCategory": "UtilitiesApplication"
+}
+  </script>
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Do these QR codes expire?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The QR codes generated here are static, meaning the data is baked directly into the image pattern itself. They will work forever and never expire."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is there a scan limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Absolutely zero scan limits. Since the data is stored in the image, your phone reads it directly without routing through any tracking servers."
+      }
+    }
+  ]
+}
+  </script>
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </head>
 
 <body>
@@ -27,56 +70,222 @@
     <div class="container">
 
       <div class="ad">
-        <strong>Ad Placeholder</strong>
+        <strong>Tools Placeholder</strong>
         <small>Top Banner</small>
       </div>
 
       <section class="card">
-        <h1>QR Code Generator</h1>
-        <p class="help">Enter text or a URL (example: https://www.youtube.com/@tseries). Generate and download as PNG.</p>
+        <h1>Advanced QR Code Generator</h1>
+        <p class="help">Create high-res, non-expiring QR codes for free. Supports logos, colors, and SVG export.</p>
 
+        <!-- Presets -->
+        <div style="margin-bottom: 1.5rem; margin-top: 1rem;">
+          <label style="font-weight:600; display:block; margin-bottom:0.5rem;">Quick Presets</label>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button class="btn btn-ghost" type="button" onclick="applyPreset('minimal')">Minimal Black</button>
+            <button class="btn btn-ghost" type="button" onclick="applyPreset('gradient')">Modern Gradient</button>
+            <button class="btn btn-ghost" type="button" onclick="applyPreset('restaurant')">Restaurant</button>
+            <button class="btn btn-ghost" type="button" onclick="applyPreset('payment')">Payment</button>
+            <button class="btn btn-ghost" type="button" onclick="applyPreset('classic')">Classic Print</button>
+          </div>
+        </div>
+
+        <!-- QR Type Selector -->
         <div class="field">
-          <label for="qrText">Text / URL</label>
-          <input id="qrText" class="input" placeholder="Paste your text or URL..." />
-          <div class="help">Tip: Use dark foreground + light background for best scanning.</div>
+          <label for="qrType">QR Type</label>
+          <select id="qrType" class="input" onchange="handleTypeChange()">
+            <option value="url">Website URL</option>
+            <option value="wifi">WiFi</option>
+            <option value="phone">Phone Number</option>
+            <option value="sms">SMS</option>
+            <option value="email">Email</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="google_review">Google Review Link</option>
+            <option value="text">Plain Text</option>
+          </select>
         </div>
 
-        <div class="grid" style="grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
-          <div class="field">
-            <label for="qrSize">Size (px)</label>
-            <input id="qrSize" class="input" type="number" value="256" min="128" max="1024" />
+        <!-- Dynamic Inputs Container -->
+        <div id="dynamicInputs" style="margin-bottom: 1rem;">
+          <div id="input-url" class="field">
+            <label for="qrText">Website URL</label>
+            <input id="qrText" class="input" placeholder="example.com or https://example.com" />
+            <div id="qrWarning" class="help" style="color: var(--red-600); display:none;"></div>
+          </div>
+          
+          <div id="input-wifi" class="field" style="display:none;">
+            <label for="wifiSsid">Network Name (SSID)</label>
+            <input id="wifiSsid" class="input" placeholder="e.g. My Home WiFi" />
+            <label for="wifiPass" style="margin-top:0.5rem;display:block;">Password</label>
+            <input id="wifiPass" class="input" type="password" placeholder="WiFi Password" />
+            <label for="wifiEnc" style="margin-top:0.5rem;display:block;">Encryption</label>
+            <select id="wifiEnc" class="input">
+              <option value="WPA">WPA/WPA2</option>
+              <option value="WEP">WEP</option>
+              <option value="nopass">None</option>
+            </select>
           </div>
 
-          <div class="field">
-            <label for="qrFg">Foreground</label>
-            <input id="qrFg" class="input" type="color" value="#000000" />
+          <div id="input-phone" class="field" style="display:none;">
+            <label for="phoneNum">Phone Number</label>
+            <input id="phoneNum" class="input" placeholder="+977..." />
           </div>
 
-          <div class="field" style="grid-column:1/-1">
-            <label for="qrBg">Background</label>
-            <input id="qrBg" class="input" type="color" value="#ffffff" />
+          <div id="input-sms" class="field" style="display:none;">
+            <label for="smsNum">Phone Number</label>
+            <input id="smsNum" class="input" placeholder="+977..." />
+            <label for="smsMsg" style="margin-top:0.5rem;display:block;">Message</label>
+            <textarea id="smsMsg" class="input" rows="2" placeholder="Hello..."></textarea>
+          </div>
+
+          <div id="input-email" class="field" style="display:none;">
+            <label for="emailAddr">Email Address</label>
+            <input id="emailAddr" class="input" type="email" placeholder="email@example.com" />
+          </div>
+
+          <div id="input-whatsapp" class="field" style="display:none;">
+            <label for="waNum">WhatsApp Number (with country code)</label>
+            <input id="waNum" class="input" placeholder="977..." />
+          </div>
+
+          <div id="input-google_review" class="field" style="display:none;">
+            <label for="grLink">Google Review Link</label>
+            <input id="grLink" class="input" placeholder="Paste your Google Review link..." />
+          </div>
+
+          <div id="input-text" class="field" style="display:none;">
+            <label for="plainText">Plain Text</label>
+            <textarea id="plainText" class="input" rows="3" placeholder="Enter any text..."></textarea>
           </div>
         </div>
 
-        <div class="row" style="margin-top:1rem">
-          <button class="btn btn-primary" type="button" onclick="tnQrGenerate()">Generate</button>
-          <button class="btn btn-secondary" type="button" onclick="tnQrDownload()">Download PNG</button>
+        <details style="margin-top: 1rem; border: 1px solid var(--border); border-radius: 8px; padding: 1rem;">
+          <summary style="font-weight: 600; cursor: pointer; user-select: none;">Advanced Styling</summary>
+          <div class="grid" style="grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
+            <div class="field">
+              <label for="qrSize">Size (px)</label>
+              <input id="qrSize" class="input" type="number" value="300" min="128" max="1024" />
+            </div>
+
+            <div class="field">
+              <label for="errorCorrection">Error Correction</label>
+              <select id="errorCorrection" class="input">
+                <option value="L">L (Low - ~7%)</option>
+                <option value="M">M (Medium - ~15%)</option>
+                <option value="Q">Q (Quartile - ~25%)</option>
+                <option value="H" selected>H (High - best for logos)</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="businessName">Business Name (Frame)</label>
+              <input id="businessName" class="input" type="text" placeholder="e.g. My Shop" />
+            </div>
+
+            <div class="field" style="display:flex; align-items:flex-end; padding-bottom: 0.5rem;">
+              <label style="display:flex; align-items:center; gap: 0.5rem; cursor:pointer;">
+                <input type="checkbox" id="transparentBg" /> Transparent Background
+              </label>
+            </div>
+
+            <div class="field">
+              <label for="dotShape">Dot Shape</label>
+              <select id="dotShape" class="input">
+                <option value="square">Square</option>
+                <option value="dots">Dots</option>
+                <option value="rounded">Rounded</option>
+                <option value="extra-rounded">Extra Rounded</option>
+                <option value="classy">Classy</option>
+                <option value="classy-rounded">Classy Rounded</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="eyeShape">Eye Shape</label>
+              <select id="eyeShape" class="input">
+                <option value="square">Square</option>
+                <option value="dot">Dot</option>
+                <option value="circle">Circular</option>
+                <option value="rounded">Rounded</option>
+                <option value="extra-rounded">Extra Rounded</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="qrFg">Color 1 (Foreground)</label>
+              <input id="qrFg" class="input" type="color" value="#000000" />
+            </div>
+
+            <div class="field">
+              <label for="qrFg2">Color 2 (Gradient)</label>
+              <input id="qrFg2" class="input" type="color" value="#000000" />
+            </div>
+
+            <div class="field">
+              <label for="gradientType">Gradient Type</label>
+              <select id="gradientType" class="input">
+                <option value="none">None (Solid)</option>
+                <option value="linear">Linear</option>
+                <option value="radial">Radial</option>
+              </select>
+            </div>
+
+            <div class="field" id="bgWrapper">
+              <label for="qrBg">Background</label>
+              <input id="qrBg" class="input" type="color" value="#ffffff" />
+            </div>
+
+            <div class="field" style="grid-column:1/-1">
+              <label for="qrLogo">Upload Logo (Center)</label>
+              <input id="qrLogo" class="input" type="file" accept="image/png, image/jpeg, image/svg+xml" />
+              <div id="logoWarning" class="help" style="color: var(--red-600); display:none; margin-top: 0.25rem;">For logo designs, High error correction is recommended.</div>
+            </div>
+          </div>
+        </details>
+
+        <div class="row" style="margin-top:1.5rem; flex-wrap: wrap; gap: 0.5rem;">
+          <button id="btnGenerate" class="btn btn-primary" type="button" onclick="tnQrGenerate()">Generate Preview</button>
+          <button id="btnCopyData" class="btn btn-secondary" type="button" onclick="tnQrCopyData()" disabled>📋 Copy QR Data</button>
+          <button id="btnReset" class="btn btn-secondary" type="button" onclick="tnQrReset()">🔄 Reset to Default</button>
+        </div>
+        <div class="row" style="margin-top:1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <button id="btnDownloadPng" class="btn btn-secondary" type="button" onclick="tnQrDownload('png')" disabled>Download PNG</button>
+          <button id="btnDownloadHd" class="btn btn-secondary" type="button" onclick="tnQrDownload('png-hd')" disabled>Download PNG (4x HD)</button>
+          <button id="btnDownloadSvg" class="btn btn-secondary" type="button" onclick="tnQrDownload('svg')" disabled>Download SVG</button>
         </div>
 
-        <!-- ✅ FIX: QRCode.js needs a DIV (not a canvas) -->
         <div
           id="qrOut"
-          style="margin-top:1rem; width:fit-content; padding:14px; border-radius:16px; border:1px solid var(--border); background:rgba(255,255,255,.65);"
+          style="margin-top:1.5rem; width:fit-content; padding:14px; border-radius:16px; border:1px solid var(--border); background:rgba(255,255,255,.65);"
         ></div>
+        <div class="help" style="margin-top:0.5rem; font-size:0.85rem; color:var(--muted);">Tip: Always test your QR with your phone before printing.</div>
 
-        <div class="ad" style="margin-top:1rem">
-          <strong>Ad Placeholder</strong>
+        <div class="ad" style="margin-top:1.5rem">
+          <strong>Tools Placeholder</strong>
           <small>In-content Ad</small>
         </div>
       </section>
 
     </div>
-  </main>
+  
+
+        <div class='container' style='max-width:800px; margin:2rem auto; padding:0 1rem'>
+            <div class="card">
+                <h2>Why use this Free Local QR Code Generator?</h2>
+                <div class="help" style="margin-top:1rem; line-height:1.7; font-size:0.95rem">
+                    <p>Most QR code generators online trick you into signing up or they create "dynamic" codes that expire after 14 days and demand payment to reactivate. Our <strong>ToolNepal QR Code Generator</strong> creates static, evergreen QR codes directly in your browser. They will <strong>never expire</strong>.</p>
+                    <h3 style="margin-top:1.5rem">Use cases in Nepal</h3>
+                    <ul style="margin-top:0.5rem; padding-left:1.5rem">
+                        <li><strong>Digital Menus:</strong> Restaurants and cafes in Kathmandu or Pokhara can generate a QR linking to their PDF menu.</li>
+                        <li><strong>Business Cards:</strong> Print a QR on your visiting cards connecting to your LinkedIn or portfolio.</li>
+                        <li><strong>Wi-Fi Access:</strong> Soon we will add Wi-Fi QR support so your guests can scan and connect instantly without asking for passwords.</li>
+                    </ul>
+                    <p style="margin-top:1.5rem">Because this tool runs entirely on the client-side (in your browser using JavaScript), the content of your QR code is never sent to our servers. It's perfectly safe for embedding sensitive URLs or contact information.</p>
+                </div>
+            </div>
+        </div>
+        
+</main>
 
   <div id="siteFooter"></div>
 
@@ -94,22 +303,12 @@
 
   <script src="../assets/js/main.js"></script>
 
-  <!-- ✅ QR library (QRCode.js) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- ✅ QR library (qr-code-styling) -->
+  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
 
   <!-- ✅ Your QR logic -->
   <script src="../assets/js/qr.js"></script>
 
-  <!-- ✅ Live preview hook (works if your qr.js has tnQrLive, otherwise safe) -->
-  <script>
-    // If your qr.js includes tnQrLive(), enable it. If not, no error.
-    function _safeLive() {
-      if (typeof tnQrLive === "function") tnQrLive();
-    }
-    ["qrText","qrSize","qrFg","qrBg"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener("input", _safeLive);
-    });
-  </script>
+  <!-- Live preview event attachment is handled inside qr.js -->
 </body>
 </html>

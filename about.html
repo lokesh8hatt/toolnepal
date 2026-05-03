@@ -13,11 +13,65 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css" />
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </head><body>
 <div id='siteHeader'></div>
 <main id='main' class='main'><div class='container'>
-<div class='ad'><strong>Ad Placeholder</strong><small>Top Banner</small></div>
-<section class='card'><span class='badge'>About</span><h1>Built for Nepal 🇳🇵</h1><p class='help'>Fast, mobile-first tools that run in your browser.</p></section>
+<div class="ad"><strong>Tools Placeholder</strong></div>
+<section class='split'>
+  <div class='stack'>
+    <section class='card animate-fade'>
+      <span class='badge' style='margin-bottom:.6rem'>Our Story</span>
+      <h1 style='font-size:2rem'>Built for everyday Nepal 🇳🇵</h1>
+      <p class='help' style='margin-top:.5rem; line-height:1.7; font-size:1.05rem'>
+        The internet is crowded with slow, ad-ridden, and complicated websites that ask for your email just to resize a photo. We started <strong>ToolNepal</strong> with a single mission: to build the cleanest, fastest, and most reliable digital tools specifically tailored for students, professionals, and households in Nepal.
+      </p>
+    </section>
+
+    <div class='grid grid-2' style='gap:1rem'>
+      <div class='card'>
+        <h3 style='margin-bottom:.5rem; color:var(--red-500)'>⚡ Blazing Fast</h3>
+        <p class='help' style='line-height:1.6'>
+          We don't rely on bloated servers. Most of our tools run entirely <strong>client-side</strong> using modern browser technologies. That means calculations, conversions, and image compressions happen instantly, without relying on slow internet speeds.
+        </p>
+      </div>
+      <div class='card'>
+        <h3 style='margin-bottom:.5rem; color:var(--red-500)'>🔒 Zero Upload Promise</h3>
+        <p class='help' style='line-height:1.6'>
+          Privacy is our absolute priority. When you compress your citizenship card photo, scan a PDF, or calculate your GPA, your data <strong>never</strong> leaves your phone. We do not upload, save, or track your sensitive files on any database.
+        </p>
+      </div>
+      <div class='card'>
+        <h3 style='margin-bottom:.5rem; color:var(--red-500)'>🎯 Zero Complexity</h3>
+        <p class='help' style='line-height:1.6'>
+          No sign-ups. No pop-up videos. No confusing navigation. We believe software should be invisible—you just open the tool, get your result, and go on with your day.
+        </p>
+      </div>
+      <div class='card'>
+        <h3 style='margin-bottom:.5rem; color:var(--red-500)'>🇳🇵 Local Context</h3>
+        <p class='help' style='line-height:1.6'>
+          From TU/BCA CGPA formulas to Bikram Sambat date conversions and Nepal's exact 13% VAT brackets, our logic is hardcoded strictly for the Nepali ecosystem.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <aside class='sidebar'>
+    <div class='card'>
+      <h3>Join the Movement</h3>
+      <p class='help' style='margin-top:.8rem; line-height:1.6'>We are constantly adding new features based on what students and creators in Nepal desperately need. If you have an idea for a tool that would save you an hour a week, let us know!</p>
+      <a href='contact.html' class='btn btn-primary' style='display:block; text-align:center; margin-top:1rem'>Drop a suggestion</a>
+    </div>
+    <div class="ad" style="margin-top:1rem"><strong>Tools Placeholder</strong></div>
+  </aside>
+</section>
 </div></main>
 <div id='siteFooter'></div>
 <div id='toast' class='toast' role='status' aria-live='polite'></div>

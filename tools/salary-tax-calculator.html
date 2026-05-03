@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Nepal Salary Tax Calculator FY 2081/82 | TDS & Breakdown</title>
+  <meta name="description" content="Calculate your exact monthly salary, SSF deductions, 1% tax, and TDS breakdowns for Fiscal Year 2081/82 in Nepal. Accurate income tax calculator."/>
+  <meta property="og:title" content="Nepal Salary Tax Calculator — ToolNepal"/>
+  <meta property="og:type" content="website"/>
+  <link rel="canonical" href="https://toolnepal.com/tools/salary-tax-calculator.html"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    .receipt { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1.25rem; font-size:.9rem; }
+    .receipt-row { display:flex; justify-content:space-between; padding:.4rem 0; border-bottom:1px solid var(--border); }
+    .receipt-row:last-child { border-bottom:none; }
+    .receipt-total { font-weight:800; font-size:1.4rem; color:var(--text); border-top:2px solid var(--text) !important; margin-top:.5rem; padding-top:.75rem; }
+    .tax-text { color:var(--red-500); font-weight:700; }
+  </style>
+
+  <!-- SEO Schema Markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Nepal Salary Tax Calculator",
+    "operatingSystem": "All",
+    "applicationCategory": "FinanceApplication",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is the new tax slab in Nepal for FY 2081/82?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "For an unmarried individual, the first Rs. 5 Lakhs is taxed at 1%. The next 2 Lakhs at 10%, next 3 Lakhs at 20%, next 10 Lakhs at 30%, and anything above 20 Lakhs is taxed at 36%. For married couples, the first slab is raised to Rs. 6 Lakhs."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do SSF contributors pay 1% Social Security Tax?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. If you contribute to the Social Security Fund (SSF), the 1% SST on your first salary slab is legally waived."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+</head>
+<body>
+<div id="siteHeader"></div>
+<main id="main" class="main">
+  <div class="container">
+    <div class="ad"><strong>Tools Placeholder</strong></div>
+    <section class="split" style="margin-top:1.6rem">
+      <div class="stack">
+        <section class="card animate-fade">
+          <span class="badge" style="margin-bottom:.6rem">💼 Finance/HR</span>
+          <h1 style="font-size:1.8rem">Nepal Income Tax Calculator</h1>
+          <p class="help" style="margin-bottom:1.5rem">Calculate your exact monthly take-home salary after SSF and strict TDS deductions for FY 2081/2082.</p>
+
+          <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem">
+            <div class="field" style="grid-column:1/-1">
+              <label>Monthly Gross Salary (Rs.)</label>
+              <input id="salGross" type="number" class="input" value="45000" oninput="calcTax()" placeholder="e.g. 50000">
+            </div>
+            
+            <div class="field">
+              <label>Marital Status</label>
+              <select id="salStatus" class="input" onchange="calcTax()">
+                <option value="unmarried">Unmarried (Single)</option>
+                <option value="married">Married (Couple)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Yearly Bonus (Months)</label>
+              <select id="salBonus" class="input" onchange="calcTax()">
+                <option value="13">13 Months (With Dashain Bonus)</option>
+                <option value="12">12 Months (Standard)</option>
+              </select>
+            </div>
+
+            <div class="field" style="grid-column:1/-1; display:flex; align-items:center; gap:0.5rem; margin-top:.5rem">
+              <input type="checkbox" id="salSsf" onchange="calcTax()" style="width:1.2rem; height:1.2rem">
+              <label for="salSsf" style="margin:0; font-weight:600; cursor:pointer">I contribute 11% to the Social Security Fund (SSF)</label>
+            </div>
+          </div>
+
+          <div id="receiptBox" class="receipt" style="margin-top:1.5rem">
+            <div class="receipt-row"><span style="color:var(--muted);font-weight:700">Yearly Breakdown</span></div>
+            <div class="receipt-row"><span>Yearly Gross Salary</span><span id="oYearGross">Rs. 0.00</span></div>
+            <div class="receipt-row" id="rowYearSsf" style="display:none"><span>Yearly SSF Deduction (11%)</span><span class="tax-text" id="oYearSsf">Rs. 0.00</span></div>
+            <div class="receipt-row"><span>Yearly Taxable Income</span><span id="oYearTaxable">Rs. 0.00</span></div>
+            <div class="receipt-row"><span>Total Yearly Income Tax</span><span class="tax-text" id="oYearTax">Rs. 0.00</span></div>
+            
+            <div class="receipt-row" style="margin-top:1rem"><span style="color:var(--muted);font-weight:700">Monthly In Hand (Take Home)</span></div>
+            <div class="receipt-row"><span>Monthly Gross Salary</span><span id="oMonthGross">Rs. 0.00</span></div>
+            <div class="receipt-row" id="rowMonthSsf" style="display:none"><span>Monthly SSF Deduction</span><span class="tax-text" id="oMonthSsf">Rs. 0.00</span></div>
+            <div class="receipt-row"><span>Monthly Tax (TDS)</span><span class="tax-text" id="oMonthTax">Rs. 0.00</span></div>
+            
+            <div class="receipt-row receipt-total"><span>Net Salary In Hand</span><span style="color:#22c55e" id="oNetMonthly">Rs. 0.00</span></div>
+            
+            <div class="help" style="margin-top:1rem; font-size:.8rem; color:var(--muted)">Note: The 1% Social Security Tax is waived if you contribute to SSF. The calculations use precise FY 2081/82 Inland Revenue Department brackets.</div>
+          </div>
+        </section>
+
+        <!-- SEO Content Block -->
+        <article class="card" style="margin-top:1rem">
+          <h2>How is Nepal's Income Tax Calculated?</h2>
+          <div class="help" style="margin-top:1rem; line-height:1.7; font-size:0.95rem">
+            <p>Navigating the Inland Revenue Department (IRD) tax slabs for the Fiscal Year 2081/82 (2024/25) can be incredibly complex. Many employees in Kathmandu and across Nepal are shocked when their HR drops a large Tax Deducted at Source (TDS) cut from their monthly salary. Using our <strong>Nepal Income Tax Calculator</strong>, you can accurately predict your take-home pay.</p>
+            <h3 style="margin-top:1.5rem">The New Tax Slabs (2081/82)</h3>
+            <ul style="margin-top:0.5rem; padding-left:1.5rem">
+              <li><strong>Slab 1 (1%):</strong> Up to Rs. 5 Lakhs for singles (Rs. 6 Lakhs for married couples). <em>This is completely waived to 0% if you put your money in SSF or an approved CIT!</em></li>
+              <li><strong>Slab 2 (10%):</strong> For the next Rs. 2 Lakhs.</li>
+              <li><strong>Slab 3 (20%):</strong> For the next Rs. 3 Lakhs.</li>
+              <li><strong>Slab 4 (30%):</strong> For the next Rs. 10 Lakhs (Single) or Rs. 9 Lakhs (Married).</li>
+              <li><strong>Slab 5 (36%):</strong> For any income above Rs. 20 Lakhs per year. This includes the massive 20% extra surcharge directly placed on high-income earners.</li>
+            </ul>
+            <p style="margin-top:1.5rem">Instead of opening Excel spreadsheets every time you negotiate a highly paid job offer, simply type the monthly gross figure into ToolNepal, toggle your marital status, and get the indisputable net salary breakdown.</p>
+          </div>
+        </article>
+      </div>
+
+      <aside class="sidebar">
+        <div class="card">
+          <h3 style="margin-bottom:.75rem">Dashain Bonus</h3>
+          <div style="font-size:.88rem; line-height:1.5; color:var(--muted)">
+            <p style="margin-top:0">In Nepal, most full-time employment contracts distribute a basic one-month salary as a designated Dashain Bonus. Because of this, the yearly calculation uses 13 months instead of 12 months for your gross accumulation. Don't forget to select this in the drop-down to avoid paying surprising tax arrears in Ashadh!</p>
+          </div>
+        </div>
+        <div class="ad" style="margin-top:1rem"><strong>Tools Placeholder</strong></div>
+      </aside>
+    </section>
+  </div>
+</main>
+<div id="siteFooter"></div>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/analytics.js"></script>
+<script>
+function calcTax() {
+  const mGross = parseFloat(document.getElementById("salGross").value) || 0;
+  const isMarried = document.getElementById("salStatus").value === "married";
+  const months = parseFloat(document.getElementById("salBonus").value);
+  const hasSsf = document.getElementById("salSsf").checked;
+
+  const yGross = mGross * months;
+  let ySsfDeduction = 0;
+  
+  if (hasSsf) {
+    ySsfDeduction = yGross * 0.11;
+  }
+
+  const yTaxable = yGross - ySsfDeduction;
+  let rTaxable = yTaxable;
+  let yTax = 0;
+
+  // Define Slab logic FY 2081/82
+  const slab1_limit = isMarried ? 600000 : 500000;
+  const slab2_limit = 200000;
+  const slab3_limit = 300000;
+  const slab4_limit = isMarried ? 900000 : 1000000;
+  
+  // Slab 1 
+  let s1 = Math.min(rTaxable, slab1_limit);
+  if(!hasSsf) {
+    yTax += s1 * 0.01;
+  }
+  rTaxable -= s1;
+
+  // Slab 2 (10%)
+  if (rTaxable > 0) {
+    let s2 = Math.min(rTaxable, slab2_limit);
+    yTax += s2 * 0.10;
+    rTaxable -= s2;
+  }
+
+  // Slab 3 (20%)
+  if (rTaxable > 0) {
+    let s3 = Math.min(rTaxable, slab3_limit);
+    yTax += s3 * 0.20;
+    rTaxable -= s3;
+  }
+
+  // Slab 4 (30%)
+  if (rTaxable > 0) {
+    let s4 = Math.min(rTaxable, slab4_limit);
+    yTax += s4 * 0.30;
+    rTaxable -= s4;
+  }
+
+  // Slab 5 (36%) 
+  if (rTaxable > 0) {
+    yTax += rTaxable * 0.36;
+  }
+
+  const mTax = yTax / months;
+  const mSsf = ySsfDeduction / months;
+  const mNet = mGross - mTax - mSsf;
+
+  const fmt = (num) => "Rs. " + parseFloat(Math.abs(num).toFixed(2)).toLocaleString('en-IN');
+
+  document.getElementById("oYearGross").textContent = fmt(yGross);
+  document.getElementById("oYearTaxable").textContent = fmt(yTaxable);
+  document.getElementById("oYearTax").textContent = fmt(yTax);
+  
+  document.getElementById("oMonthGross").textContent = fmt(mGross);
+  document.getElementById("oMonthTax").textContent = fmt(mTax);
+  document.getElementById("oNetMonthly").textContent = fmt(mNet);
+
+  if(hasSsf) {
+    document.getElementById("rowYearSsf").style.display = 'flex';
+    document.getElementById("rowMonthSsf").style.display = 'flex';
+    document.getElementById("oYearSsf").textContent = fmt(ySsfDeduction);
+    document.getElementById("oMonthSsf").textContent = fmt(mSsf);
+  } else {
+    document.getElementById("rowYearSsf").style.display = 'none';
+    document.getElementById("rowMonthSsf").style.display = 'none';
+  }
+}
+calcTax();
+</script>
+</body>
+</html>

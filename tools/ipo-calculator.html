@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Nepal IPO Profit Calculator | MeroShare CGT & Broker Fee Breakdown</title>
+  <meta name="description" content="Calculate your exact Nepal IPO and secondary share market profit automatically cutting SEBON fee, DP fee, broker commission, and 5% Capital Gains Tax (CGT)."/>
+  <meta property="og:title" content="Nepal IPO Profit Calculator — ToolNepal"/>
+  <meta property="og:type" content="website"/>
+  <link rel="canonical" href="https://toolnepal.com/tools/ipo-calculator.html"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    .receipt { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1.25rem; font-family:monospace; font-size:.9rem; }
+    .receipt-row { display:flex; justify-content:space-between; padding:.4rem 0; border-bottom:1px dashed var(--border); }
+    .receipt-row:last-child { border-bottom:none; }
+    .receipt-total { font-weight:bold; font-size:1.1rem; color:var(--red-500); border-top:2px solid var(--text) !important; margin-top:.5rem; padding-top:.75rem; }
+    .profit-positive { color:#22c55e; }
+    .profit-negative { color:#ef4444; }
+  </style>
+
+  <!-- SEO Schema Markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Nepal IPO Profit Calculator",
+    "operatingSystem": "All",
+    "applicationCategory": "FinanceApplication",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What fees are deducted when selling IPO shares in Nepal?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "When selling shares loaded from MeroShare in NEPSE, you pay a DP fee (Rs 25), SEBON fee (0.015%), Broker Commission (around 0.40% for small amounts), and 5% Capital Gains Tax (CGT) on your net profit."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the Capital Gains Tax (CGT) rate?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "For individual investors holding shares for less than 365 days, CGT is 7.5%. For shares held over 365 days (like most long-term IPOs), it drops to 5%. Institutional investors pay 10%."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+</head>
+<body>
+<div id="siteHeader"></div>
+<main id="main" class="main">
+  <div class="container">
+    <div class="ad"><strong>Tools Placeholder</strong></div>
+    <section class="split" style="margin-top:1.6rem">
+      <div class="stack">
+        <section class="card animate-fade">
+          <span class="badge" style="margin-bottom:.6rem">📈 Finance</span>
+          <h1 style="font-size:1.8rem">Nepal IPO Profit Calculator</h1>
+          <p class="help" style="margin-bottom:1.5rem">Calculate your exact net profit smoothly deducting SEBON, Broker, DP, and CGT taxes.</p>
+
+          <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem">
+            <div class="field">
+              <label>Allotted Shares (Kitta)</label>
+              <input id="ipoQty" type="number" class="input" value="10" oninput="calcIpo()">
+            </div>
+            <div class="field">
+              <label>Buy Price (Rs.)</label>
+              <input id="ipoBuy" type="number" class="input" value="100" oninput="calcIpo()">
+            </div>
+            <div class="field">
+              <label>Selling Price (Rs.)</label>
+              <input id="ipoSell" type="number" class="input" value="500" oninput="calcIpo()">
+            </div>
+            <div class="field">
+              <label>Holding Period (CGT)</label>
+              <select id="ipoCgt" class="input" onchange="calcIpo()">
+                <option value="0.05">More than 365 days (5%) - Standard IPO</option>
+                <option value="0.075">Less than 365 days (7.5%)</option>
+                <option value="0.10">Corporate / Institutional (10%)</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" style="width:100%; margin-bottom:1.5rem" onclick="calcIpo(); document.getElementById('receiptBox').scrollIntoView({behavior:'smooth'})">Calculate Exact Profit</button>
+
+          <div id="receiptBox" class="receipt">
+            <div class="receipt-row"><span>Total Buy Amount</span><span id="rBuy">Rs. 0.00</span></div>
+            <div class="receipt-row"><span>Total Sell Amount</span><span id="rSell">Rs. 0.00</span></div>
+            <div class="receipt-row" style="margin-top:.5rem; font-weight:bold; color:var(--muted)">Deductions (Taxes & Fees)</div>
+            <div class="receipt-row"><span>SEBON Fee (0.015%)</span><span id="rSebon">Rs. 0.00</span></div>
+            <div class="receipt-row"><span>DP Fee (Fixed)</span><span id="rDp">Rs. 25.00</span></div>
+            <div class="receipt-row"><span>Broker Commission (0.40%)</span><span id="rBroker">Rs. 0.00</span></div>
+            <div class="receipt-row"><span>Capital Gain Tax (CGT)</span><span id="rCgt" style="color:var(--red-500)">Rs. 0.00</span></div>
+            <div class="receipt-row receipt-total"><span>Net Profit in Bank</span><span id="rProfit">Rs. 0.00</span></div>
+            
+            <button class="btn btn-secondary" style="margin-top:1.5rem; width:100%" onclick="shareResult()">📲 Share My Profit Result</button>
+          </div>
+        </section>
+
+        <!-- SEO Content Block -->
+        <article class="card" style="margin-top:1rem">
+          <h2>How is NEPSE Share Profit Calculated in Nepal?</h2>
+          <div class="help" style="margin-top:1rem; line-height:1.7; font-size:0.95rem">
+            <p>Selling an IPO or secondary market share in Nepal's NEPSE via TMS involves several hidden government and brokerage fees. Most investors look at their sell price multiplied by ten (kitta) and assume that's their final profit—but you will get significantly less deposited into your bank account after standard deductions.</p>
+            <h3 style="margin-top:1.5rem">The 4 Hidden Deductions</h3>
+            <ul style="margin-top:0.5rem; padding-left:1.5rem">
+              <li><strong>SEBON Fee:</strong> The Securities Board of Nepal takes a mandatory 0.015% cut on the total transaction amount.</li>
+              <li><strong>DP Fee:</strong> A flat Rs. 25 fee is charged directly by your Depository Participant (your Meroshare holding bank or capital) for transferring shares digitally.</li>
+              <li><strong>Broker Commission:</strong> Brokers charge tiered percentages. For retail IPOs under Rs 50,000, the fee is exactly 0.40% of the traded volume.</li>
+              <li><strong>Capital Gains Tax (CGT):</strong> You only pay this if you made a profit! If you held the stock for more than a year (like most IPOs at maturity), you pay 5% of the net capital gain. If holding under 1 year, you pay 7.5% directly to the Nepal Government.</li>
+            </ul>
+            <p style="margin-top:1.5rem">Our <strong>Nepal IPO Profit Calculator</strong> handles all these complex layered tier calculations instantaneously, giving you the precise unrounded rupee amount that will be physically deposited into your linked IPS bank account.</p>
+          </div>
+        </article>
+      </div>
+
+      <aside class="sidebar">
+        <div class="card">
+          <h3 style="margin-bottom:.75rem">Did you know?</h3>
+          <div style="font-size:.88rem; line-height:1.5; color:var(--muted)">
+            <p style="margin-top:0">Unlike old physical trading days, the Capital Gains Tax (CGT) is automatically deducted from your broker's payout. You DO NOT need to file this manually or go to the tax office after trading stocks in NEPSE.</p>
+          </div>
+        </div>
+        <div class="ad" style="margin-top:1rem"><strong>Tools Placeholder</strong></div>
+      </aside>
+    </section>
+  </div>
+</main>
+<div id="siteFooter"></div>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/analytics.js"></script>
+<script>
+let lastProfitStr = "";
+
+function calcIpo() {
+  const qty = parseFloat(document.getElementById("ipoQty").value) || 0;
+  const buy = parseFloat(document.getElementById("ipoBuy").value) || 0;
+  const sell = parseFloat(document.getElementById("ipoSell").value) || 0;
+  const cgtRate = parseFloat(document.getElementById("ipoCgt").value);
+
+  const buyTotal = qty * buy;
+  const sellTotal = qty * sell;
+  
+  // DP is flat Rs 25
+  const dpFee = 25.00;
+  
+  // SEBON 0.015%
+  const sebonFee = sellTotal * 0.00015;
+  
+  // Broker Comm (assuming under 50k is 0.40%, up to 5L is 0.37%, etc)
+  let brokerFee = 0;
+  if(sellTotal <= 50000) brokerFee = sellTotal * 0.0040;
+  else if(sellTotal <= 500000) brokerFee = sellTotal * 0.0037;
+  else if(sellTotal <= 2000000) brokerFee = sellTotal * 0.0034;
+  else if(sellTotal <= 10000000) brokerFee = sellTotal * 0.0030;
+  else brokerFee = sellTotal * 0.0027;
+  
+  const totalDeductionsBeforeTax = dpFee + sebonFee + brokerFee;
+  const netSell = sellTotal - totalDeductionsBeforeTax;
+  
+  const capitalGain = netSell - buyTotal;
+  const cgt = capitalGain > 0 ? (capitalGain * cgtRate) : 0;
+  
+  const netProfit = capitalGain - cgt;
+  
+  const fmt = (num) => "Rs. " + parseFloat(Math.abs(num).toFixed(2)).toLocaleString('en-IN');
+  
+  document.getElementById("rBuy").textContent = fmt(buyTotal);
+  document.getElementById("rSell").textContent = fmt(sellTotal);
+  document.getElementById("rSebon").textContent = fmt(sebonFee);
+  document.getElementById("rDp").textContent = fmt(dpFee);
+  document.getElementById("rBroker").textContent = fmt(brokerFee);
+  document.getElementById("rCgt").textContent = fmt(cgt);
+  
+  const profEl = document.getElementById("rProfit");
+  profEl.textContent = fmt(netProfit);
+  
+  if(netProfit >= 0) {
+    profEl.className = "receipt-total profit-positive";
+    lastProfitStr = `I just calculated my exact IPO share profit: Rs ${parseFloat(netProfit.toFixed(2)).toLocaleString('en-IN')}! 📈 Deducting all SEBON and CGT taxes instantly at ToolNepal: ${location.href}`;
+  } else {
+    profEl.className = "receipt-total profit-negative";
+    profEl.textContent = "- " + fmt(netProfit);
+    lastProfitStr = `Checking my NEPSE portfolio losses. Calculate your exact loss/profit after broker fees at ToolNepal: ${location.href}`;
+  }
+}
+
+function shareResult() {
+  if (navigator.share) {
+    navigator.share({
+      title: 'My IPO Profit Calculator',
+      text: lastProfitStr,
+      url: location.href,
+    }).catch(console.error);
+  } else {
+    navigator.clipboard.writeText(lastProfitStr)
+      .then(() => alert("Result copied to clipboard! Paste it anywhere to share."))
+      .catch(console.error);
+  }
+}
+calcIpo();
+</script>
+</body>
+</html>

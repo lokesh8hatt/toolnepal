@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>EMI Calculator — ToolNepal</title>
+  <title>EMI Calculator for Nepal - Home & Auto Loans | ToolNepal</title>
 
-  <meta name="description" content="Calculate EMI for loans in Nepal. Monthly EMI, total interest, total payment, and amortization summary." />
+  <meta name="description" content="Calculate your Equated Monthly Installment (EMI) for home loans, auto loans, and personal loans using Nepal's banking standards."/>
   <meta property="og:title" content="EMI Calculator — ToolNepal" />
   <meta property="og:description" content="Calculate EMI for loans in Nepal. Monthly EMI, total interest, total payment, and amortization summary." />
   <meta property="og:type" content="website" />
@@ -17,6 +17,54 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <!-- SEO Schema Markup -->
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "EMI Calculator for Nepal - Home & Auto Loans",
+  "operatingSystem": "All",
+  "applicationCategory": "UtilitiesApplication",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+  </script>
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a reducing balance EMI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Reducing balance means the interest is calculated only on the remaining loan principal. As you pay your EMI, the principal decreases, so the interest portion of your EMI decreases over time."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do Nepali banks use this exact EMI formula?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, almost all commercial (Class A) and development (Class B) banks in Nepal use this exact reducing-balance EMI mathematical formula."
+      }
+    }
+  ]
+}
+  </script>
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </head>
 
 <body>
@@ -25,7 +73,7 @@
 <main class="main">
   <div class="container">
 
-    <div class="ad"><strong>Ad Placeholder</strong><small>Top Banner</small></div>
+    <div class="ad"><strong>Tools Placeholder</strong></div>
 
     <section class="split">
 
@@ -68,11 +116,11 @@
           <div id="emiTableWrap" style="margin-top:1rem; overflow:auto"></div>
         </details>
 
-        <div class="ad" style="margin-top:1rem"><strong>Ad Placeholder</strong><small>In-content Ad</small></div>
+        <div class="ad"><strong>Tools Placeholder</strong></div>
       </div>
 
       <aside class="sidebar">
-        <div class="ad"><strong>Ad Placeholder</strong><small>Sidebar</small></div>
+        <div class="ad"><strong>Tools Placeholder</strong></div>
 
         <div class="card">
           <h3>Formula</h3>
@@ -87,6 +135,25 @@
 
     </section>
   </div>
+
+
+        <div class='container' style='max-width:800px; margin:2rem auto; padding:0 1rem'>
+            <div class="card">
+                <h2>Nepal Bank EMI Loan Calculator</h2>
+                <div class="help" style="margin-top:1rem; line-height:1.7; font-size:0.95rem">
+                    <p>Taking out a home loan, vehicle loan, or personal loan in Nepal? Knowing your exact Equated Monthly Installment (EMI) is crucial before signing any banking documents. Our <strong>EMI Calculator</strong> uses the standard reducing balance formula officially used by commercial banks in Nepal (like Nabil Bank, NIC Asia, Global IME, etc.).</p>
+                    <h3 style="margin-top:1.5rem">The Technical EMI Formula</h3>
+                    <p>The mathematical formula for calculating your EMI is:<br>
+                    <code style="display:inline-block; margin-top:0.5rem; padding:0.5rem; background:rgba(0,0,0,0.05); border-radius:4px">E = P × r × (1 + r)^n / ((1 + r)^n - 1)</code></p>
+                    <p style="margin-top:1rem">Where:<br>
+                    <strong>P</strong> = Principal loan amount<br>
+                    <strong>r</strong> = Monthly interest rate (Annual Rate / 12 / 100)<br>
+                    <strong>n</strong> = Loan duration in total months</p>
+                    <p style="margin-top:1.5rem">By tweaking the interest rate and tenure in our tool, you can see how much total interest you'll be paying over the life of the loan. This helps you decide the best loan term to minimize the extra money you lose to the bank!</p>
+                </div>
+            </div>
+        </div>
+        
 </main>
 
 <div id="siteFooter"></div>

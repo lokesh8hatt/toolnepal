@@ -3,8 +3,56 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VAT Calculator (Nepal) — ToolNepal</title>
+  <title>13% VAT Calculator Nepal - Add or Remove VAT | ToolNepal</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <!-- SEO Schema Markup -->
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "13% VAT Calculator Nepal - Add or Remove VAT",
+  "operatingSystem": "All",
+  "applicationCategory": "UtilitiesApplication",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+  </script>
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the standard VAT rate in Nepal?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The standard Value Added Tax (VAT) rate in Nepal is absolutely fixed at 13% for taxable goods and services."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I extract the base price from a VAT inclusive bill?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Divide the total bill amount by 1.13 to get the original base price before the 13% VAT was applied."
+      }
+    }
+  ]
+}
+  </script>
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </head>
 <body>
 <div id="siteHeader"></div>
@@ -36,6 +84,23 @@
       </aside>
     </section>
   </div>
+
+
+        <div class='container' style='max-width:800px; margin:2rem auto; padding:0 1rem'>
+            <div class="card">
+                <h2>Understanding Nepal's 13% Value Added Tax (VAT)</h2>
+                <div class="help" style="margin-top:1rem; line-height:1.7; font-size:0.95rem">
+                    <p>Value Added Tax (VAT) in Nepal is a consumption tax placed on a product whenever value is added at each stage of the supply chain. The standard VAT rate in Nepal is firmly set at <strong>13%</strong> by the Inland Revenue Department (IRD).</p>
+                    <h3 style="margin-top:1.5rem">How to Calculate VAT manually?</h3>
+                    <p style="margin-top:0.5rem">To <strong>add VAT (Exclusive to Inclusive)</strong>: Multiply your base amount by 1.13. <br>
+                    <em style="color:var(--text)">Example: Rs. 1000 base price × 1.13 = Rs. 1130 Total Price.</em></p>
+                    <p style="margin-top:1rem">To <strong>remove VAT (Inclusive to Exclusive)</strong>: Divide your total amount by 1.13. <br>
+                    <em style="color:var(--text)">Example: Rs. 1130 total price ÷ 1.13 = Rs. 1000 Base Price. The VAT amount is Rs. 130.</em></p>
+                    <p style="margin-top:1.5rem">This calculator handles these equations automatically. Just type the number and see the breakdown instantly. It's a lifesaver for business owners, accountants, and everyday shoppers verifying their PAN/VAT bills in Nepal.</p>
+                </div>
+            </div>
+        </div>
+        
 </main>
 <div id="siteFooter"></div>
 <script src="../assets/js/main.js"></script>

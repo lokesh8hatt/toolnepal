@@ -1,8 +1,8 @@
 <!doctype html><html lang='en'><head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Image Compressor — ToolNepal</title>
-  <meta name="description" content="Compress images locally." />
+  <title>Image Compressor Offline | Reduce Photo Size in Browser | ToolNepal</title>
+  <meta name="description" content="Compress JPG/PNG images heavily without quality loss. Completely private browser-based image compressor. Fix 'File size too large' errors."/>
   <meta property="og:title" content="Image Compressor — ToolNepal" />
   <meta property="og:description" content="Compress images locally." />
   <meta property="og:type" content="website" />
@@ -13,4 +13,62 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css" />
-</head><body><div id='siteHeader'></div><main id='main' class='main'><div class='container'><div class='ad'><strong>Ad Placeholder</strong><small>Top Banner</small></div><section class='card'><h1>Image Compressor</h1><div class='field'><label for='icFile'>Choose Image</label><input id='icFile' class='input' type='file' accept='image/*' onchange='tnImgHandleSelect()'><div id='icPreview' class='help'></div></div><div class='grid' style='grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem'><div class='field'><label for='icQuality'>Quality</label><input id='icQuality' class='input' type='number' step='0.05' min='0.1' max='0.95' value='0.75'></div><div class='field'><label for='icMaxW'>Max Width</label><input id='icMaxW' class='input' type='number' value='1920'></div></div><div class='row' style='margin-top:1rem'><button class='btn btn-primary' type='button' onclick='tnImgCompress()'>Compress</button><a id='icDownload' class='btn btn-secondary' style='display:none' href='#'>Download</a></div><div id='icInfo' style='margin-top:1rem'></div><canvas id='icCanvas' style='width:100%;margin-top:1rem;border-radius:16px;border:1px solid var(--border)'></canvas></section></div></main><div id='siteFooter'></div><div id='toast' class='toast' role='status' aria-live='polite'></div><div id='modalBackdrop' class='modal-backdrop' aria-hidden='true'><div class='modal' role='dialog' aria-modal='true' aria-labelledby='modalTitle'><h3 id='modalTitle'>Success</h3><div id='modalBody' class='help'></div><div class='actions'><button class='btn btn-secondary' type='button' onclick='tnCloseModal()'>Close</button></div></div></div><script src='../assets/js/main.js'></script><script src='../assets/js/tools.js'></script><script src='../assets/js/analytics.js'></script></body></html>
+
+  <!-- SEO Schema Markup -->
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Image Compressor Offline",
+  "operatingSystem": "All",
+  "applicationCategory": "UtilitiesApplication"
+}
+  </script>
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is my photo uploaded to your server?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The entire compression process happens locally on your phone or computer processor. If you turn off your internet after the page loads, the tool will still compress your image perfectly."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I compress an image below 200KB?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Usually, setting the quality to '0.6' and capping the max-width to '1080' pixels will shrink almost any smartphone photo well under 200KB for official form submissions."
+      }
+    }
+  ]
+}
+  </script>
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+</head><body><div id='siteHeader'></div><main id='main' class='main'><div class='container'><div class="ad"><strong>Tools Placeholder</strong></div><section class='card'><h1>Image Compressor</h1><div class='field'><label for='icFile'>Choose Image</label><input id='icFile' class='input' type='file' accept='image/*' onchange='tnImgHandleSelect()'><div id='icPreview' class='help'></div></div><div class='grid' style='grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem'><div class='field'><label for='icQuality'>Quality</label><input id='icQuality' class='input' type='number' step='0.05' min='0.1' max='0.95' value='0.75'></div><div class='field'><label for='icMaxW'>Max Width</label><input id='icMaxW' class='input' type='number' value='1920'></div></div><div class='row' style='margin-top:1rem'><button class='btn btn-primary' type='button' onclick='tnImgCompress()'>Compress</button><a id='icDownload' class='btn btn-secondary' style='display:none' href='#'>Download</a></div><div id='icInfo' style='margin-top:1rem'></div><canvas id='icCanvas' style='width:100%;margin-top:1rem;border-radius:16px;border:1px solid var(--border)'></canvas></section></div>
+
+        <div class='container' style='max-width:800px; margin:2rem auto; padding:0 1rem'>
+            <div class="card">
+                <h2>Private & Fast Image Compression</h2>
+                <div class="help" style="margin-top:1rem; line-height:1.7; font-size:0.95rem">
+                    <p>Have you ever encountered a "File Size Too Large" error while filling out a government form in Nepal, like a Lok Sewa application, Passport form, or driving license portal? Our <strong>Image Compressor</strong> easily solves that by instantly shrinking image sizes by up to 90% while retaining visible quality.</p>
+                    <h3 style="margin-top:1.5rem">100% Private (No Uploads)</h3>
+                    <p style="margin-top:0.5rem">Unlike popular compressor websites that force you to upload your sensitive photos (like citizenship cards or passport size photos) to their foreign servers, ToolNepal compresses your image <strong>locally inside your device</strong> using HTML5 Canvas API.</p>
+                    <h3 style="margin-top:1.5rem">How to reduce file size?</h3>
+                    <p style="margin-top:0.5rem">Simply select your photo, tweak the <strong>Quality</strong> slider (lower number = smaller file), and optionally set a max-width if the image is physically too large (e.g., a 4000px phone camera photo). Hit compress and download your tiny web-ready image.</p>
+                </div>
+            </div>
+        </div>
+        
+</main><div id='siteFooter'></div><div id='toast' class='toast' role='status' aria-live='polite'></div><div id='modalBackdrop' class='modal-backdrop' aria-hidden='true'><div class='modal' role='dialog' aria-modal='true' aria-labelledby='modalTitle'><h3 id='modalTitle'>Success</h3><div id='modalBody' class='help'></div><div class='actions'><button class='btn btn-secondary' type='button' onclick='tnCloseModal()'>Close</button></div></div></div><script src='../assets/js/main.js'></script><script src='../assets/js/tools.js'></script><script src='../assets/js/analytics.js'></script></body></html>

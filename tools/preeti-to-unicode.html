@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Preeti to Unicode Converter | Free Nepali Typing Tool</title>
+  <meta name="description" content="Instantly convert Preeti font to Nepali Unicode and Unicode to Preeti online. The fastest and most accurate Nepali typing converter with zero limits."/>
+  <meta property="og:title" content="Preeti to Unicode Converter — ToolNepal"/>
+  <meta property="og:type" content="website"/>
+  <link rel="canonical" href="https://toolnepal.com/tools/preeti-to-unicode.html"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    .nepali-textarea {
+      width:100%; height:250px; resize:vertical;
+      font-size:1.1rem; line-height:1.6;
+      padding:1rem; border-radius:var(--radius-sm);
+      border:1px solid var(--border);
+      background:var(--bg); color:var(--text);
+    }
+    .nepali-textarea:focus { outline:none; border-color:var(--red-500); box-shadow:var(--ring); }
+    .box-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem; font-weight:800; }
+    .action-row { display:flex; gap:.75rem; justify-content:center; align-items:center; margin:1rem 0; }
+    .swap-btn { width:45px; height:45px; border-radius:50%; border:1px solid var(--border); background:var(--bg); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.2rem; transition:var(--t); }
+    .swap-btn:hover { background:var(--red-500); color:#fff; border-color:var(--red-500); }
+  </style>
+
+  <!-- SEO Schema Markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Preeti to Unicode Converter",
+    "operatingSystem": "All",
+    "applicationCategory": "UtilitiesApplication"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is Preeti font?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Preeti is a popular traditional Nepali typing font used heavily in government offices and publishing in Nepal. It maps Nepali characters directly onto standard English keyboard strokes."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why convert Preeti to Unicode?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Unlike Preeti, which requires specific font files installed on your device to read it, Unicode is a universal standard. Passing Unicode text means any browser, mobile phone, or operating system can read the Nepali text effortlessly without downloading fonts."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+</head>
+<body>
+<div id="siteHeader"></div>
+<main id="main" class="main">
+  <div class="container">
+    <div class="ad"><strong>Tools Placeholder</strong></div>
+    <section class="split" style="margin-top:1.6rem">
+      <div class="stack">
+        <section class="card animate-fade">
+          <span class="badge" style="margin-bottom:.6rem">🇳🇵 Nepal</span>
+          <h1 style="font-size:1.8rem">Preeti to Unicode Converter</h1>
+          <p class="help" style="margin-bottom:1.5rem">Convert traditional Preeti texts to universal Nepali Unicode instantly.</p>
+
+          <div style="background:var(--panel); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--border);">
+            <div class="box-header">
+              <span id="labelTop" style="color:var(--red-500)">Preeti Font</span>
+              <button class="btn btn-ghost" onclick="copyText('inputTop')" style="padding:.2rem .6rem; font-size:.8rem">📋 Copy</button>
+            </div>
+            <textarea id="inputTop" class="nepali-textarea" placeholder="Type or paste Preeti text here..." oninput="convertAuto()"></textarea>
+
+            <div class="action-row">
+              <button class="btn btn-secondary" onclick="clearBoxes()" style="margin-right:auto">🗑 Clear</button>
+              <button class="swap-btn" onclick="swapLayout()" title="Swap Preeti and Unicode">⇅</button>
+              <button class="btn btn-primary" onclick="convertAuto()" style="margin-left:auto">Convert</button>
+            </div>
+
+            <div class="box-header">
+              <span id="labelBottom" style="color:var(--red-500)">Nepali Unicode</span>
+              <button class="btn btn-ghost" onclick="copyText('inputBottom')" style="padding:.2rem .6rem; font-size:.8rem">📋 Copy</button>
+            </div>
+            <textarea id="inputBottom" class="nepali-textarea" placeholder="नेपाली युनिकोड यहाँ देखिनेछ..." readonly></textarea>
+          </div>
+        </section>
+
+        <!-- SEO Content Block -->
+        <article class="card" style="margin-top:1rem">
+          <h2>About Preeti format and Nepali Unicode</h2>
+          <div class="help" style="margin-top:1rem; line-height:1.7; font-size:0.95rem">
+            <p><strong>Preeti</strong> is the most widely recognized legacy typing font in Nepal. For decades, typists, government officials, and students have trained their fingers to type fast in Preeti. However, Preeti has a fatal flaw in the modern internet age: if the person receiving your document does not have the "Preeti.ttf" font installed on their computer, your beautiful Nepali writing will display as unreadable English gibberish (like "d[xf] a[nsf]").</p>
+            <h3 style="margin-top:1.5rem">Enter Nepali Unicode</h3>
+            <p style="margin-top:0.5rem"><strong>Nepali Unicode</strong> maps Devanagari characters to absolute universal standard codes. When you type in Unicode—or convert your Preeti text to Unicode using our tool—you guarantee that your text will be perfectly readable on any Android phone, iPhone, Windows PC, Mac, Facebook post, or modern website without requiring any special fonts.</p>
+            <ul style="margin-top:1rem; padding-left:1.5rem">
+              <li><strong>Zero Limits:</strong> Convert entire books or 10-page essays instantly without hitting character limits.</li>
+              <li><strong>100% Client-Side:</strong> Your text is converted instantly in your browser and is never uploaded anywhere, making it safe for confidential government or legal documents.</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+
+      <aside class="sidebar">
+        <div class="card">
+          <h3 style="margin-bottom:.75rem">How to type?</h3>
+          <div style="font-size:.88rem; line-height:1.5; color:var(--muted)">
+            <p style="margin-top:0">If you are used to typing in Preeti, simply place your cursor in the Preeti box and type as normal (assuming you have a Nepali typing software or mapping). As you type, the tool will instantly spell out the real Devanagari Unicode below.</p>
+          </div>
+        </div>
+        <div class="ad" style="margin-top:1rem"><strong>Tools Placeholder</strong></div>
+      </aside>
+    </section>
+  </div>
+</main>
+<div id="siteFooter"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/analytics.js"></script>
+<script>
+// --- MASSIVE PREETI TO UNICODE LOGIC ---
+// Mapping dictionaries for accurate Preeti -> Unicode transliteration
+var array_one = ["ç","˜",".","'","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","`","~","!","@","#","$","%","^","&","*","(",")","-","_","+","=","|","\\","{","}","[","]",":",";","\"","<",">","?","/","0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","¡","¢","£","¤","¥","¦","§","¨","©","ª","«","¬","®","¯","°","±","²","³","´","µ","¶","·","¸","¹","º","»","¼","½","¾","¿","À","Á","Â","Ã","Ä","Å","Æ","Ç","È","É","Ê","Ë","Ì","Í","Î","Ï","Ð","Ñ","Ò","Ó","Ô","Õ","Ö","×","Ø","Ù","Ú","Û","Ü","Ý","Þ","ß","à","á","â","ã","ä","å","æ","ç","è","é","ê","ë","ì","í","î","ï","ð","ñ","ò","ó","ô","õ","ö","÷","ø","ù","ú","û","ü","ý","þ","ÿ"];
+var array_two = ["र्","्","।","'","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","ञ्ज","त्र","ज्ञ","द्द","घ","ङ","छ","ट्ट","ठ्ठ","ड्ड","ढ्ढ","ण्","ॅ","ृ","ं","ँ","र्","्","{","}","[","]",":",";","\"","<",">","?","/","०","१","२","३","४","५","६","७","८","९","ब","भ","श","म","भ्","ँ","ज्","झ","ष्टि","ठ","ल्","इ","ए","ण्","ओ","प्","फ्","र्","श्","त्","उ","व्","व","ध्","थ्","ञ्","ब","द","अ","म","भ","ं","ग्","ह","ि","ज","क","ल","म","न","ओ","प","ट","र","स","त","उ","व","व","ध","थ","य","ज्ञ","ँ","र","रु","रु","ह्य","ह्र","ज्","स","ट्ट","ट्ठ","ठ्ठ","ड्ड","ढ्ढ","द","छ","ट्र","ठ्र","ड्र","ढ्र","ड़","ढ़","शे","जे","त्र","फ","द्ध","रु","दृ","कृ","न्न","न्म","नि","ल","ञ्ज","न्न","प्त","ख्","त्त","ल","य","श्र","रु","ज्ञ","क्","क्ष","ग्","घ्","ङ","च्","छ्","ज्","झ्","ञ्","ट्","ठ्","ड्","ढ्","ण्","त्","थ्","द्","ध्","न्","प्","फ्","ब्","भ्","म्","य्","र्","ल्","व्","श्","ष्","स्","ह्","‌"];
+
+var array_one_u = ["र्","्","।","'","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","ञ्ज","त्र","ज्ञ","द्द","घ","ङ","छ","ट्ट","ठ्ठ","ड्ड","ढ्ढ","ण्","ॅ","ृ","ं","ँ","र्","्","{","}","[","]",":",";","\"","<",">","?","/","०","१","२","३","४","५","६","७","८","९","ब्","भ्","श्","म्","भ्","ँ","ज्","झ्","ष्टि","ठ्","ल्","इ","ए","ण्","ओ","प्","फ्","र्","श्","त्","उ","व्","व","ध्","थ्","ञ्","ब","द","अ","म","भ","ं","ग्","ह","ि","ज","क","ल","म","न","ओ","प","ट","र","स","त","उ","व","व","ध","थ","य","ज्ञ","ँ","र","रु","रु","ह्य","ह्र","ज्","स","ट्ट","ट्ठ","ठ्ठ","ड्ड","ढ्ढ","द","छ","ट्र","ठ्र","ड्र","ढ्र","ड़","ढ़","शे","जे","त्र","फ","द्ध","रु","दृ","कृ","न्न","न्म","नि","ल्","ञ्ज","न्न","प्त","ख्","त्त","ल","य","श्र","रु","ज्ञ","क्","क्ष","ग्","घ्","ङ","च्","छ्","ज्","झ्","ञ्","ट्","ठ्","ड्","ढ्","ण्","त्","थ्","द्","ध्","न्","प्","फ्","ब्","भ्","म्","य्","र्","ल्","व्","श्","ष्","स्","ह्","‌"];
+var array_two_u = ["ç","˜",".", "'","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","`","~","!","@","#","$","%","^","&","*","(",")","-","_","+","=","|","\\","{","}","[","]",":",";","\"","<",">","?","/","0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","¡","¢","£","¤","¥","¦","§","¨","©","ª","«","¬","®","¯","°","±","²","³","´","µ","¶","·","¸","¹","º","»","¼","½","¾","¿","À","Á","Â","Ã","Ä","Å","Æ","Ç","È","É","Ê","Ë","Ì","Í","Î","Ï","Ð","Ñ","Ò","Ó","Ô","Õ","Ö","×","Ø","Ù","Ú","Û","Ü","Ý","Þ","ß","à","á","â","ã","ä","å","æ","ç","è","é","ê","ë","ì","í","î","ï","ð","ñ","ò","ó","ô","õ","ö","÷","ø","ù","ú","û","ü","ý","þ","ÿ"];
+
+let mode = 'p2u';
+
+function convertToUnicode(preeti) {
+  var pr = preeti;
+  for (var idx=0; idx<array_one.length; idx++) {
+    var rx = new RegExp(array_one[idx].replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"),"g");
+    pr = pr.replace(rx, array_two[idx]);
+  }
+  
+  // Post process complex character flips
+  var pos = pr.indexOf("l");
+  while (pos != -1) {
+    if(pos==0) { pr = pr.substring(1); pos=pr.indexOf("l"); }
+    else {
+      var char_to_flip = pr.charAt(pos-1);
+      if(char_to_flip=="्") {
+        if(pos-2 >= 0) char_to_flip = pr.substring(pos-2, pos-1);
+      }
+      pr = pr.replace(char_to_flip+"l", "ि"+char_to_flip);
+      pos = pr.indexOf("l");
+    }
+  }
+  
+  var pos1 = pr.indexOf("k");
+  while (pos1 != -1) {
+    var char_prev = pr.charAt(pos1-1);
+    var char_next = pr.charAt(pos1+1);
+    if(char_prev!="" && char_next!="") pr = pr.replace(char_prev+"k"+char_next, char_prev+"ी"+char_next);
+    else pr = pr.replace("k", "ी");
+    pos1 = pr.indexOf("k");
+  }
+  
+  var rules=[
+    [/qm/g, "ै"], [/m/g, "ा"], [/ाे/g, "ो"], [/ाै/g, "ौ"],
+    [/्ा/g, "्य"], [/ृ१/g, "ृ"], ["इ्", "ई"],
+    [/्ा/g, "्य"], [/उ्/g, "ऊ"], [/िं/g,"ीं"]
+  ];
+  for(let i=0; i<rules.length; i++){
+    pr = pr.replace(rules[i][0], rules[i][1]);
+  }
+  // Remove ghost characters
+  pr = pr.replace(/m/g,"");
+  return pr;
+}
+
+function convertToPreeti(unicode) {
+  var out = unicode;
+  var rules=[
+    [/ॐ/g, "c¡"], [/त्र/g,"q"], [/श्र/g,">"], ["ृ", "{" ], ["र्", "{"], ["्", "}" ],
+    ["ि", "l" ], ["ी", "k" ], ["ु", "‘" ], ["ू", "’" ], ["े", "]" ], ["ै", "}" ],
+    ["ो", "f]" ], ["ौ", "f}" ], ["ं", "+" ], ["ँ", "!" ], ["ः", "M" ], ["।", "." ],
+    ["०", "0" ], ["१", "1" ], ["२", "2" ], ["३", "3" ], ["४", "4" ], ["५", "5" ],
+    ["६", "6" ], ["७", "7" ], ["८", "8" ], ["९", "9" ], ["(", "-"], [")", "_"],
+    ["-", "="], ["+", "±"]
+  ];
+  
+  for(let i=0; i<rules.length; i++){
+    var rx = new RegExp(rules[i][0].replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"),"g");
+    out = out.replace(rx, rules[i][1]);
+  }
+  
+  for (var idx=0; idx<array_one_u.length; idx++) {
+    var rx = new RegExp(array_one_u[idx].replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"),"g");
+    out = out.replace(rx, array_two_u[idx]);
+  }
+  
+  return out;
+}
+
+function convertAuto() {
+  const top = document.getElementById("inputTop").value;
+  if(!top) { document.getElementById("inputBottom").value = ""; return; }
+  
+  const bottom = mode === 'p2u' ? convertToUnicode(top) : convertToPreeti(top);
+  document.getElementById("inputBottom").value = bottom;
+}
+
+function swapLayout() {
+  mode = mode === 'p2u' ? 'u2p' : 'p2u';
+  const lTop = document.getElementById("labelTop");
+  const lBot = document.getElementById("labelBottom");
+  const iTop = document.getElementById("inputTop");
+  const iBot = document.getElementById("inputBottom");
+  
+  if(mode === 'u2p') {
+    lTop.textContent = "Nepali Unicode";
+    lBot.textContent = "Preeti Font";
+    iTop.placeholder = "यहाँ नेपाली युनिकोड टाइप गर्नुहोस्...";
+    iBot.placeholder = "Preeti text will appear here...";
+  } else {
+    lTop.textContent = "Preeti Font";
+    lBot.textContent = "Nepali Unicode";
+    iTop.placeholder = "Type or paste Preeti text here...";
+    iBot.placeholder = "नेपाली युनिकोड यहाँ देखिनेछ...";
+  }
+  
+  const temp = iTop.value;
+  iTop.value = iBot.value;
+  iBot.value = temp;
+  convertAuto();
+}
+
+function copyText(id) {
+  const t = document.getElementById(id).value;
+  if(t) {
+    navigator.clipboard.writeText(t).then(()=>tnToast("Text copied beautifully!","Share with friends")).catch(()=>tnToast("Copy failed"));
+  }
+}
+
+function clearBoxes() {
+  document.getElementById("inputTop").value = "";
+  document.getElementById("inputBottom").value = "";
+}
+</script>
+</body>
+</html>

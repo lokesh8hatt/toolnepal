@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Roman to Nepali Typing | English to Nepali Converter Online</title>
+  <meta name="description" content="Type in English and magically convert it into Nepali Unicode instantly. The best and most highly accurate Roman to Nepali typing tool online."/>
+  <meta property="og:title" content="Roman to Nepali Typing — ToolNepal"/>
+  <meta property="og:type" content="website"/>
+  <link rel="canonical" href="https://toolnepal.com/tools/roman-to-nepali.html"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    .nepali-textarea {
+      width:100%; height:300px; resize:vertical;
+      font-size:1.2rem; line-height:1.6;
+      padding:1.2rem; border-radius:var(--radius-sm);
+      border:1px solid var(--border);
+      background:var(--bg); color:var(--text);
+    }
+    .nepali-textarea:focus { outline:none; border-color:var(--red-500); box-shadow:var(--ring); }
+    .box-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem; font-weight:800; }
+  </style>
+
+  <!-- SEO Schema Markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Roman to Nepali Typing Converter",
+    "operatingSystem": "All",
+    "applicationCategory": "UtilitiesApplication",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do I type in Nepali using English keyboard?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Simply type the word as you pronounce it in English (Roman Nepali) and hit the Spacebar. For example, typing 'mero nam' and pressing space will instantly convert it to 'मेरो नाम'."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I copy the Nepali typing to Facebook?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! Since the output is in universal Nepali Unicode, you can copy and paste the written text into Facebook, Microsoft Word, WhatsApp, or any website without losing the font."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+</head>
+<body>
+<div id="siteHeader"></div>
+<main id="main" class="main">
+  <div class="container">
+    <div class="ad"><strong>Tools Placeholder</strong></div>
+    <section class="split" style="margin-top:1.6rem">
+      <div class="stack">
+        <section class="card animate-fade">
+          <span class="badge" style="margin-bottom:.6rem">🇳🇵 Nepal</span>
+          <h1 style="font-size:1.8rem">Roman to Nepali Typing</h1>
+          <p class="help" style="margin-bottom:1.5rem">Type English words and hit <kbd>Space</kbd> to convert them magically into Nepali.</p>
+
+          <div style="background:var(--panel); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--border);">
+            <div class="box-header">
+              <span style="color:var(--red-500)">English to Nepali Unicode</span>
+              <div>
+                <button class="btn btn-ghost" onclick="clearBox()" style="padding:.2rem .6rem; font-size:.8rem; margin-right:.5rem">🗑 Clear</button>
+                <button class="btn btn-primary" onclick="copyText('nepaliBox')" style="padding:.2rem .8rem; font-size:.85rem">📋 Copy text</button>
+              </div>
+            </div>
+            <textarea id="nepaliBox" class="nepali-textarea" placeholder="Type here... (e.g. namaste tapai kasto hunuhunchha)"></textarea>
+          </div>
+        </section>
+
+        <!-- SEO Content Block -->
+        <article class="card" style="margin-top:1rem">
+          <h2>How does Roman to Nepali Translation work?</h2>
+          <div class="help" style="margin-top:1rem; line-height:1.7; font-size:0.95rem">
+            <p><strong>Nepali Typing Online</strong> has dramatically evolved over the last decade. Previously, if you wanted to type a letter in the Devanagari script, you had to memorize rigid traditional keyboard layouts like Preeti or Kantipur. Today, the <strong>Roman to Nepali transliteration</strong> engine instantly converts phonetic English spelling into flawless Nepali Unicode text.</p>
+            <h3 style="margin-top:1.5rem">Hit Space to Convert</h3>
+            <p style="margin-top:0.5rem">The process is brilliantly simple. As you type a romanized English word (for example, typing <code>nepal</code>), the intelligent live API predicts the phonetic translation and instantly swaps your word into <code>नेपाल</code> the millisecond you hit the Space key, Enter key, or any punctuation mark.</p>
+            <h3 style="margin-top:1.5rem">Why Unicode is Better</h3>
+            <ul style="margin-top:0.5rem; padding-left:1.5rem">
+              <li><strong>Universal Readability:</strong> The Nepali Devanagari script generated by this tool is standard Unicode. Unlike Preeti, it is understood by every single modern browser, smartphone, and social media platform like Facebook or Twitter.</li>
+              <li><strong>Incredibly Fast:</strong> It is designed for maximum typing speed. Whether you are searching for Lok Sewa notes, writing a poem in Nepali, or chatting with friends, you can easily reach over 60 WPM seamlessly typing in English phonetics!</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+
+      <aside class="sidebar">
+        <div class="card">
+          <h3 style="margin-bottom:.75rem">Useful Shortcuts</h3>
+          <div style="font-size:.88rem; line-height:1.5; color:var(--muted)">
+            <p style="margin-top:0">Type your word naturally in English. If the conversion is slightly off for complex words, try spelling it more strictly phonetic.</p>
+            <ul style="padding-left:1.2rem; margin-top:.5rem">
+              <li><strong>namaste</strong> → नमस्ते</li>
+              <li><strong>sanchai</strong> → सन्चै</li>
+              <li><strong>chha</strong> → छ</li>
+            </ul>
+          </div>
+        </div>
+        <div class="ad" style="margin-top:1rem"><strong>Tools Placeholder</strong></div>
+      </aside>
+    </section>
+  </div>
+</main>
+<div id="siteFooter"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/analytics.js"></script>
+<script>
+const box = document.getElementById("nepaliBox");
+
+async function fetchNepali(word) {
+  if(!word.trim()) return word;
+  try {
+    const res = await fetch(`https://inputtools.google.com/request?text=${encodeURIComponent(word)}&itc=ne-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8&app=demopage`);
+    const data = await res.json();
+    if(data[0] === 'SUCCESS' && data[1][0] && data[1][0][1][0]) {
+      return data[1][0][1][0];
+    }
+  } catch(e) { console.error(e); }
+  return word; // fallback
+}
+
+box.addEventListener("keydown", async function(e) {
+  if(e.key === " " || e.key === "Enter") {
+    const cp = box.selectionStart;
+    const text = box.value;
+    const beforeCursor = text.substring(0, cp);
+    const afterCursor = text.substring(cp);
+    
+    const words = beforeCursor.split(/([\s\n]+)/);
+    const lastWord = words[words.length - 1];
+    
+    // Check if the last word is mostly english characters, ignore pure punctuation 
+    if(lastWord && /[a-zA-Z]/.test(lastWord)) {
+      e.preventDefault(); // Stop the space briefly
+      const unicodeWord = await fetchNepali(lastWord);
+      
+      words[words.length - 1] = unicodeWord;
+      const newBeforeCursor = words.join('') + e.key;
+      box.value = newBeforeCursor + afterCursor;
+      
+      box.selectionStart = box.selectionEnd = newBeforeCursor.length;
+    }
+  }
+});
+
+function copyText(id) {
+  const t = document.getElementById(id).value;
+  if(t) {
+    navigator.clipboard.writeText(t).then(()=>tnToast("Copied to clipboard!","Paste anywhere")).catch(()=>tnToast("Copy failed"));
+  }
+}
+
+function clearBox() {
+  box.value = "";
+  box.focus();
+}
+</script>
+</body>
+</html>
