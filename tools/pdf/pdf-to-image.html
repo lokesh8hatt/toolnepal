@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PDF to Image Online Free – ToolNepal</title>
   <meta name="description" content="Convert PDF pages to PNG images. Free, fast and secure. Works in your browser.">
+  <meta property="og:title" content="PDF to Image Online Free – ToolNepal" />
+  <meta property="og:description" content="Convert PDF pages to PNG images. Free, fast and secure. Works in your browser." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://toolnepal.com/assets/img/og-image.jpg" />
+  <meta property="og:url" content="https://toolnepal.com/tools/pdf/pdf-to-image.html" />
+  <link rel="canonical" href="https://toolnepal.com/tools/pdf/pdf-to-image.html" />
 
   <link rel="stylesheet" href="../../assets/css/style.css">
 
@@ -12,6 +18,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#d32f2f" />
   <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -90,12 +97,12 @@
 <script src="../../assets/js/main.js"></script>
 
 <!-- ✅ PDF.js (browser PDF renderer) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <script>
   // Make PDF.js work without extra file paths
   pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js";
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
   function parseRange(range, total) {
     if (!range || !range.trim()) {

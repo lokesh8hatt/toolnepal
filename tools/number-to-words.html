@@ -3,13 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Number to Words Converter — ToolNepal</title>
+  <title>Number to Words Converter — Lakhs & Crores | ToolNepal</title>
+  <meta name="description" content="Convert any number into written words using Nepal's Lakh/Crore numbering system. Free online converter, useful for accounting, billing, and cheque writing." />
+  <meta property="og:title" content="Number to Words Converter — Lakhs & Crores | ToolNepal" />
+  <meta property="og:description" content="Convert any number into written words using Nepal's Lakh/Crore numbering system. Useful for accounting and billing." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://toolnepal.com/assets/img/og-image.jpg" />
+  <meta property="og:url" content="https://toolnepal.com/tools/number-to-words.html" />
+  <link rel="canonical" href="https://toolnepal.com/tools/number-to-words.html" />
   <link rel="stylesheet" href="../assets/css/style.css" />
 
   <!-- PWA & Mobile Icons -->
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#d32f2f" />
   <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -54,11 +62,7 @@
       if (n<20) return teens[n-10];
       if (n<100) return tens[Math.floor(n/10)] + (n%10 !== 0 ? " " + units[n%10] : "");
       if (n<1000) return units[Math.floor(n/100)] + " Hundred" + (n%100 !== 0 ? " and " + convert(n%100) : "");
-      if (n<100000) return convert(Math.floor(n/100)) + " Thousand" + (n%1000 !== 0 ? " " + convert(n%1000) : ""); // simplified
-      
-      // Proper Nepali logic for thousands, lakhs, crores
-      if (n < 1000) return convert(n);
-      if (n < 100000) return convert(Math.floor(n / 1000)) + " Thousand" + (n % 1000 !== 0 ? " " + convert(n % 1000) : "");
+      if (n<100000) return convert(Math.floor(n/1000)) + " Thousand" + (n%1000 !== 0 ? " " + convert(n%1000) : "");
       if (n < 10000000) return convert(Math.floor(n / 100000)) + " Lakh" + (n % 100000 !== 0 ? " " + convert(n % 100000) : "");
       return convert(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 !== 0 ? " " + convert(n % 10000000) : "");
     }

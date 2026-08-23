@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Free Barcode Generator in Nepal – Advanced Customization & SVG Export | ToolNepal</title>
+
+  <meta name="description" content="Generate highly customizable barcodes (CODE128, EAN, UPC, etc.) with advanced styling options. Download as SVG or high-res PNG for free."/>
+  <meta property="og:title" content="Free Barcode Generator in Nepal | ToolNepal" />
+  <meta property="og:description" content="Generate custom barcodes with styling controls. Download high-res PNG or SVG instantly." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://toolnepal.com/assets/img/og-image.jpg" />
+  <meta property="og:url" content="https://toolnepal.com/tools/barcode-generator.html" />
+  <link rel="canonical" href="https://toolnepal.com/tools/barcode-generator.html" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
+</head>
+
+<body>
+  <div id="siteHeader"></div>
+
+  <main id="main" class="main">
+    <div class="container">
+
+      <div class="ad">
+        <strong>Tools Placeholder</strong>
+        <small>Top Banner</small>
+      </div>
+
+      <section class="card">
+        <h1>Advanced Barcode Generator</h1>
+        <p class="help">Create high-res, customizable barcodes for products, inventory, and design. Supports SVG and HD PNG export.</p>
+
+        <!-- Presets -->
+        <div style="margin-bottom: 1.5rem; margin-top: 1rem;">
+          <label style="font-weight:600; display:block; margin-bottom:0.5rem;">Quick Presets</label>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button class="btn btn-ghost" type="button" onclick="applyBarcodePreset('minimal')">Minimal Clean</button>
+            <button class="btn btn-ghost" type="button" onclick="applyBarcodePreset('retail')">Retail EAN-13</button>
+            <button class="btn btn-ghost" type="button" onclick="applyBarcodePreset('modern')">Modern Colored</button>
+            <button class="btn btn-ghost" type="button" onclick="applyBarcodePreset('bold')">Bold & Thick</button>
+          </div>
+        </div>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div class="field">
+            <label for="barcodeValue">Barcode Value</label>
+            <input id="barcodeValue" class="input" placeholder="e.g. 123456789012" value="TOOLNEPAL123" />
+            <div id="barcodeWarning" class="help" style="color: var(--red-600); display:none;"></div>
+          </div>
+          <div class="field">
+            <label for="barcodeFormat">Format Type</label>
+            <select id="barcodeFormat" class="input">
+              <option value="CODE128" selected>CODE128 (Auto)</option>
+              <option value="EAN13">EAN-13 (12 digits)</option>
+              <option value="EAN8">EAN-8</option>
+              <option value="UPC">UPC (11 digits)</option>
+              <option value="CODE39">CODE39</option>
+              <option value="ITF14">ITF-14</option>
+              <option value="MSI">MSI</option>
+              <option value="pharmacode">Pharmacode</option>
+            </select>
+          </div>
+        </div>
+
+        <details style="margin-top: 1rem; border: 1px solid var(--border); border-radius: 8px; padding: 1rem;" open>
+          <summary style="font-weight: 600; cursor: pointer; user-select: none;">Advanced Styling</summary>
+          <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:1rem">
+            
+            <div class="field">
+              <label for="barWidth">Bar Width (Thickness)</label>
+              <input id="barWidth" class="input" type="number" value="2" min="1" max="10" />
+            </div>
+
+            <div class="field">
+              <label for="barHeight">Bar Height</label>
+              <input id="barHeight" class="input" type="number" value="100" min="10" max="500" />
+            </div>
+
+            <div class="field">
+              <label for="barMargin">Padding (Margin)</label>
+              <input id="barMargin" class="input" type="number" value="10" min="0" max="100" />
+            </div>
+
+            <div class="field">
+              <label for="barColor">Bar Color</label>
+              <input id="barColor" class="input" type="color" value="#000000" />
+            </div>
+
+            <div class="field" id="bgWrapper">
+              <label for="bgColor">Background Color</label>
+              <input id="bgColor" class="input" type="color" value="#ffffff" />
+            </div>
+
+            <div class="field" style="display:flex; align-items:flex-end; padding-bottom: 0.5rem;">
+              <label style="display:flex; align-items:center; gap: 0.5rem; cursor:pointer;">
+                <input type="checkbox" id="transparentBg" /> Transparent BG
+              </label>
+            </div>
+
+            <div class="field" style="grid-column:1/-1;">
+              <label style="font-weight:bold; margin-bottom:0.5rem; display:block;">Text Settings</label>
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
+                <label style="display:flex; align-items:center; gap: 0.5rem; cursor:pointer;">
+                  <input type="checkbox" id="showText" checked /> Show Text
+                </label>
+                <div>
+                  <label for="fontFace" style="font-size:0.85rem">Font Family</label>
+                  <select id="fontFace" class="input">
+                    <option value="monospace">Monospace</option>
+                    <option value="sans-serif">Sans-serif</option>
+                    <option value="serif">Serif</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="textAlign" style="font-size:0.85rem">Text Align</label>
+                  <select id="textAlign" class="input">
+                    <option value="center">Center</option>
+                    <option value="left">Left</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="fontSize" style="font-size:0.85rem">Font Size</label>
+                  <input id="fontSize" class="input" type="number" value="20" min="8" max="72" />
+                </div>
+                <div>
+                  <label for="textMargin" style="font-size:0.85rem">Text Margin</label>
+                  <input id="textMargin" class="input" type="number" value="2" min="0" max="50" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field" style="grid-column:1/-1;">
+              <label for="businessName">Business Name (Frame)</label>
+              <input id="businessName" class="input" type="text" placeholder="e.g. My Shop Inventory" />
+            </div>
+
+          </div>
+        </details>
+
+        <div class="row" style="margin-top:1.5rem; flex-wrap: wrap; gap: 0.5rem;">
+          <button id="btnGenerate" class="btn btn-primary" type="button" onclick="tnBarcodeGenerate()">Generate Preview</button>
+          <button id="btnCopyData" class="btn btn-secondary" type="button" onclick="tnBarcodeCopyData()" disabled>📋 Copy Value</button>
+          <button id="btnReset" class="btn btn-secondary" type="button" onclick="tnBarcodeReset()">🔄 Reset to Default</button>
+        </div>
+        <div class="row" style="margin-top:1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <button id="btnDownloadPng" class="btn btn-secondary" type="button" onclick="tnBarcodeDownload('png')" disabled>Download PNG</button>
+          <button id="btnDownloadHd" class="btn btn-secondary" type="button" onclick="tnBarcodeDownload('png-hd')" disabled>Download PNG (4x HD)</button>
+          <button id="btnDownloadSvg" class="btn btn-secondary" type="button" onclick="tnBarcodeDownload('svg')" disabled>Download SVG</button>
+        </div>
+
+        <div
+          id="barcodeOutWrapper"
+          style="margin-top:1.5rem; width:fit-content; border-radius:16px; overflow:hidden; background:var(--panel); border:1px solid var(--border);"
+        >
+          <div id="barcodeOut" style="padding:14px; display:inline-block; line-height:0;">
+            <!-- Rendered SVG will go here -->
+          </div>
+        </div>
+
+        <div class="ad" style="margin-top:1.5rem">
+          <strong>Tools Placeholder</strong>
+          <small>In-content Ad</small>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div id="siteFooter"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="../assets/js/main.js"></script>
+
+  <!-- JsBarcode library -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+  <!-- Barcode logic -->
+  <script src="../assets/js/barcode.js"></script>
+</body>
+</html>
