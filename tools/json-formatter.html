@@ -11,6 +11,18 @@
   <meta property="og:image" content="https://toolnepal.com/assets/img/og-image.jpg" />
   <meta property="og:url" content="https://toolnepal.com/tools/json-formatter.html" />
   <link rel="canonical" href="https://toolnepal.com/tools/json-formatter.html"/>
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "JSON Formatter & Validator",
+  "description": "Free online JSON formatter, beautifier and validator. Format, minify, and fix JSON data instantly.",
+  "url": "https://toolnepal.com/tools/json-formatter.html",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "All",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -79,6 +91,22 @@
         </div>
       </aside>
     </section>
+
+    <div class="card" style="margin-top:1.5rem; max-width:800px">
+      <h2>What is JSON, and when do you need to format it?</h2>
+      <div class="help" style="margin-top:1rem; line-height:1.7; font-size:.95rem">
+        <p>JSON (JavaScript Object Notation) is the standard format APIs use to exchange data — it's what you get back from most web services, configuration files, and app export/import features. Raw JSON from an API response or a minified config file is often crammed onto a single line, which makes it nearly impossible to read or debug. This tool expands ("beautifies") that JSON into a readable, indented structure, or does the reverse — minifying nicely-formatted JSON down to save space before sending it over a network.</p>
+        <h3 style="margin-top:1.5rem">Common uses</h3>
+        <ul style="margin-top:.5rem; padding-left:1.5rem; line-height:1.8">
+          <li><strong>Debugging API responses</strong> — paste a raw response to see it structured and catch syntax errors instantly.</li>
+          <li><strong>Editing config files</strong> — package.json, tsconfig.json, and similar files are easier to review when formatted.</li>
+          <li><strong>Minifying before deployment</strong> — strip whitespace to reduce payload size.</li>
+        </ul>
+        <h3 style="margin-top:1.5rem">Frequently asked questions</h3>
+        <p style="margin-top:.5rem"><strong>Is my JSON data uploaded anywhere?</strong> No — validation and formatting run entirely client-side using the browser's built-in <code>JSON.parse</code>/<code>JSON.stringify</code>, so nothing you paste ever leaves your device. This makes it safe to use with sensitive API keys or internal data.</p>
+        <p style="margin-top:.5rem"><strong>What happens if my JSON is invalid?</strong> The status bar shows exactly what's wrong (e.g. a missing comma or unclosed bracket) as you type.</p>
+      </div>
+    </div>
   </div>
 </main>
 <div id="siteFooter"></div>

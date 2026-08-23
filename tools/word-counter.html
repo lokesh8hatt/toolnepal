@@ -9,6 +9,18 @@
   <meta property="og:image" content="https://toolnepal.com/assets/img/og-image.jpg" />
   <meta property="og:url" content="https://toolnepal.com/tools/word-counter.html" />
   <link rel="canonical" href="https://toolnepal.com/tools/word-counter.html" />
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Word Counter — Count Words, Characters & Reading Time",
+  "description": "Free online word counter. Instantly count words, characters, sentences, and estimated reading time as you type.",
+  "url": "https://toolnepal.com/tools/word-counter.html",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "All",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -22,4 +34,21 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-</head><body><div id='siteHeader'></div><main id='main' class='main'><div class='container'><div class="ad"><strong>Tools Placeholder</strong></div><section class='card'><h1>Word Counter</h1><div class='field' style='margin-top:1rem'><label for='wcText'>Your Text</label><textarea id='wcText' class='input' rows='8'></textarea></div><div class='grid' style='grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem'><div class='result'><div class='help'>Words</div><strong id='wcWords'>0</strong></div><div class='result'><div class='help'>Characters</div><strong id='wcChars'>0</strong></div><div class='result'><div class='help'>No-spaces</div><strong id='wcCharsNoSpace'>0</strong></div><div class='result'><div class='help'>Read min</div><strong id='wcReadTime'>1</strong></div></div></section></div></main><div id='siteFooter'></div><div id='toast' class='toast' role='status' aria-live='polite'></div><div id='modalBackdrop' class='modal-backdrop' aria-hidden='true'><div class='modal' role='dialog' aria-modal='true' aria-labelledby='modalTitle'><h3 id='modalTitle'>Success</h3><div id='modalBody' class='help'></div><div class='actions'><button class='btn btn-secondary' type='button' onclick='tnCloseModal()'>Close</button></div></div></div><script src='../assets/js/main.js'></script><script src='../assets/js/tools.js'></script><script src='../assets/js/analytics.js'></script><script>wcText.addEventListener('input',tnWordCountUpdate);document.addEventListener('DOMContentLoaded',tnWordCountUpdate);</script></body></html>
+</head><body><div id='siteHeader'></div><main id='main' class='main'><div class='container'><div class="ad"><strong>Tools Placeholder</strong></div><section class='card'><h1>Word Counter</h1><div class='field' style='margin-top:1rem'><label for='wcText'>Your Text</label><textarea id='wcText' class='input' rows='8'></textarea></div><div class='grid' style='grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem'><div class='result'><div class='help'>Words</div><strong id='wcWords'>0</strong></div><div class='result'><div class='help'>Characters</div><strong id='wcChars'>0</strong></div><div class='result'><div class='help'>No-spaces</div><strong id='wcCharsNoSpace'>0</strong></div><div class='result'><div class='help'>Read min</div><strong id='wcReadTime'>1</strong></div></div></section>
+
+<div class='container' style='max-width:800px; margin:2rem auto; padding:0 1rem'>
+  <div class='card'>
+    <h2>Why use an online word counter?</h2>
+    <div class='help' style='margin-top:1rem; line-height:1.7; font-size:.95rem'>
+      <p>Word and character limits show up everywhere: college essays, scholarship applications, Twitter/X posts (280 characters), SEO meta descriptions (roughly 155-160 characters), and job application cover letters. This tool counts words, total characters, characters excluding spaces, and estimates reading time as you type — all instantly, without uploading your text anywhere.</p>
+      <h3 style='margin-top:1.5rem'>How is reading time calculated?</h3>
+      <p style='margin-top:.5rem'>Reading time is estimated at roughly 200 words per minute, the average adult silent-reading speed, then rounded up to the nearest minute.</p>
+      <h3 style='margin-top:1.5rem'>Frequently asked questions</h3>
+      <p style='margin-top:.5rem'><strong>Does this tool save or upload what I type?</strong> No — everything is counted locally in your browser as you type. Nothing is sent to a server.</p>
+      <p style='margin-top:.5rem'><strong>Does it count Nepali (Devanagari) text?</strong> Yes, word and character counts work with any Unicode text, including Nepali.</p>
+      <p style='margin-top:.5rem'><strong>What counts as a "word"?</strong> Any sequence of characters separated by whitespace — the same method most word processors use.</p>
+    </div>
+  </div>
+</div>
+
+</div></main><div id='siteFooter'></div><div id='toast' class='toast' role='status' aria-live='polite'></div><div id='modalBackdrop' class='modal-backdrop' aria-hidden='true'><div class='modal' role='dialog' aria-modal='true' aria-labelledby='modalTitle'><h3 id='modalTitle'>Success</h3><div id='modalBody' class='help'></div><div class='actions'><button class='btn btn-secondary' type='button' onclick='tnCloseModal()'>Close</button></div></div></div><script src='../assets/js/main.js'></script><script src='../assets/js/tools.js'></script><script src='../assets/js/analytics.js'></script><script>wcText.addEventListener('input',tnWordCountUpdate);document.addEventListener('DOMContentLoaded',tnWordCountUpdate);</script></body></html>

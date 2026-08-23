@@ -95,7 +95,8 @@ function tnInjectLayout(){
               <div style="color:var(--muted); font-size:0.88rem; margin-top:0.3rem">Made for users in Nepal 🇳🇵</div>
             </div>
             <div class="row">
-              <a href="${base}about.html">Privacy</a>
+              <a href="${base}privacy-policy.html">Privacy</a>
+              <a href="${base}terms-of-service.html">Terms</a>
               <a href="${base}contact.html">Support</a>
               <a href="${base}tools.html">All Tools</a>
             </div>
@@ -110,6 +111,7 @@ function tnInjectLayout(){
   tnTrackVisit();
 
   const main = document.getElementById("main");
+  let breadcrumbItems = null;
   if(main && location.pathname.includes("/tools/")) {
     const isPdf = location.pathname.includes("/pdf/");
     const isHub = location.pathname.includes("pdf-tools.html");
@@ -122,6 +124,52 @@ function tnInjectLayout(){
       : '';
     bc.innerHTML = `<small style="color:var(--muted)"><a href="${base}index.html">Home</a> / <a href="${base}tools.html">Tools</a> ${pdfCrumb}/ <strong style="color:var(--text)">${escapeHtml(title)}</strong></small>`;
     main.insertBefore(bc, main.firstChild);
+
+    breadcrumbItems = [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://toolnepal.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://toolnepal.com/tools.html" },
+    ];
+    if (isPdf && !isHub) breadcrumbItems.push({ "@type": "ListItem", "position": 3, "name": "PDF Converter", "item": "https://toolnepal.com/tools/pdf/pdf-tools.html" });
+    breadcrumbItems.push({ "@type": "ListItem", "position": breadcrumbItems.length + 1, "name": title, "item": location.href.split(/[?#]/)[0] });
+  }
+
+  // Sitewide Organization + WebSite structured data
+  const orgSchema = document.createElement("script");
+  orgSchema.type = "application/ld+json";
+  orgSchema.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "ToolNepal",
+    "url": "https://toolnepal.com/",
+    "logo": "https://toolnepal.com/assets/img/logo.svg",
+    "sameAs": []
+  });
+  document.head.appendChild(orgSchema);
+
+  const siteSchema = document.createElement("script");
+  siteSchema.type = "application/ld+json";
+  siteSchema.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "ToolNepal",
+    "url": "https://toolnepal.com/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://toolnepal.com/tools.html?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  });
+  document.head.appendChild(siteSchema);
+
+  if (breadcrumbItems) {
+    const bcSchema = document.createElement("script");
+    bcSchema.type = "application/ld+json";
+    bcSchema.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": breadcrumbItems
+    });
+    document.head.appendChild(bcSchema);
   }
 }
 document.addEventListener("DOMContentLoaded", tnInjectLayout);

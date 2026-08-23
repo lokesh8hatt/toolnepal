@@ -9,6 +9,18 @@
   <meta property="og:image" content="https://toolnepal.com/assets/img/og-image.jpg" />
   <meta property="og:url" content="https://toolnepal.com/tools/percentage-calculator.html" />
   <link rel="canonical" href="https://toolnepal.com/tools/percentage-calculator.html" />
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Percentage Calculator",
+  "description": "Find what percent X is of Y, and calculate percentage increase or decrease instantly.",
+  "url": "https://toolnepal.com/tools/percentage-calculator.html",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "All",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -22,4 +34,24 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-</head><body><div id='siteHeader'></div><main id='main' class='main'><div class='container'><div class="ad"><strong>Tools Placeholder</strong></div><section class='card'><h1>Percentage Calculator</h1><div class='grid' style='grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem'><div class='field' style='grid-column:1/-1'><label for='pMode'>Mode</label><select id='pMode' class='input'><option value='x_of_y'>X% of Y</option><option value='increase'>Increase A by B%</option><option value='decrease'>Decrease A by B%</option></select></div><div class='field'><label for='pA'>A / X</label><input id='pA' class='input' type='number'></div><div class='field'><label for='pB'>B / Y</label><input id='pB' class='input' type='number'></div></div><div class='row' style='margin-top:1rem'><button class='btn btn-primary' type='button' onclick='tnPercentCalc()'>Calculate</button></div><div id='pOutput' style='margin-top:1rem'></div></section></div></main><div id='siteFooter'></div><div id='toast' class='toast' role='status' aria-live='polite'></div><div id='modalBackdrop' class='modal-backdrop' aria-hidden='true'><div class='modal' role='dialog' aria-modal='true' aria-labelledby='modalTitle'><h3 id='modalTitle'>Success</h3><div id='modalBody' class='help'></div><div class='actions'><button class='btn btn-secondary' type='button' onclick='tnCloseModal()'>Close</button></div></div></div><script src='../assets/js/main.js'></script><script src='../assets/js/tools.js'></script><script src='../assets/js/analytics.js'></script></body></html>
+</head><body><div id='siteHeader'></div><main id='main' class='main'><div class='container'><div class="ad"><strong>Tools Placeholder</strong></div><section class='card'><h1>Percentage Calculator</h1><div class='grid' style='grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem'><div class='field' style='grid-column:1/-1'><label for='pMode'>Mode</label><select id='pMode' class='input'><option value='x_of_y'>X% of Y</option><option value='increase'>Increase A by B%</option><option value='decrease'>Decrease A by B%</option></select></div><div class='field'><label for='pA'>A / X</label><input id='pA' class='input' type='number'></div><div class='field'><label for='pB'>B / Y</label><input id='pB' class='input' type='number'></div></div><div class='row' style='margin-top:1rem'><button class='btn btn-primary' type='button' onclick='tnPercentCalc()'>Calculate</button></div><div id='pOutput' style='margin-top:1rem'></div></section>
+
+<div class='container' style='max-width:800px; margin:2rem auto; padding:0 1rem'>
+  <div class='card'>
+    <h2>Percentage formulas explained</h2>
+    <div class='help' style='margin-top:1rem; line-height:1.7; font-size:.95rem'>
+      <p>This calculator covers the three percentage calculations people search for most often:</p>
+      <h3 style='margin-top:1.5rem'>X% of Y</h3>
+      <p style='margin-top:.5rem'>Formula: <code>(X ÷ 100) × Y</code>. Example: 20% of 150 = (20 ÷ 100) × 150 = 30.</p>
+      <h3 style='margin-top:1.5rem'>Percentage increase</h3>
+      <p style='margin-top:.5rem'>To increase A by B%: <code>A + (A × B ÷ 100)</code>. Example: increasing 500 by 15% gives 500 + 75 = 575. Useful for markups, salary raises, or price hikes.</p>
+      <h3 style='margin-top:1.5rem'>Percentage decrease</h3>
+      <p style='margin-top:.5rem'>To decrease A by B%: <code>A − (A × B ÷ 100)</code>. Example: a 20% discount on Rs. 2,000 brings the price to Rs. 1,600. Useful for discounts, depreciation, and tax deductions.</p>
+      <h3 style='margin-top:1.5rem'>Frequently asked questions</h3>
+      <p style='margin-top:.5rem'><strong>How do I find what percentage one number is of another?</strong> Divide the part by the whole and multiply by 100 — e.g. 45 out of 60 is (45 ÷ 60) × 100 = 75%.</p>
+      <p style='margin-top:.5rem'><strong>Is my data stored anywhere?</strong> No, calculations run entirely in your browser.</p>
+    </div>
+  </div>
+</div>
+
+</div></main><div id='siteFooter'></div><div id='toast' class='toast' role='status' aria-live='polite'></div><div id='modalBackdrop' class='modal-backdrop' aria-hidden='true'><div class='modal' role='dialog' aria-modal='true' aria-labelledby='modalTitle'><h3 id='modalTitle'>Success</h3><div id='modalBody' class='help'></div><div class='actions'><button class='btn btn-secondary' type='button' onclick='tnCloseModal()'>Close</button></div></div></div><script src='../assets/js/main.js'></script><script src='../assets/js/tools.js'></script><script src='../assets/js/analytics.js'></script></body></html>
