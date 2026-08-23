@@ -1,13 +1,5 @@
 (function(){
-  // 1. Vercel Web Analytics tracker
-  try {
-    const s = document.createElement('script');
-    s.defer = true;
-    s.src = '/_vercel/insights/script.js';
-    document.head.appendChild(s);
-  } catch(e) {}
-
-  // 2. Custom Internal Analytics & Ad Clicks Tracker
+  // Custom Internal Analytics & Ad Clicks Tracker
   function getDb() { 
     try { return JSON.parse(localStorage.getItem('tn_db') || '{"views":[],"clicks":[]}'); }
     catch(e) { return {views:[], clicks:[]}; }

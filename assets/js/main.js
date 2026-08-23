@@ -126,10 +126,10 @@ function tnInjectLayout(){
     main.insertBefore(bc, main.firstChild);
 
     breadcrumbItems = [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://toolnepal.com/" },
-      { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://toolnepal.com/tools.html" },
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://toolnepal.pages.dev/" },
+      { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://toolnepal.pages.dev/tools.html" },
     ];
-    if (isPdf && !isHub) breadcrumbItems.push({ "@type": "ListItem", "position": 3, "name": "PDF Converter", "item": "https://toolnepal.com/tools/pdf/pdf-tools.html" });
+    if (isPdf && !isHub) breadcrumbItems.push({ "@type": "ListItem", "position": 3, "name": "PDF Converter", "item": "https://toolnepal.pages.dev/tools/pdf/pdf-tools.html" });
     breadcrumbItems.push({ "@type": "ListItem", "position": breadcrumbItems.length + 1, "name": title, "item": location.href.split(/[?#]/)[0] });
   }
 
@@ -140,8 +140,8 @@ function tnInjectLayout(){
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "ToolNepal",
-    "url": "https://toolnepal.com/",
-    "logo": "https://toolnepal.com/assets/img/logo.svg",
+    "url": "https://toolnepal.pages.dev/",
+    "logo": "https://toolnepal.pages.dev/assets/img/logo.svg",
     "sameAs": []
   });
   document.head.appendChild(orgSchema);
@@ -152,10 +152,10 @@ function tnInjectLayout(){
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "ToolNepal",
-    "url": "https://toolnepal.com/",
+    "url": "https://toolnepal.pages.dev/",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://toolnepal.com/tools.html?q={search_term_string}",
+      "target": "https://toolnepal.pages.dev/tools.html?q={search_term_string}",
       "query-input": "required name=search_term_string"
     }
   });

@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 
-Sitemap: https://toolnepal.com/sitemap.xml
+Sitemap: https://toolnepal.pages.dev/sitemap.xml
