@@ -70,16 +70,17 @@ function tnInjectLayout(){
             <a class="brand" href="${base}index.html" aria-label="ToolNepal Home">
               <img src="${base}assets/img/logo.svg" alt="ToolNepal logo">
             </a>
-            <nav class="nav-links" aria-label="Primary">
+            <nav class="nav-links" id="primaryNav" aria-label="Primary">
               <a data-nav href="${base}index.html">Home</a>
               <a data-nav href="${base}tools.html">Tools</a>
               <a data-nav href="${base}about.html">About</a>
               <a data-nav href="${base}contact.html">Contact</a>
             </nav>
-            <div class="header-actions" style="display:flex; align-items:center; gap:0.5rem">
-              <button id="pwaInstallBtn" class="btn btn-secondary" style="display:none; padding:0.3rem 0.8rem; font-size:0.85rem; border-color:var(--red-500); color:var(--red-500); background:transparent">📲 Install App</button>
+            <div class="header-actions">
+              <button id="pwaInstallBtn" class="btn btn-secondary install-btn" type="button" style="display:none">📲 <span class="install-label">Install App</span></button>
               <button class="icon-btn" type="button" onclick="tnToggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">☾</button>
-              <a class="btn btn-primary" href="${base}tools.html">Explore</a>
+              <a class="btn btn-primary header-cta" href="${base}tools.html">Explore</a>
+              <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="Open menu" aria-controls="primaryNav" aria-expanded="false">☰</button>
             </div>
           </div>
         </div>
@@ -105,6 +106,20 @@ function tnInjectLayout(){
       </footer>`;
   }
   const y=document.getElementById("tnYear"); if(y) y.textContent=new Date().getFullYear();
+
+  // Mobile menu: the toggle only shows on narrow screens (see .nav-toggle in style.css)
+  const navToggle=document.getElementById("navToggle"), header=document.querySelector(".site-header");
+  if(navToggle && header){
+    const setOpen=(open)=>{
+      header.classList.toggle("nav-open",open);
+      navToggle.setAttribute("aria-expanded",String(open));
+      navToggle.setAttribute("aria-label",open?"Close menu":"Open menu");
+      navToggle.textContent=open?"✕":"☰";
+    };
+    navToggle.addEventListener("click",()=>setOpen(!header.classList.contains("nav-open")));
+    document.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && header.classList.contains("nav-open")){ setOpen(false); navToggle.focus(); } });
+    document.addEventListener("click",(e)=>{ if(header.classList.contains("nav-open") && !header.contains(e.target)) setOpen(false); });
+  }
   if(current.endsWith(".html")) tnActiveNav(base + current);
   
   tnShowRecent();

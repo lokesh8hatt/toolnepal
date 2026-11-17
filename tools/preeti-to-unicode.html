@@ -84,7 +84,7 @@
         <section class="card animate-fade">
           <span class="badge" style="margin-bottom:.6rem">🇳🇵 Nepal</span>
           <h1 style="font-size:1.8rem">Preeti to Unicode Converter</h1>
-          <p class="help" style="margin-bottom:1.5rem">Convert traditional Preeti texts to universal Nepali Unicode instantly.</p>
+          <p class="help" style="margin-bottom:1.5rem">Convert traditional Preeti texts to universal Nepali Unicode instantly, or use ⇅ to convert Unicode back to Preeti.</p>
 
           <div style="background:var(--panel); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--border);">
             <div class="box-header">
@@ -111,7 +111,7 @@
         <article class="card" style="margin-top:1rem">
           <h2>About Preeti format and Nepali Unicode</h2>
           <div class="help" style="margin-top:1rem; line-height:1.7; font-size:0.95rem">
-            <p><strong>Preeti</strong> is the most widely recognized legacy typing font in Nepal. For decades, typists, government officials, and students have trained their fingers to type fast in Preeti. However, Preeti has a fatal flaw in the modern internet age: if the person receiving your document does not have the "Preeti.ttf" font installed on their computer, your beautiful Nepali writing will display as unreadable English gibberish (like "d[xf] a[nsf]").</p>
+            <p><strong>Preeti</strong> is the most widely recognized legacy typing font in Nepal. For decades, typists, government officials, and students have trained their fingers to type fast in Preeti. However, Preeti has a fatal flaw in the modern internet age: if the person receiving your document does not have the "Preeti.ttf" font installed on their computer, your beautiful Nepali writing will display as unreadable English gibberish (like "g]kfn" instead of नेपाल).</p>
             <h3 style="margin-top:1.5rem">Enter Nepali Unicode</h3>
             <p style="margin-top:0.5rem"><strong>Nepali Unicode</strong> maps Devanagari characters to absolute universal standard codes. When you type in Unicode—or convert your Preeti text to Unicode using our tool—you guarantee that your text will be perfectly readable on any Android phone, iPhone, Windows PC, Mac, Facebook post, or modern website without requiring any special fonts.</p>
             <ul style="margin-top:1rem; padding-left:1.5rem">
@@ -126,7 +126,8 @@
         <div class="card">
           <h3 style="margin-bottom:.75rem">How to type?</h3>
           <div style="font-size:.88rem; line-height:1.5; color:var(--muted)">
-            <p style="margin-top:0">If you are used to typing in Preeti, simply place your cursor in the Preeti box and type as normal (assuming you have a Nepali typing software or mapping). As you type, the tool will instantly spell out the real Devanagari Unicode below.</p>
+            <p style="margin-top:0">If you are used to typing in Preeti, simply place your cursor in the Preeti box and type the Preeti keys on a normal English keyboard (for example <code>g]kfn</code> for नेपाल). As you type, the tool will instantly spell out the real Devanagari Unicode below.</p>
+            <p>Need it the other way round? Press the ⇅ button to convert Nepali Unicode back to Preeti.</p>
           </div>
         </div>
         <div class="ad" style="margin-top:1rem"><strong>Tools Placeholder</strong></div>
@@ -139,87 +140,188 @@
 <script src="../assets/js/main.js"></script>
 <script src="../assets/js/analytics.js"></script>
 <script>
-// --- MASSIVE PREETI TO UNICODE LOGIC ---
-// Mapping dictionaries for accurate Preeti -> Unicode transliteration
-var array_one = ["ç","˜",".","'","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","`","~","!","@","#","$","%","^","&","*","(",")","-","_","+","=","|","\\","{","}","[","]",":",";","\"","<",">","?","/","0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","¡","¢","£","¤","¥","¦","§","¨","©","ª","«","¬","®","¯","°","±","²","³","´","µ","¶","·","¸","¹","º","»","¼","½","¾","¿","À","Á","Â","Ã","Ä","Å","Æ","Ç","È","É","Ê","Ë","Ì","Í","Î","Ï","Ð","Ñ","Ò","Ó","Ô","Õ","Ö","×","Ø","Ù","Ú","Û","Ü","Ý","Þ","ß","à","á","â","ã","ä","å","æ","ç","è","é","ê","ë","ì","í","î","ï","ð","ñ","ò","ó","ô","õ","ö","÷","ø","ù","ú","û","ü","ý","þ","ÿ"];
-var array_two = ["र्","्","।","'","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","ञ्ज","त्र","ज्ञ","द्द","घ","ङ","छ","ट्ट","ठ्ठ","ड्ड","ढ्ढ","ण्","ॅ","ृ","ं","ँ","र्","्","{","}","[","]",":",";","\"","<",">","?","/","०","१","२","३","४","५","६","७","८","९","ब","भ","श","म","भ्","ँ","ज्","झ","ष्टि","ठ","ल्","इ","ए","ण्","ओ","प्","फ्","र्","श्","त्","उ","व्","व","ध्","थ्","ञ्","ब","द","अ","म","भ","ं","ग्","ह","ि","ज","क","ल","म","न","ओ","प","ट","र","स","त","उ","व","व","ध","थ","य","ज्ञ","ँ","र","रु","रु","ह्य","ह्र","ज्","स","ट्ट","ट्ठ","ठ्ठ","ड्ड","ढ्ढ","द","छ","ट्र","ठ्र","ड्र","ढ्र","ड़","ढ़","शे","जे","त्र","फ","द्ध","रु","दृ","कृ","न्न","न्म","नि","ल","ञ्ज","न्न","प्त","ख्","त्त","ल","य","श्र","रु","ज्ञ","क्","क्ष","ग्","घ्","ङ","च्","छ्","ज्","झ्","ञ्","ट्","ठ्","ड्","ढ्","ण्","त्","थ्","द्","ध्","न्","प्","फ्","ब्","भ्","म्","य्","र्","ल्","व्","श्","ष्","स्","ह्","‌"];
+// --- Preeti <-> Unicode conversion -----------------------------------------
+// Preeti is a visual font: keys are typed in the order glyphs appear on screen.
+// So ि is typed BEFORE its consonant cluster, the reph (र्) AFTER it, and some
+// letters are built from two keys (k+m = फ, c+f = आ, i+f = ष). Converting means
+// mapping keys to Unicode and then reordering into Unicode's logical order.
 
-var array_one_u = ["र्","्","।","'","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","ञ्ज","त्र","ज्ञ","द्द","घ","ङ","छ","ट्ट","ठ्ठ","ड्ड","ढ्ढ","ण्","ॅ","ृ","ं","ँ","र्","्","{","}","[","]",":",";","\"","<",">","?","/","०","१","२","३","४","५","६","७","८","९","ब्","भ्","श्","म्","भ्","ँ","ज्","झ्","ष्टि","ठ्","ल्","इ","ए","ण्","ओ","प्","फ्","र्","श्","त्","उ","व्","व","ध्","थ्","ञ्","ब","द","अ","म","भ","ं","ग्","ह","ि","ज","क","ल","म","न","ओ","प","ट","र","स","त","उ","व","व","ध","थ","य","ज्ञ","ँ","र","रु","रु","ह्य","ह्र","ज्","स","ट्ट","ट्ठ","ठ्ठ","ड्ड","ढ्ढ","द","छ","ट्र","ठ्र","ड्र","ढ्र","ड़","ढ़","शे","जे","त्र","फ","द्ध","रु","दृ","कृ","न्न","न्म","नि","ल्","ञ्ज","न्न","प्त","ख्","त्त","ल","य","श्र","रु","ज्ञ","क्","क्ष","ग्","घ्","ङ","च्","छ्","ज्","झ्","ञ्","ट्","ठ्","ड्","ढ्","ण्","त्","थ्","द्","ध्","न्","प्","फ्","ब्","भ्","म्","य्","र्","ल्","व्","श्","ष्","स्","ह्","‌"];
-var array_two_u = ["ç","˜",".", "'","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","m","`","~","!","@","#","$","%","^","&","*","(",")","-","_","+","=","|","\\","{","}","[","]",":",";","\"","<",">","?","/","0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","¡","¢","£","¤","¥","¦","§","¨","©","ª","«","¬","®","¯","°","±","²","³","´","µ","¶","·","¸","¹","º","»","¼","½","¾","¿","À","Á","Â","Ã","Ä","Å","Æ","Ç","È","É","Ê","Ë","Ì","Í","Î","Ï","Ð","Ñ","Ò","Ó","Ô","Õ","Ö","×","Ø","Ù","Ú","Û","Ü","Ý","Þ","ß","à","á","â","ã","ä","å","æ","ç","è","é","ê","ë","ì","í","î","ï","ð","ñ","ò","ó","ô","õ","ö","÷","ø","ù","ú","û","ü","ý","þ","ÿ"];
+var TN_REPH = ""; // internal placeholder for the reph while reordering
+var TN_CONS = "क-हक़-य़"; // क..ह and nukta letters
+var TN_SIGNS = "ऀ-ःऺऻा-ौॎॏॕ-ॗॢॣ"; // vowel signs, ँ ं ः
+// A consonant cluster: any half-forms joined by ् followed by a full consonant (e.g. न्त, प्र, स्त्र).
+var TN_CLUSTER = "(?:[" + TN_CONS + "]़?्)*[" + TN_CONS + "]़?";
+var TN_IS_CONS = new RegExp("^[" + TN_CONS + "]$");
+var TN_IS_SIGN = new RegExp("^[" + TN_SIGNS + "]$");
 
-let mode = 'p2u';
+function tnHas(obj, key) { return Object.prototype.hasOwnProperty.call(obj, key); }
+
+// Two-key sequences that form one letter (checked before single keys).
+var PREETI_PAIRS = { "km": "फ", "em": "झ", "pm": "ऊ", "qm": "क्र", "Qm": "क्त", "O{": "ई" };
+
+// Single Preeti key -> Unicode.
+var PREETI_MAP = {
+  "`": "ञ", "~": "ञ्", "1": "ज्ञ", "2": "द्द", "3": "घ", "4": "द्ध", "5": "छ", "6": "ट", "7": "ठ",
+  "8": "ड", "9": "ढ", "0": "ण्", "-": "(", "=": ".", "!": "१", "@": "२", "#": "३", "$": "४",
+  "%": "५", "^": "६", "&": "७", "*": "८", "(": "९", ")": "०", "_": ")", "+": "ं",
+  "q": "त्र", "w": "ध", "e": "भ", "r": "च", "t": "त", "y": "थ", "u": "ग", "i": "ष्", "o": "य",
+  "p": "उ", "[": "ृ", "]": "े", "\\": "्",
+  "Q": "त्त", "W": "ध्", "E": "भ्", "R": "च्", "T": "त्", "Y": "थ्", "U": "ग्", "I": "क्ष्",
+  "O": "इ", "P": "ए", "{": TN_REPH, "}": "ै", "|": "्र",
+  "a": "ब", "s": "क", "d": "म", "f": "ा", "g": "न", "h": "ज", "j": "व", "k": "प", "l": "ि",
+  ";": "स", "'": "ु",
+  "A": "ब्", "S": "क्", "D": "म्", "F": "ँ", "G": "न्", "H": "ज्", "J": "व्", "K": "प्",
+  "L": "ी", ":": "स्", "\"": "ू",
+  "z": "श", "x": "ह", "c": "अ", "v": "ख", "b": "द", "n": "ल", ",": ",", ".": "।", "/": "र",
+  "Z": "श्", "X": "ह्", "C": "ऋ", "V": "ख्", "B": "द्य", "N": "ल्", "M": "ः", "<": "?",
+  ">": "श्र", "?": "रु",
+  // Extended (Alt-code) Preeti glyphs
+  "ç": "ॐ", "˜": "ऽ", "ˆ": "फ्", "‰": "झ्", "¤": "झ्", "´": "झ", "£": "घ्", "ª": "ङ",
+  "¡": "ज्ञ्", "¢": "द्घ", "„": "ध्र", "‹": "ङ्घ", "•": "ड्ड", "›": "द्र", "§": "ट्ट",
+  "°": "ड्ढ", "¶": "ठ्ठ", "¿": "रू", "Å": "हृ", "Ë": "ङ्ग", "Ì": "न्न", "Í": "ङ्क",
+  "Î": "ङ्ख", "Ý": "ट्ठ", "ß": "द्म", "å": "द्व", "Ø": "्य", "«": "्र", "¥": "्र",
+  "©": "र", "Þ": "़", "‘": "ॅ", "…": "‘", "Ú": "’", "æ": "“", "Æ": "”", "±": "+",
+  "Ö": "=", "Ù": ";", "Û": "!", "Ü": "%", "÷": "/"
+};
 
 function convertToUnicode(preeti) {
-  var pr = preeti;
-  for (var idx=0; idx<array_one.length; idx++) {
-    var rx = new RegExp(array_one[idx].replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"),"g");
-    pr = pr.replace(rx, array_two[idx]);
-  }
-  
-  // Post process complex character flips
-  var pos = pr.indexOf("l");
-  while (pos != -1) {
-    if(pos==0) { pr = pr.substring(1); pos=pr.indexOf("l"); }
-    else {
-      var char_to_flip = pr.charAt(pos-1);
-      if(char_to_flip=="्") {
-        if(pos-2 >= 0) char_to_flip = pr.substring(pos-2, pos-1);
-      }
-      pr = pr.replace(char_to_flip+"l", "ि"+char_to_flip);
-      pos = pr.indexOf("l");
-    }
-  }
-  
-  var pos1 = pr.indexOf("k");
-  while (pos1 != -1) {
-    var char_prev = pr.charAt(pos1-1);
-    var char_next = pr.charAt(pos1+1);
-    if(char_prev!="" && char_next!="") pr = pr.replace(char_prev+"k"+char_next, char_prev+"ी"+char_next);
-    else pr = pr.replace("k", "ी");
-    pos1 = pr.indexOf("k");
-  }
-  
-  var rules=[
-    [/qm/g, "ै"], [/m/g, "ा"], [/ाे/g, "ो"], [/ाै/g, "ौ"],
-    [/्ा/g, "्य"], [/ृ१/g, "ृ"], ["इ्", "ई"],
-    [/्ा/g, "्य"], [/उ्/g, "ऊ"], [/िं/g,"ीं"]
-  ];
-  for(let i=0; i<rules.length; i++){
-    pr = pr.replace(rules[i][0], rules[i][1]);
-  }
-  // Remove ghost characters
-  pr = pr.replace(/m/g,"");
-  return pr;
-}
+  if (!preeti) return "";
+  // 1. "m" completes the glyph on its left even if a sign key was typed in
+  //    between: k'm = फु, k]m = फे, k|m = फ्र.
+  var s = String(preeti).replace(/([kepqQ])(['"\[\]}+F|]+)m/g, "$1m$2");
 
-function convertToPreeti(unicode) {
-  var out = unicode;
-  var rules=[
-    [/ॐ/g, "c¡"], [/त्र/g,"q"], [/श्र/g,">"], ["ृ", "{" ], ["र्", "{"], ["्", "}" ],
-    ["ि", "l" ], ["ी", "k" ], ["ु", "‘" ], ["ू", "’" ], ["े", "]" ], ["ै", "}" ],
-    ["ो", "f]" ], ["ौ", "f}" ], ["ं", "+" ], ["ँ", "!" ], ["ः", "M" ], ["।", "." ],
-    ["०", "0" ], ["१", "1" ], ["२", "2" ], ["३", "3" ], ["४", "4" ], ["५", "5" ],
-    ["६", "6" ], ["७", "7" ], ["८", "8" ], ["९", "9" ], ["(", "-"], [")", "_"],
-    ["-", "="], ["+", "±"]
-  ];
-  
-  for(let i=0; i<rules.length; i++){
-    var rx = new RegExp(rules[i][0].replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"),"g");
-    out = out.replace(rx, rules[i][1]);
+  // 2. Map keys to Unicode (pairs first). Unknown characters pass through.
+  var out = "";
+  for (var i = 0; i < s.length; ) {
+    var pair = s.substr(i, 2);
+    if (pair.length === 2 && tnHas(PREETI_PAIRS, pair)) { out += PREETI_PAIRS[pair]; i += 2; continue; }
+    var ch = s.charAt(i);
+    out += tnHas(PREETI_MAP, ch) ? PREETI_MAP[ch] : ch;
+    i++;
   }
-  
-  for (var idx=0; idx<array_one_u.length; idx++) {
-    var rx = new RegExp(array_one_u[idx].replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"),"g");
-    out = out.replace(rx, array_two_u[idx]);
-  }
-  
+
+  // 3. Half-form + ा stem = full letter (if = ष, 0f = ण, If = क्ष).
+  out = out.replace(/्ा/g, "");
+  // 4. ि is typed before the cluster; in Unicode it follows it (ि न् त -> न्ति).
+  out = out.replace(new RegExp("ि(" + TN_CLUSTER + ")", "g"), "$1ि");
+  // 5. Reph is typed after its cluster and signs; in Unicode र् comes first.
+  out = out.replace(new RegExp("(" + TN_CLUSTER + "[" + TN_SIGNS + "]*)" + TN_REPH, "g"), TN_REPH + "$1");
+  out = out.split(TN_REPH).join("र्");
+  // 6. Clean-up: ं/ँ go after vowel signs, drop doubled signs, compose vowels.
+  out = out.replace(/([ँं])([ा-ौ]+)/g, "$2$1");
+  out = out.replace(/([ँंा-ौ])\1+/g, "$1");
+  out = out.replace(/ेा/g, "ाे").replace(/ैा/g, "ाै");
+  out = out.replace(/ाे/g, "ो").replace(/ाै/g, "ौ").replace(/ाॅ/g, "ॉ");
+  out = out.replace(/अो/g, "ओ").replace(/अौ/g, "औ").replace(/अॉ/g, "ऑ").replace(/अा/g, "आ").replace(/एे/g, "ऐ");
+  out = out.replace(/टृ/g, "ट्ट"); // 6[ is how Preeti typists write ट्ट
+  // 7. "M" not attached to a letter is a colon, not a visarga.
+  out = out.replace(/(^|[^ऀ-ॿ])ः/g, "$1:");
   return out;
 }
+
+// --- Unicode -> Preeti -------------------------------------------------------
+// Conjuncts with their own Preeti glyph (longest first).
+var UNI_LIGATURES = [
+  ["क्ष्", "I"], ["ज्ञ्", "¡"],
+  ["क्ष", "If"], ["ज्ञ", "1"], ["त्र", "q"], ["त्त", "Q"], ["श्र", ">"], ["क्र", "qm"], ["क्त", "Qm"],
+  ["द्द", "2"], ["द्ध", "4"], ["द्य", "B"], ["द्व", "å"], ["द्म", "ß"], ["द्र", "›"], ["द्घ", "¢"],
+  ["ट्ट", "§"], ["ठ्ठ", "¶"], ["ड्ड", "•"], ["ड्ढ", "°"], ["ट्ठ", "Ý"], ["ङ्क", "Í"], ["ङ्ख", "Î"],
+  ["ङ्ग", "Ë"], ["ङ्घ", "‹"], ["ध्र", "„"], ["हृ", "Å"], ["रु", "?"], ["रू", "¿"]
+];
+var UNI_FULL = {
+  "क": "s", "ख": "v", "ग": "u", "घ": "3", "ङ": "ª", "च": "r", "छ": "5", "ज": "h", "झ": "em",
+  "ञ": "`", "ट": "6", "ठ": "7", "ड": "8", "ढ": "9", "ण": "0f", "त": "t", "थ": "y", "द": "b",
+  "ध": "w", "न": "g", "प": "k", "फ": "km", "ब": "a", "भ": "e", "म": "d", "य": "o", "र": "/",
+  "ल": "n", "व": "j", "श": "z", "ष": "if", "स": ";", "ह": "x"
+};
+var UNI_HALF = {
+  "क": "S", "ख": "V", "ग": "U", "घ": "£", "च": "R", "ज": "H", "झ": "‰", "ञ": "~", "ण": "0",
+  "त": "T", "थ": "Y", "ध": "W", "न": "G", "प": "K", "फ": "ˆ", "ब": "A", "भ": "E", "म": "D",
+  "ल": "N", "व": "J", "श": "Z", "ष": "i", "स": ":", "ह": "X"
+};
+var UNI_OTHER = {
+  "अ": "c", "आ": "cf", "इ": "O", "ई": "O{", "उ": "p", "ऊ": "pm", "ऋ": "C", "ए": "P", "ऐ": "P]",
+  "ओ": "cf]", "औ": "cf}", "ऑ": "cf‘",
+  "ा": "f", "ि": "l", "ी": "L", "ु": "'", "ू": "\"", "ृ": "[", "े": "]", "ै": "}", "ो": "f]",
+  "ौ": "f}", "ॉ": "f‘", "ॅ": "‘", "ं": "+", "ँ": "F", "ः": "M", "्": "\\", "़": "Þ",
+  "०": ")", "१": "!", "२": "@", "३": "#", "४": "$", "५": "%", "६": "^", "७": "&", "८": "*", "९": "(",
+  "0": ")", "1": "!", "2": "@", "3": "#", "4": "$", "5": "%", "6": "^", "7": "&", "8": "*", "9": "(",
+  "।": ".", "॥": "..", "ॐ": "ç", "ऽ": "˜", "(": "-", ")": "_", ".": "=", "?": "<", "+": "±",
+  "=": "Ö", ";": "Ù", "!": "Û", "%": "Ü", "/": "÷", ":": "M", "'": "Ú", "\"": "Æ",
+  "“": "æ", "”": "Æ", "‘": "…", "’": "Ú"
+};
+UNI_OTHER[TN_REPH] = "{";
+
+function convertToPreeti(unicode) {
+  if (!unicode) return "";
+  // Split precomposed nukta letters (क़, ड़, ...) into base + ़.
+  var s = String(unicode).replace(/[ऩऱऴक़-य़]/g, function (c) {
+    return c.normalize ? c.normalize("NFD") : c;
+  });
+
+  // 1. Reph: र् starting a cluster moves after that cluster and its signs (कर्म -> कम{).
+  var t = "", i = 0, j;
+  while (i < s.length) {
+    if (s.charAt(i) === "र" && s.charAt(i + 1) === "्" && TN_IS_CONS.test(s.charAt(i + 2)) &&
+        (i === 0 || s.charAt(i - 1) !== "्")) {
+      j = i + 2;
+      for (;;) {
+        j++;
+        if (s.charAt(j) === "़") j++;
+        if (s.charAt(j) === "्" && TN_IS_CONS.test(s.charAt(j + 1))) { j++; continue; }
+        break;
+      }
+      while (j < s.length && TN_IS_SIGN.test(s.charAt(j))) j++;
+      t += s.slice(i + 2, j) + TN_REPH;
+      i = j;
+    } else {
+      t += s.charAt(i);
+      i++;
+    }
+  }
+  // 2. ि moves before its whole cluster (न्ति -> िन्त).
+  s = t.replace(new RegExp("(" + TN_CLUSTER + ")ि", "g"), "ि$1");
+
+  // 3. Map to Preeti keys. Unknown characters pass through.
+  var out = "";
+  i = 0;
+  outer:
+  while (i < s.length) {
+    for (var k = 0; k < UNI_LIGATURES.length; k++) {
+      var lig = UNI_LIGATURES[k][0];
+      if (s.substr(i, lig.length) === lig) { out += UNI_LIGATURES[k][1]; i += lig.length; continue outer; }
+    }
+    var c = s.charAt(i);
+    if (tnHas(UNI_FULL, c)) {
+      var nukta = s.charAt(i + 1) === "़" ? "Þ" : "";
+      j = i + 1 + nukta.length;
+      if (s.charAt(j) === "्" && s.charAt(j + 1) === "र") {
+        // Subjoined ra: प्र = k|, ट्र = 6«
+        out += UNI_FULL[c] + nukta + ("टठडढ".indexOf(c) >= 0 ? "«" : "|");
+        i = j + 2;
+      } else if (s.charAt(j) === "्") {
+        // Half form before another consonant; otherwise full letter + halant.
+        if (!nukta && tnHas(UNI_HALF, c) && TN_IS_CONS.test(s.charAt(j + 1))) out += UNI_HALF[c];
+        else out += UNI_FULL[c] + nukta + "\\";
+        i = j + 1;
+      } else {
+        out += UNI_FULL[c] + nukta;
+        i = j;
+      }
+      continue;
+    }
+    out += tnHas(UNI_OTHER, c) ? UNI_OTHER[c] : c;
+    i++;
+  }
+  return out;
+}
+
+let mode = 'p2u';
 
 function convertAuto() {
   const top = document.getElementById("inputTop").value;
   if(!top) { document.getElementById("inputBottom").value = ""; return; }
-  
+
   const bottom = mode === 'p2u' ? convertToUnicode(top) : convertToPreeti(top);
   document.getElementById("inputBottom").value = bottom;
 }
@@ -230,7 +332,7 @@ function swapLayout() {
   const lBot = document.getElementById("labelBottom");
   const iTop = document.getElementById("inputTop");
   const iBot = document.getElementById("inputBottom");
-  
+
   if(mode === 'u2p') {
     lTop.textContent = "Nepali Unicode";
     lBot.textContent = "Preeti Font";
@@ -242,7 +344,7 @@ function swapLayout() {
     iTop.placeholder = "Type or paste Preeti text here...";
     iBot.placeholder = "नेपाली युनिकोड यहाँ देखिनेछ...";
   }
-  
+
   const temp = iTop.value;
   iTop.value = iBot.value;
   iBot.value = temp;
@@ -250,10 +352,18 @@ function swapLayout() {
 }
 
 function copyText(id) {
-  const t = document.getElementById(id).value;
-  if(t) {
-    navigator.clipboard.writeText(t).then(()=>tnToast("Text copied beautifully!","Share with friends")).catch(()=>tnToast("Copy failed"));
-  }
+  const el = document.getElementById(id);
+  const t = el.value;
+  if(!t) return;
+  const done = ()=>tnToast("Text copied beautifully!","Share with friends");
+  const fallback = ()=>{
+    el.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch(e) {}
+    ok ? done() : tnToast("Copy failed");
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done).catch(fallback);
+  else fallback();
 }
 
 function clearBoxes() {

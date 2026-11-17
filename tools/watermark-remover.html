@@ -212,7 +212,7 @@
             <span class="badge" style="margin-bottom:.6rem">Images</span>
             <h1>Watermark Remover</h1>
             <p class="help" style="margin-bottom:1rem">
-              Paint over the watermark with our smart brush. The tool intelligently fills the area using surrounding pixel patterns — 100% local, nothing uploaded.
+              Paint over the watermark, then click Remove. The painted area is filled in with colours blended from its surrounding pixels, working inward from the edges — best on plain or smoothly shaded backgrounds. 100% local, nothing uploaded.
             </p>
 
             <!-- Mode pills -->
@@ -252,7 +252,7 @@
                 <span id="wmBrushVal">30 px</span>
               </div>
               <div class="wm-control-item">
-                <label for="wmStrength" style="font-size:.85rem">Fill Strength</label>
+                <label for="wmStrength" style="font-size:.85rem">Smoothing</label>
                 <input id="wmStrength" type="range" min="1" max="10" value="5" oninput="document.getElementById('wmStrVal').textContent=this.value">
                 <span id="wmStrVal">5</span>
               </div>
@@ -264,7 +264,7 @@
             </div>
 
             <!-- Action buttons -->
-            <div class="row" style="margin-top:1rem" id="wmActions" style="display:none">
+            <div class="row" id="wmActions" style="margin-top:1rem;display:none">
               <button id="wmRemoveBtn" class="btn btn-primary" type="button" onclick="wmRemoveWatermark()" style="display:none">
                 ✨ Remove Watermark
               </button>
@@ -322,7 +322,7 @@
 
           <div class="tip-card">
             <strong>💡 Best Results</strong>
-            Use a slightly larger brush than the watermark. The tool samples surrounding pixels so works best on textured backgrounds.
+            Cover the whole watermark with a small margin. The fill blends colours in from the edges of the painted area, so it works best on plain or smoothly shaded areas (sky, walls, gradients). Detailed textures and objects will look smoothed over.
           </div>
 
           <div class="tip-card">
@@ -331,8 +331,8 @@
           </div>
 
           <div class="tip-card">
-            <strong>🎨 Multiple Passes</strong>
-            For stubborn watermarks, run Remove Watermark 2–3 times on the same area for a smoother blend.
+            <strong>🎨 Fill Settings</strong>
+            Sample Radius sets how far the first edge-inward pass looks for colours. Smoothing then blends the fill to hide streaks and the seam where the edges meet (1 = off). For big or busy areas, work in smaller sections and use Undo if a result looks off.
           </div>
 
           <div class="card">
@@ -369,18 +369,36 @@
   <script>
   /* ═══════════════════════════════════════════════════════════
      Watermark Remover — Core Logic
-     Strategy: Weighted exemplar-based inpainting
-       1. User paints a mask over the watermark area
-       2. On removal, for each masked pixel we sample from
-          an expanding ring of nearby non-masked pixels,
-          weighted by inverse distance (similar to Telea method)
-       3. Multiple passes improve quality
+     What it actually does (simple edge-inward fill, not AI):
+       1. The user paints a mask over the watermark.
+       2. On "Remove", only the mask's bounding box plus a margin is
+          processed. Very large areas are processed at a reduced
+          resolution so the browser stays responsive.
+       3. Onion-peel fill: masked pixels that touch known pixels get
+          the inverse-distance-weighted average of the known pixels
+          within "Sample Radius". They then count as known and the
+          next ring inward is filled, until the whole mask is filled.
+       4. "Smoothing" runs extra relaxation passes over the filled
+          pixels (each becomes the average of its neighbours, with
+          unmasked pixels held fixed), first at coarse spacing and
+          then finer, to soften streaks and the seam in the middle.
+     The work runs in small time slices so the tab doesn't freeze.
+     It blends colours in from the edges: good on plain or smoothly
+     shaded backgrounds, blurry on detailed textures.
   ═══════════════════════════════════════════════════════════ */
 
+  const WM_MASK_ALPHA     = 64;               // mask alpha above this counts as masked
+  const WM_MASK_COLOR     = 'rgb(211,47,47)'; // mask is painted in this colour…
+  const WM_OVERLAY_ALPHA  = 0.45;             // …and shown at this opacity over the image
+  const WM_MAX_WORK_PX    = 1000000;          // process at most ~1 MP (downscale above that)
+  const WM_MAX_FILL_OPS   = 300000000;        // cap on neighbour lookups for the fill
+  const WM_SLICE_MS       = 24;               // time slice before yielding to the browser
+  const WM_UNDO_LIMIT     = 8;
+  const WM_UNDO_MAX_BYTES = 256 * 1024 * 1024;
+
   const wmState = {
-    img: null,         // original HTMLImageElement
-    origData: null,    // original ImageData (for undo stack)
-    maskCtx: null,     // offscreen mask canvas context
+    img: null,         // original HTMLImageElement (used by Reset)
+    maskCtx: null,     // offscreen mask canvas context (alpha = painted)
     workCtx: null,     // offscreen working image context
     dispCtx: null,     // display canvas context
     dispCanvas: null,
@@ -388,14 +406,18 @@
     workCanvas: null,
     naturalW: 0,
     naturalH: 0,
-    scaleX: 1,
-    scaleY: 1,
     painting: false,
+    lastPt: null,      // previous brush point (image px) for stroke interpolation
     mode: 'paint',     // 'paint' | 'erase'
-    brushSize: 30,
-    undoStack: [],
+    brushSize: 30,     // diameter in image pixels
+    undoStack: [],     // [{ x, y, data: ImageData }] — only the changed region
     fileName: 'image.png',
     paintedPixels: 0,
+    maskBox: null,     // conservative bounds of painted area {x0,y0,x1,y1} (x1/y1 exclusive)
+    busy: false,
+    generation: 0,     // bumped on each image load so stale fills are discarded
+    renderQueued: false,
+    lastPointer: null, // last pointer position, to refresh the brush cursor
   };
 
   /* ─── DOM helpers ─── */
@@ -410,13 +432,39 @@
     $('wmStatusText').textContent = msg;
   }
 
+  function wmNow() {
+    return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  }
+
   function wmUpdatePaintedStat() {
-    if (!wmState.maskCtx) return;
-    const d = wmState.maskCtx.getImageData(0, 0, wmState.naturalW, wmState.naturalH).data;
     let c = 0;
-    for (let i = 3; i < d.length; i += 4) if (d[i] > 128) c++;
+    const b = wmState.maskBox;
+    if (wmState.maskCtx && b) {
+      const d = wmState.maskCtx.getImageData(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0).data;
+      for (let i = 3; i < d.length; i += 4) if (d[i] > WM_MASK_ALPHA) c++;
+      if (c === 0) wmState.maskBox = null; // everything erased
+    }
     wmState.paintedPixels = c;
     $('statPainted').textContent = c > 999 ? (c/1000).toFixed(1)+'k' : c;
+  }
+
+  function wmGrowMaskBox(x0, y0, x1, y1) {
+    const W = wmState.naturalW, H = wmState.naturalH;
+    x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0));
+    x1 = Math.min(W, Math.ceil(x1));  y1 = Math.min(H, Math.ceil(y1));
+    if (x1 <= x0 || y1 <= y0) return;
+    const b = wmState.maskBox;
+    wmState.maskBox = b
+      ? { x0: Math.min(b.x0, x0), y0: Math.min(b.y0, y0), x1: Math.max(b.x1, x1), y1: Math.max(b.y1, y1) }
+      : { x0, y0, x1, y1 };
+  }
+
+  function wmClearMask() {
+    if (!wmState.maskCtx) return;
+    wmState.maskCtx.clearRect(0, 0, wmState.naturalW, wmState.naturalH);
+    wmState.maskBox = null;
+    wmRenderDisplay();
+    wmUpdatePaintedStat();
   }
 
   /* ─── Mode ─── */
@@ -428,22 +476,32 @@
 
   /* ─── Load image ─── */
   function wmLoadFile(input) {
-    const file = input.files[0];
-    if (!file) return;
-    wmState.fileName = file.name.replace(/\.[^.]+$/, '') + '_no_watermark.png';
+    const file = input.files && input.files[0];
+    if (file) wmLoadFromFile(file);
+    input.value = ''; // allow choosing the same file again
+  }
+
+  function wmLoadFromFile(file) {
+    if (file.type && !file.type.startsWith('image/')) { tnToast('Please choose an image file.'); return; }
+    const name = file.name.replace(/\.[^.]+$/, '') + '_no_watermark.png';
     const reader = new FileReader();
     reader.onload = e => {
       const img = new Image();
-      img.onload = () => wmInitCanvas(img);
+      img.onload = () => { wmState.fileName = name; wmInitCanvas(img); };
+      img.onerror = () => tnToast('Could not read that image.');
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
 
   function wmInitCanvas(img) {
+    wmState.generation++;          // cancels any fill still running for the old image
+    wmState.busy = false;
+    $('wmRemoveBtn').disabled = false;
+
     wmState.img = img;
-    const W = img.naturalWidth;
-    const H = img.naturalHeight;
+    const W = img.naturalWidth || img.width;
+    const H = img.naturalHeight || img.height;
     wmState.naturalW = W;
     wmState.naturalH = H;
 
@@ -464,9 +522,10 @@
     wmState.maskCanvas.width = W; wmState.maskCanvas.height = H;
     wmState.maskCtx = wmState.maskCanvas.getContext('2d');
     wmState.maskCtx.clearRect(0, 0, W, H);
+    wmState.maskBox = null;
+    wmState.painting = false;
+    wmState.lastPt = null;
 
-    /* Save original pixels for undo */
-    wmState.origData = wmState.workCtx.getImageData(0, 0, W, H);
     wmState.undoStack = [];
 
     wmRenderDisplay();
@@ -478,87 +537,131 @@
     $('wmDropPrompt').style.display = 'none';
     $('wmControls').style.display = '';
     $('wmStats').style.display = '';
-    wmShow(['wmRemoveBtn','wmUndoBtn','wmResetBtn','wmDownloadBtn','wmChangeBtn']);
+    wmShow(['wmActions','wmRemoveBtn','wmUndoBtn','wmResetBtn','wmDownloadBtn','wmChangeBtn']);
     $('statW').textContent = W;
     $('statH').textContent = H;
     $('statPainted').textContent = '0';
+    wmState.paintedPixels = 0;
     wmSetStatus('Ready — paint over the watermark, then click Remove.', 'ready');
   }
 
-  /* ─── Render display (composite image + mask overlay) ─── */
+  /* ─── Render display: current image + semi-transparent mask overlay ─── */
   function wmRenderDisplay() {
-    const { dispCtx, workCanvas, maskCtx, naturalW: W, naturalH: H } = wmState;
+    wmState.renderQueued = false;
+    const { dispCtx, workCanvas, maskCanvas, naturalW: W, naturalH: H } = wmState;
+    if (!dispCtx) return;
+    dispCtx.globalCompositeOperation = 'source-over';
+    dispCtx.globalAlpha = 1;
     dispCtx.clearRect(0, 0, W, H);
     dispCtx.drawImage(workCanvas, 0, 0);
-
-    /* Draw mask overlay in semi-transparent red */
-    const maskData = maskCtx.getImageData(0, 0, W, H);
-    const d = maskData.data;
-    for (let i = 0; i < d.length; i += 4) {
-      if (d[i+3] > 128) {
-        d[i]   = 211;
-        d[i+1] = 47;
-        d[i+2] = 47;
-        d[i+3] = 110;
-      }
+    if (wmState.maskBox) {
+      // drawImage composites (unlike putImageData), so the image stays visible
+      dispCtx.globalAlpha = WM_OVERLAY_ALPHA;
+      dispCtx.drawImage(maskCanvas, 0, 0);
+      dispCtx.globalAlpha = 1;
     }
-    dispCtx.putImageData(maskData, 0, 0);
+  }
+
+  function wmQueueRender() {
+    if (wmState.renderQueued) return;
+    wmState.renderQueued = true;
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(wmRenderDisplay);
+    else setTimeout(wmRenderDisplay, 16);
   }
 
   /* ─── Brush drawing ─── */
   function wmGetCanvasXY(e) {
     const rect = wmState.dispCanvas.getBoundingClientRect();
-    const touch = e.touches ? e.touches[0] : e;
-    wmState.scaleX = wmState.naturalW / rect.width;
-    wmState.scaleY = wmState.naturalH / rect.height;
+    const p = e.touches ? e.touches[0] : e;
+    const sx = rect.width  ? wmState.naturalW / rect.width  : 1;
+    const sy = rect.height ? wmState.naturalH / rect.height : 1;
     return {
-      x: (touch.clientX - rect.left) * wmState.scaleX,
-      y: (touch.clientY - rect.top)  * wmState.scaleY,
-      cx: touch.clientX - rect.left,
-      cy: touch.clientY - rect.top,
+      x: (p.clientX - rect.left) * sx,
+      y: (p.clientY - rect.top)  * sy,
     };
+  }
+
+  /* Paint from the previous point to (x, y) so fast moves leave no gaps */
+  function wmStrokeTo(x, y) {
+    const mc = wmState.maskCtx;
+    const size = wmState.brushSize;
+    const r = size / 2;
+    const last = wmState.lastPt;
+    mc.save();
+    mc.globalCompositeOperation = wmState.mode === 'erase' ? 'destination-out' : 'source-over';
+    mc.fillStyle = WM_MASK_COLOR;
+    mc.strokeStyle = WM_MASK_COLOR;
+    mc.beginPath();
+    if (last && (last.x !== x || last.y !== y)) {
+      mc.lineWidth = size;
+      mc.lineCap = 'round';
+      mc.lineJoin = 'round';
+      mc.moveTo(last.x, last.y);
+      mc.lineTo(x, y);
+      mc.stroke();
+    } else {
+      mc.arc(x, y, r, 0, Math.PI * 2);
+      mc.fill();
+    }
+    mc.restore();
+    if (wmState.mode !== 'erase') {
+      const lx = last ? last.x : x, ly = last ? last.y : y;
+      wmGrowMaskBox(Math.min(lx, x) - r - 2, Math.min(ly, y) - r - 2, Math.max(lx, x) + r + 2, Math.max(ly, y) + r + 2);
+    }
+    wmState.lastPt = { x, y };
+  }
+
+  function wmStartStroke(e) {
+    if (!wmState.maskCtx) return;
+    if (wmState.busy) { tnToast('Please wait — still filling.'); return; }
+    wmState.painting = true;
+    wmState.lastPt = null;
+    wmPaint(e);
   }
 
   function wmPaint(e) {
     if (!wmState.painting || !wmState.maskCtx) return;
     const { x, y } = wmGetCanvasXY(e);
-    const r = wmState.brushSize / 2;
-    const mc = wmState.maskCtx;
+    wmStrokeTo(x, y);
+    wmQueueRender();
+  }
 
-    if (wmState.mode === 'erase') {
-      mc.globalCompositeOperation = 'destination-out';
-      mc.fillStyle = 'rgba(0,0,0,1)';
-    } else {
-      mc.globalCompositeOperation = 'source-over';
-      mc.fillStyle = 'rgba(255,255,255,1)';
-    }
-    mc.beginPath();
-    mc.arc(x, y, r, 0, Math.PI * 2);
-    mc.fill();
-    mc.globalCompositeOperation = 'source-over';
-
+  function wmEndStroke() {
+    if (!wmState.painting) return;
+    wmState.painting = false;
+    wmState.lastPt = null;
     wmRenderDisplay();
-    wmUpdatePaintedStat();
+    wmUpdatePaintedStat(); // once per stroke, not on every mousemove
   }
 
   /* Brush cursor */
   function wmMoveCursor(e) {
-    const wrap = $('wmCanvasWrap');
     const cursor = $('wmBrushCursor');
-    if (!wmState.img) { cursor.style.display='none'; return; }
+    if (!wmState.img || !wmState.dispCanvas) { cursor.style.display='none'; return; }
+    const p = e.touches ? e.touches[0] : e;
+    if (!p) return;
+    wmState.lastPointer = { clientX: p.clientX, clientY: p.clientY };
     const rect = wmState.dispCanvas.getBoundingClientRect();
-    const touch = e.touches ? e.touches[0] : e;
-    const cx = touch.clientX - rect.left;
-    const cy = touch.clientY - rect.top;
-    const dispSize = wmState.brushSize / wmState.scaleX * (rect.width / wmState.naturalW);
-    if (cx < 0 || cy < 0 || cx > rect.width || cy > rect.height) {
+    const cx = p.clientX - rect.left;
+    const cy = p.clientY - rect.top;
+    if (!rect.width || cx < 0 || cy < 0 || cx > rect.width || cy > rect.height) {
       cursor.style.display = 'none'; return;
     }
+    // brush is in image pixels; convert to on-screen pixels
+    const dispSize = wmState.brushSize * rect.width / wmState.naturalW;
+    // cursor is positioned inside the wrapper, which may be larger than the canvas
+    const wrap = $('wmCanvasWrap');
+    const wrect = wrap.getBoundingClientRect();
     cursor.style.display = 'block';
     cursor.style.width  = dispSize + 'px';
     cursor.style.height = dispSize + 'px';
-    cursor.style.left = cx + 'px';
-    cursor.style.top  = cy + 'px';
+    cursor.style.left = (p.clientX - wrect.left - (wrap.clientLeft || 0)) + 'px';
+    cursor.style.top  = (p.clientY - wrect.top  - (wrap.clientTop  || 0)) + 'px';
+  }
+
+  function wmHideCursor() {
+    wmState.lastPointer = null;
+    $('wmBrushCursor').style.display = 'none';
   }
 
   /* ─── Canvas event listeners ─── */
@@ -566,13 +669,14 @@
     const dc = $('wmCanvas');
     const wrap = $('wmCanvasWrap');
 
-    dc.addEventListener('mousedown', e => { wmState.painting=true; wmPaint(e); });
+    dc.addEventListener('mousedown', e => { wmStartStroke(e); });
     dc.addEventListener('mousemove', e => { wmMoveCursor(e); wmPaint(e); });
-    dc.addEventListener('mouseup',   () => { wmState.painting=false; });
-    dc.addEventListener('mouseleave',() => { wmState.painting=false; $('wmBrushCursor').style.display='none'; });
-    dc.addEventListener('touchstart', e => { e.preventDefault(); wmState.painting=true; wmPaint(e); }, {passive:false});
+    dc.addEventListener('mouseup',   () => { wmEndStroke(); });
+    dc.addEventListener('mouseleave',() => { wmEndStroke(); wmHideCursor(); });
+    dc.addEventListener('touchstart', e => { e.preventDefault(); wmStartStroke(e); }, {passive:false});
     dc.addEventListener('touchmove',  e => { e.preventDefault(); wmMoveCursor(e); wmPaint(e); }, {passive:false});
-    dc.addEventListener('touchend',   () => { wmState.painting=false; });
+    dc.addEventListener('touchend',   () => { wmEndStroke(); wmHideCursor(); });
+    dc.addEventListener('touchcancel',() => { wmEndStroke(); wmHideCursor(); });
 
     /* Drag & drop */
     wrap.addEventListener('dragover', e => { e.preventDefault(); wrap.classList.add('drag-over'); });
@@ -581,134 +685,386 @@
       e.preventDefault();
       wrap.classList.remove('drag-over');
       const file = e.dataTransfer.files[0];
-      if (file && file.type.startsWith('image/')) {
-        wmState.fileName = file.name.replace(/\.[^.]+$/, '') + '_no_watermark.png';
-        const reader = new FileReader();
-        reader.onload = ev => { const img=new Image(); img.onload=()=>wmInitCanvas(img); img.src=ev.target.result; };
-        reader.readAsDataURL(file);
-      }
+      if (file && file.type.startsWith('image/')) wmLoadFromFile(file);
     });
   }
   wmBindEvents();
 
   /* ─── Brush size control ─── */
   function wmUpdateBrush() {
-    wmState.brushSize = parseInt($('wmBrushSize').value);
+    wmState.brushSize = parseInt($('wmBrushSize').value, 10);
     $('wmBrushVal').textContent = wmState.brushSize + ' px';
+    if (wmState.lastPointer && $('wmBrushCursor').style.display === 'block') wmMoveCursor(wmState.lastPointer);
   }
 
-  /* ─── Core inpainting algorithm ─── */
-  /* Weighted exemplar / radial sweep — pure JS, no WASM needed */
-  function wmRemoveWatermark() {
-    if (!wmState.maskCtx) { tnToast('Please load an image first.'); return; }
+  /* ─── Fill engine (pure JS, no DOM) ───
+     px:   RGBA pixels of the region (Uint8ClampedArray, W*H*4)
+     mask: Uint8Array W*H, 1 = pixel to fill
+     opts: { radius, smoothPerLevel, factor }  (factor = integer downscale)
+     Returns a job; call job.step(ms) until it returns true, then
+     job.writeBack(px, mask) writes the filled pixels (masked ones only). */
+  function wmCreateFillJob(px, mask, W, H, opts) {
+    const f = Math.max(1, opts.factor | 0);
+    const R = Math.max(1, opts.radius | 0);
+    const perLevel = Math.max(0, opts.smoothPerLevel | 0);
+    const w = Math.ceil(W / f), h = Math.ceil(H / f), n = w * h;
 
-    wmSetStatus('Processing… please wait.', 'working');
-    $('wmRemoveBtn').disabled = true;
+    /* Premultiplied colour channels at working resolution */
+    const cr = new Float32Array(n), cg = new Float32Array(n), cb = new Float32Array(n), ca = new Float32Array(n);
+    const known = new Uint8Array(n); // 1 = has a value (original or filled)
+    const todo  = new Uint8Array(n); // 1 = must be filled
 
-    // Push current state to undo stack
-    const snap = wmState.workCtx.getImageData(0, 0, wmState.naturalW, wmState.naturalH);
-    wmState.undoStack.push(snap);
-    if (wmState.undoStack.length > 8) wmState.undoStack.shift();
-
-    // Run after a tiny delay so the status renders
-    setTimeout(() => {
-      try {
-        wmInpaint();
-        wmSetStatus('Done! Mask cleared — paint again or download.', 'ready');
-        tnToast('Watermark removed! ✨');
-        // Clear mask after removal
-        wmState.maskCtx.clearRect(0, 0, wmState.naturalW, wmState.naturalH);
-        wmRenderDisplay();
-        wmUpdatePaintedStat();
-      } catch(err) {
-        wmSetStatus('Error: ' + err.message, '');
-        tnToast('Processing failed. Try a smaller area.');
-        console.error(err);
+    if (f === 1) {
+      for (let i = 0; i < n; i++) {
+        if (mask[i]) { todo[i] = 1; continue; }
+        const p = i * 4, a = px[p + 3], k = a / 255;
+        cr[i] = px[p] * k; cg[i] = px[p + 1] * k; cb[i] = px[p + 2] * k; ca[i] = a;
+        known[i] = 1;
       }
-      $('wmRemoveBtn').disabled = false;
-    }, 30);
-  }
-
-  function wmInpaint() {
-    const W = wmState.naturalW;
-    const H = wmState.naturalH;
-    const passes = parseInt($('wmStrength').value);
-    const sampleR = parseInt($('wmRadius').value);
-
-    const maskData = wmState.maskCtx.getImageData(0, 0, W, H).data;
-    const imgData  = wmState.workCtx.getImageData(0, 0, W, H);
-    const px = imgData.data;
-
-    /* Build boolean mask array */
-    const isMasked = new Uint8Array(W * H);
-    for (let i = 0; i < W*H; i++) isMasked[i] = maskData[i*4+3] > 128 ? 1 : 0;
-
-    /* Run multiple diffusion passes */
-    for (let pass = 0; pass < passes; pass++) {
-      const updated = new Float32Array(px.length);
-      const weight  = new Float32Array(W * H);
-
-      for (let py = 0; py < H; py++) {
-        for (let qx = 0; qx < W; qx++) {
-          const idx = py * W + qx;
-          if (!isMasked[idx]) continue;
-
-          let sumR=0, sumG=0, sumB=0, sumW=0;
-          let found = false;
-
-          /* Expand search radius until we find enough samples */
-          for (let r = 1; r <= sampleR && !found; r++) {
-            for (let dy = -r; dy <= r; dy++) {
-              for (let dx = -r; dx <= r; dx++) {
-                if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue; // ring only
-                const nx = qx + dx, ny = py + dy;
-                if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
-                const ni = ny * W + nx;
-                if (isMasked[ni]) continue;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                const w = 1 / (dist * dist + 1e-4);
-                const pi4 = ni * 4;
-                sumR += px[pi4] * w;
-                sumG += px[pi4+1] * w;
-                sumB += px[pi4+2] * w;
-                sumW += w;
-                found = true;
-              }
-            }
-          }
-
-          if (sumW > 0) {
-            const pi4 = idx * 4;
-            updated[pi4]   = sumR / sumW;
-            updated[pi4+1] = sumG / sumW;
-            updated[pi4+2] = sumB / sumW;
-            updated[pi4+3] = 255;
-            weight[idx] = sumW;
-          }
+    } else {
+      /* Box-downscale; a cell is masked if ANY of its pixels is masked,
+         so known cells never contain watermark colours. */
+      const cnt = new Float32Array(n);
+      for (let y = 0; y < H; y++) {
+        const row = ((y / f) | 0) * w;
+        for (let x = 0; x < W; x++) {
+          const i = y * W + x, c = row + ((x / f) | 0);
+          if (mask[i]) { todo[c] = 1; continue; }
+          const p = i * 4, a = px[p + 3], k = a / 255;
+          cr[c] += px[p] * k; cg[c] += px[p + 1] * k; cb[c] += px[p + 2] * k; ca[c] += a; cnt[c]++;
         }
       }
+      for (let c = 0; c < n; c++) {
+        if (todo[c]) { cr[c] = cg[c] = cb[c] = ca[c] = 0; continue; }
+        const k = 1 / cnt[c];
+        cr[c] *= k; cg[c] *= k; cb[c] *= k; ca[c] *= k;
+        known[c] = 1;
+      }
+    }
 
-      /* Apply updates */
-      for (let i = 0; i < W*H; i++) {
-        if (isMasked[i] && weight[i] > 0) {
-          const pi4 = i * 4;
-          px[pi4]   = Math.round(updated[pi4]);
-          px[pi4+1] = Math.round(updated[pi4+1]);
-          px[pi4+2] = Math.round(updated[pi4+2]);
-          px[pi4+3] = 255;
+    let totalTodo = 0;
+    for (let i = 0; i < n; i++) totalTodo += todo[i];
+
+    const job = { error: null, phase: 'fill', progress: 0, totalTodo, workW: w, workH: h, factor: f, step, writeBack };
+    if (totalTodo === 0) { job.phase = 'done'; job.progress = 1; return job; }
+    if (totalTodo === n) { job.error = 'no-known'; job.phase = 'done'; return job; }
+
+    /* Circular neighbourhood with inverse-square-distance weights */
+    const lim = (R + 0.5) * (R + 0.5);
+    const ox = [], oy = [], ow = [];
+    for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+      const d2 = dx * dx + dy * dy;
+      if (d2 === 0 || d2 > lim) continue;
+      ox.push(dx); oy.push(dy); ow.push(1 / d2);
+    }
+    const nOff = ox.length;
+    const offX = Int32Array.from(ox), offY = Int32Array.from(oy), offW = Float32Array.from(ow);
+    const offI = Int32Array.from(ox.map((dx, k) => oy[k] * w + dx));
+    /* rough share of the total work spent filling, for the progress display */
+    const estLevels = Math.max(1, Math.ceil(Math.log2(Math.max(2, Math.sqrt(totalTodo) / 2))));
+    const fillWeight = nOff / (nOff + perLevel * estLevels * 8);
+
+    /* Onion-peel queue: each layer is a contiguous run of `queue` */
+    const queue  = new Int32Array(totalTodo);
+    const queued = new Uint8Array(n);
+    const vals   = new Float32Array(totalTodo * 4);
+    const depth  = new Int32Array(n); // layer number = distance (in cells) to the nearest known cell
+    let tail = 0, curLayer = 1;
+
+    function enqueueNeighbours(i) {
+      const x = i % w, y = (i / w) | 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        const ny = y + dy;
+        if (ny < 0 || ny >= h) continue;
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = x + dx;
+          if ((dx === 0 && dy === 0) || nx < 0 || nx >= w) continue;
+          const j = ny * w + nx;
+          if (todo[j] && !known[j] && !queued[j]) { queued[j] = 1; queue[tail++] = j; }
         }
       }
     }
 
-    wmState.workCtx.putImageData(imgData, 0, 0);
-    wmRenderDisplay();
+    function hasKnownNeighbour(i) {
+      const x = i % w, y = (i / w) | 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        const ny = y + dy;
+        if (ny < 0 || ny >= h) continue;
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = x + dx;
+          if (nx < 0 || nx >= w) continue;
+          if (known[ny * w + nx]) return true;
+        }
+      }
+      return false;
+    }
+
+    for (let i = 0; i < n; i++) {
+      if (todo[i] && hasKnownNeighbour(i)) { queued[i] = 1; queue[tail++] = i; }
+    }
+    let layerStart = 0, layerEnd = tail, pos = 0, filled = 0;
+
+    function fillCell(q) {
+      const i = queue[q], x = i % w, y = (i / w) | 0;
+      let sr = 0, sg = 0, sb = 0, sa = 0, sw = 0;
+      if (x >= R && y >= R && x < w - R && y < h - R) {
+        for (let k = 0; k < nOff; k++) {
+          const j = i + offI[k];
+          if (known[j]) { const wt = offW[k]; sr += cr[j] * wt; sg += cg[j] * wt; sb += cb[j] * wt; sa += ca[j] * wt; sw += wt; }
+        }
+      } else {
+        for (let k = 0; k < nOff; k++) {
+          const nx = x + offX[k], ny = y + offY[k];
+          if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+          const j = ny * w + nx;
+          if (known[j]) { const wt = offW[k]; sr += cr[j] * wt; sg += cg[j] * wt; sb += cb[j] * wt; sa += ca[j] * wt; sw += wt; }
+        }
+      }
+      const v = q * 4;
+      if (sw > 0) { vals[v] = sr / sw; vals[v + 1] = sg / sw; vals[v + 2] = sb / sw; vals[v + 3] = sa / sw; }
+    }
+
+    /* Values of a layer are computed first, then committed together,
+       so the result does not depend on scan order. */
+    function commitLayer() {
+      for (let q = layerStart; q < layerEnd; q++) {
+        const i = queue[q], v = q * 4;
+        cr[i] = vals[v]; cg[i] = vals[v + 1]; cb[i] = vals[v + 2]; ca[i] = vals[v + 3];
+        known[i] = 1;
+        depth[i] = curLayer;
+      }
+      for (let q = layerStart; q < layerEnd; q++) enqueueNeighbours(queue[q]);
+      filled += layerEnd - layerStart;
+      if (layerEnd > layerStart) curLayer++;
+      layerStart = layerEnd;
+      layerEnd = tail;
+    }
+
+    /* Smoothing schedule: strides 2^K … 4, 2, 1, `perLevel` passes each */
+    let smoothList = null, strides = [], sLevel = 0, sPass = 0, sPos = 0, sTotal = 1, sDone = 0;
+
+    function finishFill() {
+      if (filled < totalTodo) {
+        /* Safety net (not reachable when known pixels exist): use the mean known colour */
+        let mr = 0, mg = 0, mb = 0, ma = 0, mc = 0;
+        for (let i = 0; i < n; i++) if (known[i]) { mr += cr[i]; mg += cg[i]; mb += cb[i]; ma += ca[i]; mc++; }
+        for (let i = 0; i < n; i++) if (todo[i] && !known[i]) {
+          cr[i] = mr / mc; cg[i] = mg / mc; cb[i] = mb / mc; ca[i] = ma / mc; known[i] = 1; depth[i] = 1;
+        }
+        filled = totalTodo;
+      }
+      if (perLevel > 0) {
+        smoothList = new Int32Array(totalTodo);
+        let k = 0;
+        for (let i = 0; i < n; i++) if (todo[i]) smoothList[k++] = i;
+        const maxDepth = Math.max(1, curLayer - 1);
+        for (let s = 1 << Math.floor(Math.log2(maxDepth)); s >= 1; s >>= 1) strides.push(s);
+        sTotal = strides.length * perLevel;
+        job.phase = 'smooth';
+      } else {
+        job.phase = 'done';
+      }
+    }
+
+    /* One Gauss-Seidel relaxation step with neighbours `s` cells away
+       (4-neighbours weight 1, diagonals 0.5). The stride is capped by
+       the cell's distance to known pixels, so every neighbour used is
+       inside the filled area or on its known border (or off-image,
+       which is skipped). Coarse strides spread colour across wide
+       holes quickly; stride 1 finishes the fine detail. */
+    function smoothCell(i, stride) {
+      const s = depth[i] < stride ? depth[i] : stride;
+      const x = i % w, y = (i / w) | 0;
+      let sr = 0, sg = 0, sb = 0, sa = 0, sw = 0;
+      for (let dy = -s; dy <= s; dy += s) {
+        const ny = y + dy;
+        if (ny < 0 || ny >= h) continue;
+        for (let dx = -s; dx <= s; dx += s) {
+          const nx = x + dx;
+          if ((dx === 0 && dy === 0) || nx < 0 || nx >= w) continue;
+          const j = ny * w + nx, wt = (dx === 0 || dy === 0) ? 1 : 0.5;
+          sr += cr[j] * wt; sg += cg[j] * wt; sb += cb[j] * wt; sa += ca[j] * wt; sw += wt;
+        }
+      }
+      if (sw > 0) { cr[i] = sr / sw; cg[i] = sg / sw; cb[i] = sb / sw; ca[i] = sa / sw; }
+    }
+
+    function step(budgetMs) {
+      const t0 = wmNow();
+      const budget = budgetMs == null ? Infinity : budgetMs;
+      while (job.phase === 'fill') {
+        if (pos === layerEnd) {
+          commitLayer();
+          if (layerStart === layerEnd) { finishFill(); break; }
+        }
+        const end = Math.min(layerEnd, pos + 256);
+        while (pos < end) fillCell(pos++);
+        job.progress = fillWeight * (filled + pos - layerStart) / totalTodo;
+        if (wmNow() - t0 > budget) return false;
+      }
+      while (job.phase === 'smooth') {
+        const L = smoothList.length, forward = (sDone & 1) === 0, stride = strides[sLevel];
+        const end = Math.min(L, sPos + 2048);
+        for (; sPos < end; sPos++) smoothCell(smoothList[forward ? sPos : L - 1 - sPos], stride);
+        if (sPos === L) {
+          sPos = 0; sDone++;
+          if (++sPass >= perLevel) { sPass = 0; if (++sLevel >= strides.length) job.phase = 'done'; }
+        }
+        job.progress = fillWeight + (1 - fillWeight) * Math.min(1, (sDone + sPos / L) / sTotal);
+        if (job.phase !== 'done' && wmNow() - t0 > budget) return false;
+      }
+      job.progress = 1;
+      return true;
+    }
+
+    function writeBack(out, maskArr) {
+      for (let y = 0; y < H; y++) {
+        let v = (y + 0.5) / f - 0.5;
+        if (v < 0) v = 0; else if (v > h - 1) v = h - 1;
+        const y0 = v | 0, y1 = y0 < h - 1 ? y0 + 1 : y0, fy = v - y0;
+        for (let x = 0; x < W; x++) {
+          const i = y * W + x;
+          if (!maskArr[i]) continue;
+          let r, g, b, a;
+          if (f === 1) {
+            r = cr[i]; g = cg[i]; b = cb[i]; a = ca[i];
+          } else {
+            let u = (x + 0.5) / f - 0.5;
+            if (u < 0) u = 0; else if (u > w - 1) u = w - 1;
+            const x0 = u | 0, x1 = x0 < w - 1 ? x0 + 1 : x0, fx = u - x0;
+            const c00 = y0 * w + x0, c10 = y0 * w + x1, c01 = y1 * w + x0, c11 = y1 * w + x1;
+            const w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy), w01 = (1 - fx) * fy, w11 = fx * fy;
+            r = cr[c00] * w00 + cr[c10] * w10 + cr[c01] * w01 + cr[c11] * w11;
+            g = cg[c00] * w00 + cg[c10] * w10 + cg[c01] * w01 + cg[c11] * w11;
+            b = cb[c00] * w00 + cb[c10] * w10 + cb[c01] * w01 + cb[c11] * w11;
+            a = ca[c00] * w00 + ca[c10] * w10 + ca[c01] * w01 + ca[c11] * w11;
+          }
+          const p = i * 4;
+          if (a > 0.5) {
+            const k = 255 / a;
+            out[p] = r * k; out[p + 1] = g * k; out[p + 2] = b * k; out[p + 3] = a;
+          } else {
+            out[p] = out[p + 1] = out[p + 2] = out[p + 3] = 0;
+          }
+        }
+      }
+    }
+
+    return job;
+  }
+
+  /* ─── Remove watermark (UI wrapper around the fill engine) ─── */
+  function wmRemoveWatermark() {
+    if (!wmState.maskCtx) { tnToast('Please load an image first.'); return Promise.resolve(false); }
+    if (wmState.busy) return Promise.resolve(false);
+
+    const W = wmState.naturalW, H = wmState.naturalH;
+    const b = wmState.maskBox;
+
+    /* Tight bounds of the masked pixels (scan only the painted area) */
+    let tx0 = W, ty0 = H, tx1 = -1, ty1 = -1, masked = 0;
+    if (b) {
+      const bw = b.x1 - b.x0, bh = b.y1 - b.y0;
+      const md = wmState.maskCtx.getImageData(b.x0, b.y0, bw, bh).data;
+      for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) {
+        if (md[(y * bw + x) * 4 + 3] > WM_MASK_ALPHA) {
+          masked++;
+          if (x < tx0) tx0 = x; if (x > tx1) tx1 = x;
+          if (y < ty0) ty0 = y; if (y > ty1) ty1 = y;
+        }
+      }
+      tx0 += b.x0; tx1 += b.x0 + 1; ty0 += b.y0; ty1 += b.y0 + 1;
+    }
+    if (!masked) {
+      wmState.maskBox = null;
+      tnToast('Paint over the watermark first.');
+      wmSetStatus('Nothing painted yet — paint over the watermark, then click Remove.', 'ready');
+      return Promise.resolve(false);
+    }
+
+    const sampleR = Math.max(1, parseInt($('wmRadius').value, 10) || 8);
+    const smoothing = Math.max(1, parseInt($('wmStrength').value, 10) || 1);
+    const smoothPerLevel = smoothing - 1; // 1 = none … 10 = 9 passes at each scale
+
+    /* Region = mask bounds + margin; pick a downscale factor that keeps the work bounded */
+    const offs = Math.PI * (sampleR + 0.5) * (sampleR + 0.5);
+    let f = 1, rx0, ry0, rx1, ry1;
+    for (let k = 0; k < 2; k++) {
+      const m = (sampleR + 2) * f;
+      rx0 = Math.max(0, tx0 - m); ry0 = Math.max(0, ty0 - m);
+      rx1 = Math.min(W, tx1 + m); ry1 = Math.min(H, ty1 + m);
+      const area = (rx1 - rx0) * (ry1 - ry0);
+      f = Math.max(f, Math.ceil(Math.sqrt(area / WM_MAX_WORK_PX)), Math.ceil(Math.sqrt(masked * offs / WM_MAX_FILL_OPS)));
+    }
+    const rw = rx1 - rx0, rh = ry1 - ry0;
+
+    const imgData = wmState.workCtx.getImageData(rx0, ry0, rw, rh);
+    const md = wmState.maskCtx.getImageData(rx0, ry0, rw, rh).data;
+    const regionMask = new Uint8Array(rw * rh);
+    for (let i = 0; i < regionMask.length; i++) regionMask[i] = md[i * 4 + 3] > WM_MASK_ALPHA ? 1 : 0;
+
+    const job = wmCreateFillJob(imgData.data, regionMask, rw, rh, { radius: sampleR, smoothPerLevel, factor: f });
+    if (job.error === 'no-known') {
+      wmSetStatus('The mask covers the whole image — leave some unpainted pixels around the watermark.', 'ready');
+      tnToast('Nothing left to sample from. Erase part of the mask.');
+      return Promise.resolve(false);
+    }
+
+    /* Undo snapshot of just this region */
+    const snap = wmState.workCtx.createImageData(rw, rh);
+    snap.data.set(imgData.data);
+
+    wmState.busy = true;
+    $('wmRemoveBtn').disabled = true;
+    wmSetStatus('Filling… 0%', 'working');
+
+    const gen = wmState.generation;
+    return new Promise(resolve => {
+      const finish = ok => {
+        if (gen === wmState.generation) { wmState.busy = false; $('wmRemoveBtn').disabled = false; }
+        resolve(ok);
+      };
+      const tick = () => {
+        if (gen !== wmState.generation) { resolve(false); return; } // a new image was loaded
+        try {
+          if (!job.step(WM_SLICE_MS)) {
+            wmSetStatus((job.phase === 'smooth' ? 'Smoothing… ' : 'Filling… ') + Math.round(job.progress * 100) + '%', 'working');
+            setTimeout(tick, 0);
+            return;
+          }
+          job.writeBack(imgData.data, regionMask);
+          wmState.workCtx.putImageData(imgData, rx0, ry0);
+          wmPushUndo({ x: rx0, y: ry0, data: snap });
+          wmClearMask();
+          wmSetStatus('Done! Mask cleared — paint again or download.', 'ready');
+          tnToast('Watermark removed! ✨');
+          finish(true);
+        } catch (err) {
+          wmSetStatus('Error: ' + err.message, '');
+          tnToast('Processing failed. Try a smaller area.');
+          console.error(err);
+          finish(false);
+        }
+      };
+      setTimeout(tick, 30); // let the status render first
+    });
   }
 
   /* ─── Undo ─── */
+  function wmPushUndo(entry) {
+    const st = wmState.undoStack;
+    st.push(entry);
+    let bytes = st.reduce((s, e) => s + e.data.data.length, 0);
+    while (st.length > 1 && (st.length > WM_UNDO_LIMIT || bytes > WM_UNDO_MAX_BYTES)) {
+      bytes -= st.shift().data.data.length;
+    }
+  }
+
   function wmUndo() {
+    if (wmState.busy) { tnToast('Please wait — still filling.'); return; }
     if (wmState.undoStack.length === 0) { tnToast('Nothing to undo.'); return; }
     const prev = wmState.undoStack.pop();
-    wmState.workCtx.putImageData(prev, 0, 0);
+    wmState.workCtx.putImageData(prev.data, prev.x, prev.y);
     wmRenderDisplay();
     wmSetStatus('Undone. You can undo ' + wmState.undoStack.length + ' more time(s).', 'ready');
     tnToast('Undo successful.');
@@ -716,12 +1072,12 @@
 
   /* ─── Reset ─── */
   function wmReset() {
-    if (!wmState.origData) return;
-    wmState.workCtx.putImageData(wmState.origData, 0, 0);
-    wmState.maskCtx.clearRect(0, 0, wmState.naturalW, wmState.naturalH);
+    if (!wmState.img || !wmState.workCtx) return;
+    if (wmState.busy) { tnToast('Please wait — still filling.'); return; }
+    wmState.workCtx.clearRect(0, 0, wmState.naturalW, wmState.naturalH);
+    wmState.workCtx.drawImage(wmState.img, 0, 0);
     wmState.undoStack = [];
-    wmRenderDisplay();
-    wmUpdatePaintedStat();
+    wmClearMask();
     wmSetStatus('Reset to original image.', 'ready');
     tnToast('Reset to original.');
   }
@@ -742,7 +1098,7 @@
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === 'z' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); wmUndo(); }
     if (e.key === 's' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); wmDownload(); }
-    if (e.key === 'Escape') { if(wmState.maskCtx) { wmState.maskCtx.clearRect(0,0,wmState.naturalW,wmState.naturalH); wmRenderDisplay(); wmUpdatePaintedStat(); tnToast('Mask cleared.'); } }
+    if (e.key === 'Escape') { if(wmState.maskCtx && wmState.maskBox) { wmClearMask(); tnToast('Mask cleared.'); } }
     if (e.key === '[') { const s=$('wmBrushSize'); s.value=Math.max(5,+s.value-5); wmUpdateBrush(); }
     if (e.key === ']') { const s=$('wmBrushSize'); s.value=Math.min(120,+s.value+5); wmUpdateBrush(); }
   });

@@ -45,13 +45,13 @@
           <p class="help">Convert numbers to words perfectly suited for Nepali numeric systems (Lakhs, Crores).</p>
           <div class="field" style="margin-top: 1.5rem">
             <label for="numInput">Enter Number</label>
-            <input id="numInput" class="input" type="number" placeholder="e.g. 150000" oninput="tnConvertNumber()">
+            <input id="numInput" class="input" type="text" inputmode="decimal" autocomplete="off" placeholder="e.g. 150000 or 1250.50" oninput="tnConvertNumber()">
           </div>
           <div id="numOutput" style="margin-top: 1.5rem"></div>
         </div>
       </div>
       <aside class="sidebar">
-        <div class="card help">Supports up to 999 Crores. Useful for accounting and billing in Nepal.</div>
+        <div class="card help">Supports up to 19 digits (Thousand, Lakh, Crore, Arab, Kharab … Shankha), negative numbers and paisa. Commas are ignored.</div>
       </aside>
     </section>
 
@@ -66,7 +66,7 @@
           <li><strong>Property and loan agreements:</strong> where amounts must be stated unambiguously in both numerals and words.</li>
         </ul>
         <h3 style="margin-top:1.5rem">Frequently asked questions</h3>
-        <p style="margin-top:.5rem"><strong>What's the largest number this supports?</strong> Up to 999 crore-level figures — far beyond typical personal or small business use.</p>
+        <p style="margin-top:.5rem"><strong>What's the largest number this supports?</strong> Up to 19 digits, i.e. into Arab, Kharab and beyond — far more than typical personal or business amounts. Decimals are shown as paisa in the cheque format.</p>
         <p style="margin-top:.5rem"><strong>Example:</strong> 1,50,000 converts to "One Lakh Fifty Thousand", and 2,50,00,000 converts to "Two Crore Fifty Lakh".</p>
       </div>
     </div>
@@ -75,29 +75,80 @@
 <div id="siteFooter"></div>
 <script src="../assets/js/main.js"></script>
 <script>
-  function tnConvertNumber() {
-    const val = parseInt(document.getElementById("numInput").value);
-    const out = document.getElementById("numOutput");
-    if (isNaN(val)) { out.innerHTML = ""; return; }
-    
-    const units = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine"];
-    const tens = ["","Ten","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
-    const teens = ["Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
-    
-    function convert(n) {
-      if (n===0) return "Zero";
-      if (n<10) return units[n];
-      if (n<20) return teens[n-10];
-      if (n<100) return tens[Math.floor(n/10)] + (n%10 !== 0 ? " " + units[n%10] : "");
-      if (n<1000) return units[Math.floor(n/100)] + " Hundred" + (n%100 !== 0 ? " and " + convert(n%100) : "");
-      if (n<100000) return convert(Math.floor(n/1000)) + " Thousand" + (n%1000 !== 0 ? " " + convert(n%1000) : "");
-      if (n < 10000000) return convert(Math.floor(n / 100000)) + " Lakh" + (n % 100000 !== 0 ? " " + convert(n % 100000) : "");
-      return convert(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 !== 0 ? " " + convert(n % 10000000) : "");
-    }
-    
-    const words = convert(val);
-    out.innerHTML = `<div class="result"><strong>${words}</strong><button class="btn btn-ghost" style="margin-top:1rem;display:block" onclick="navigator.clipboard.writeText('${words}')">Copy</button></div>`;
+  /* Nepali/Indian grouping: last 3 digits, then 2-digit groups.
+     BigInt keeps every digit exact (no rounding above 2^53). */
+  const N2W_UNITS = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine"];
+  const N2W_TENS = ["","Ten","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+  const N2W_TEENS = ["Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+  const N2W_SCALES = ["Thousand","Lakh","Crore","Arab","Kharab","Neel","Padma","Shankha"];
+  const N2W_MAX_DIGITS = 3 + 2 * N2W_SCALES.length; // 19 digits
+
+  function n2wBelow100(n) {
+    if (n < 10) return N2W_UNITS[n];
+    if (n < 20) return N2W_TEENS[n - 10];
+    return N2W_TENS[Math.floor(n / 10)] + (n % 10 ? " " + N2W_UNITS[n % 10] : "");
   }
+  function n2wBelow1000(n) {
+    if (n < 100) return n2wBelow100(n);
+    return N2W_UNITS[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " and " + n2wBelow100(n % 100) : "");
+  }
+  /* digits: string of decimal digits without sign */
+  function n2wInteger(digits) {
+    let n = BigInt(digits);
+    if (n === 0n) return "Zero";
+    const parts = [];
+    const last3 = Number(n % 1000n); n /= 1000n;
+    if (last3) parts.unshift(n2wBelow1000(last3));
+    for (let i = 0; n > 0n; i++) {
+      const g = Number(n % 100n); n /= 100n;
+      if (g) parts.unshift(n2wBelow100(g) + " " + N2W_SCALES[i]);
+    }
+    return parts.join(" ");
+  }
+
+  /* Returns {error} or {plain, rupees} for a string like "-1,25,000.75" */
+  function numberToWords(raw) {
+    const s = String(raw).replace(/[,\s]/g, "");
+    if (!s) return null;
+    const m = /^(-)?(\d*)(?:\.(\d*))?$/.exec(s);
+    if (!m || (!m[2] && !m[3])) return { error: "Enter digits only, e.g. 150000 or 1250.50" };
+    const neg = !!m[1];
+    const intDigits = (m[2] || "0").replace(/^0+(?=\d)/, "");
+    const frac = m[3] || "";
+    if (intDigits.length > N2W_MAX_DIGITS) return { error: `Too large — up to ${N2W_MAX_DIGITS} digits (Shankha) are supported` };
+
+    const sign = neg && /[1-9]/.test(intDigits + frac) ? "Minus " : "";
+    let plain = sign + n2wInteger(intDigits);
+    if (frac) plain += " Point " + frac.split("").map(d => d === "0" ? "Zero" : N2W_UNITS[+d]).join(" ");
+
+    // Rupees and paisa (rounded to 2 decimals)
+    let rupees = BigInt(intDigits);
+    let paisa = Math.round(Number("0." + (frac || "0")) * 100);
+    if (paisa === 100) { rupees += 1n; paisa = 0; }
+    let cheque = sign + "Rupees " + n2wInteger(rupees.toString());
+    if (paisa) cheque += " and " + n2wBelow100(paisa) + " Paisa";
+    cheque += " Only";
+    return { plain, rupees: cheque };
+  }
+
+  function tnConvertNumber() {
+    const out = document.getElementById("numOutput");
+    const r = numberToWords(document.getElementById("numInput").value);
+    if (!r) { out.innerHTML = ""; return; }
+    if (r.error) { out.innerHTML = `<div class="result help">${escapeHtml(r.error)}</div>`; return; }
+    out.innerHTML = `
+      <div class="result"><div class="help">In words</div><strong id="n2wPlain">${escapeHtml(r.plain)}</strong>
+        <button class="btn btn-ghost" style="margin-top:.75rem;display:block" type="button" data-copy="n2wPlain">Copy</button></div>
+      <div class="result" style="margin-top:.75rem"><div class="help">For cheques &amp; invoices</div><strong id="n2wRupees">${escapeHtml(r.rupees)}</strong>
+        <button class="btn btn-ghost" style="margin-top:.75rem;display:block" type="button" data-copy="n2wRupees">Copy</button></div>`;
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-copy]");
+    if (!btn) return;
+    const text = document.getElementById(btn.getAttribute("data-copy")).textContent;
+    navigator.clipboard.writeText(text).then(() => tnToast("Copied!")).catch(() => tnToast("Copy failed", "Select the text instead"));
+  });
 </script>
 </body>
 </html>

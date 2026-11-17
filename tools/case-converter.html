@@ -127,16 +127,51 @@
 <script src="../assets/js/main.js"></script>
 <script src="../assets/js/analytics.js"></script>
 <script>
+/* Unicode-aware helpers: \p{L} letters, \p{M} combining marks (Devanagari matras), \p{N} digits */
+const CC_WORD_RE = /[\p{L}\p{M}\p{N}]+/gu;
+const CC_SMALL = new Set(['a','an','and','as','at','but','by','for','in','nor','of','on','or','the','to','up','vs','via']);
+function ccWords(s){
+  return (s
+    .replace(/(\p{L})['’](\p{L})/gu, '$1$2')               // don't → dont
+    .replace(/(\p{Ll}|\p{N})(\p{Lu})/gu, '$1 $2')           // helloWorld → hello World
+    .replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu, '$1 $2')           // XMLParser → XML Parser
+    .match(CC_WORD_RE) || []);
+}
+function ccCap(w){ return w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w; }
+function ccIsAcronym(w, allCaps){ return !allCaps && w.length > 1 && w === w.toUpperCase() && w !== w.toLowerCase(); }
+function ccAllCaps(s){ return s === s.toUpperCase() && s !== s.toLowerCase(); }
+function ccTitle(s){
+  const allCaps = ccAllCaps(s);
+  const matches = [...s.matchAll(/[\p{L}\p{M}\p{N}'’]+/gu)];
+  let out = '', last = 0;
+  matches.forEach((m, i) => {
+    const w = m[0];
+    let r;
+    if (ccIsAcronym(w, allCaps)) r = w;
+    else if (i > 0 && i < matches.length - 1 && CC_SMALL.has(w.toLowerCase())) r = w.toLowerCase();
+    else r = ccCap(w);
+    out += s.slice(last, m.index) + r;
+    last = m.index + w.length;
+  });
+  return out + s.slice(last);
+}
+function ccSentence(s){
+  const allCaps = ccAllCaps(s);
+  const lowered = s.replace(/[\p{L}\p{M}\p{N}'’]+/gu, w => ccIsAcronym(w, allCaps) ? w : w.toLowerCase());
+  return lowered
+    .replace(/(^|[.!?।]\s+|\n\s*)(\p{Ll})/gu, (_, p, c) => p + c.toUpperCase())
+    .replace(/\bi\b/g, 'I');
+}
 const cases=[
   {label:'UPPERCASE',fn:s=>s.toUpperCase()},
   {label:'lowercase',fn:s=>s.toLowerCase()},
-  {label:'Title Case',fn:s=>s.toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase())},
-  {label:'Sentence case',fn:s=>s.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g,c=>c.toUpperCase())},
-  {label:'camelCase',fn:s=>s.trim().toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g,(_,c)=>c.toUpperCase())},
-  {label:'PascalCase',fn:s=>{const r=s.trim().toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g,(_,c)=>c.toUpperCase());return r.charAt(0).toUpperCase()+r.slice(1);}},
-  {label:'snake_case',fn:s=>s.trim().toLowerCase().replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_|_$/g,'')},
-  {label:'kebab-case',fn:s=>s.trim().toLowerCase().replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-|-$/g,'')},
-  {label:'CONSTANT_CASE',fn:s=>s.trim().toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'')},
+  {label:'Title Case',fn:ccTitle},
+  {label:'Sentence case',fn:ccSentence},
+  {label:'camelCase',fn:s=>ccWords(s).map((w,i)=>i?ccCap(w):w.toLowerCase()).join('')},
+  {label:'PascalCase',fn:s=>ccWords(s).map(ccCap).join('')},
+  {label:'snake_case',fn:s=>ccWords(s).map(w=>w.toLowerCase()).join('_')},
+  {label:'kebab-case',fn:s=>ccWords(s).map(w=>w.toLowerCase()).join('-')},
+  {label:'CONSTANT_CASE',fn:s=>ccWords(s).map(w=>w.toUpperCase()).join('_')},
   {label:'aLtErNaTiNg',fn:s=>[...s].map((c,i)=>i%2?c.toUpperCase():c.toLowerCase()).join('')},
 ];
 function ccUpdate(){
@@ -151,18 +186,18 @@ function renderCards(text){
   document.getElementById('ccGrid').innerHTML=cases.map((c,i)=>{
     const cv=c.fn(sample);
     const pr=cv.length>60?cv.slice(0,57)+'…':cv;
-    return `<div class="case-card" onclick="ccApply(${i})"><div class="copy-icon">📋</div><div class="case-label">${c.label}</div><div class="case-preview">${escapeHtml(pr)}</div></div>`;
+    return `<div class="case-card" role="button" tabindex="0" aria-label="Convert to ${c.label} and copy" onclick="ccApply(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();ccApply(${i});}"><div class="copy-icon">📋</div><div class="case-label">${c.label}</div><div class="case-preview">${escapeHtml(pr)}</div></div>`;
   }).join('');
 }
 function ccApply(i){
   const text=document.getElementById('ccInput').value;
   const result=cases[i].fn(text);
-  navigator.clipboard.writeText(result).then(()=>{
-    document.getElementById('ccInput').value=result;
-    ccUpdate();
-    tnToast('Copied as '+cases[i].label+'!');
-    document.querySelectorAll('.case-card').forEach((c,j)=>c.classList.toggle('active',j===i));
-  }).catch(()=>tnToast('Copy failed'));
+  document.getElementById('ccInput').value=result;
+  ccUpdate();
+  document.querySelectorAll('.case-card').forEach((c,j)=>c.classList.toggle('active',j===i));
+  navigator.clipboard.writeText(result)
+    .then(()=>tnToast('Copied as '+cases[i].label+'!'))
+    .catch(()=>tnToast('Converted to '+cases[i].label,'Copy manually with Ctrl+C'));
 }
 function ccClear(){document.getElementById('ccInput').value='';ccUpdate();}
 async function ccPaste(){try{const t=await navigator.clipboard.readText();document.getElementById('ccInput').value=t;ccUpdate();}catch{tnToast('Paste with Ctrl+V');}}

@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Nepal Salary Tax Calculator FY 2081/82 | TDS & Breakdown</title>
-  <meta name="description" content="Calculate your exact monthly salary, SSF deductions, 1% tax, and TDS breakdowns for Fiscal Year 2081/82 in Nepal. Accurate income tax calculator."/>
+  <title>Nepal Salary Tax Calculator FY 2083/84 | TDS & Breakdown</title>
+  <meta name="description" content="Calculate monthly take-home salary, SSF, CIT/PF and insurance deductions, 1% social security tax and TDS for Nepal's FY 2083/84 (also FY 2082/83)."/>
   <meta property="og:title" content="Nepal Salary Tax Calculator — ToolNepal"/>
-  <meta property="og:description" content="Calculate your exact monthly salary, SSF deductions, 1% tax, and TDS breakdowns for Fiscal Year 2081/82 in Nepal. Accurate income tax calculator."/>
+  <meta property="og:description" content="Calculate monthly take-home salary, SSF, CIT/PF and insurance deductions, 1% social security tax and TDS for Nepal's FY 2083/84 (also FY 2082/83)."/>
   <meta property="og:image" content="https://toolnepal.pages.dev/assets/img/og-image.jpg"/>
   <meta property="og:url" content="https://toolnepal.pages.dev/tools/salary-tax-calculator"/>
   <meta property="og:type" content="website"/>
@@ -17,10 +17,25 @@
   <link rel="stylesheet" href="../assets/css/style.css"/>
   <style>
     .receipt { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1.25rem; font-size:.9rem; }
-    .receipt-row { display:flex; justify-content:space-between; padding:.4rem 0; border-bottom:1px solid var(--border); }
+    .receipt-row { display:flex; justify-content:space-between; gap:1rem; padding:.4rem 0; border-bottom:1px solid var(--border); }
     .receipt-row:last-child { border-bottom:none; }
+    .receipt-row > span:last-child { white-space:nowrap; text-align:right; }
+    .slab-table td:nth-child(2), .slab-table td:nth-child(4) { white-space:nowrap; }
+    @media (max-width:400px) { .slab-table { font-size:.76rem; } .slab-table th, .slab-table td { padding:.3rem .15rem; } .receipt { padding:1rem .8rem; } }
     .receipt-total { font-weight:800; font-size:1.4rem; color:var(--text); border-top:2px solid var(--text) !important; margin-top:.5rem; padding-top:.75rem; }
     .tax-text { color:var(--red-500); font-weight:700; }
+    .ok-text { color:#16a34a; font-weight:700; }
+    .sal-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap:1rem; }
+    .slab-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .check-row { display:flex; align-items:center; gap:.5rem; }
+    .check-row input { width:1.2rem; height:1.2rem; flex:none; }
+    .check-row label { margin:0; font-weight:600; cursor:pointer; }
+    details.more { border:1px solid var(--border); border-radius:var(--radius-sm); padding:.75rem 1rem; margin-top:1rem; }
+    details.more summary { cursor:pointer; font-weight:800; }
+    .slab-table { width:100%; border-collapse:collapse; font-size:.85rem; margin-top:.5rem; }
+    .slab-table th, .slab-table td { text-align:right; padding:.35rem .25rem; border-bottom:1px solid var(--border); }
+    .slab-table th:first-child, .slab-table td:first-child { text-align:left; }
+    .slab-table th { color:var(--muted); font-weight:700; }
   </style>
 
   <!-- SEO Schema Markup -->
@@ -41,18 +56,18 @@
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "What is the new tax slab in Nepal for FY 2081/82?",
+        "name": "What are Nepal's income tax slabs for FY 2083/84?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "For an unmarried individual, the first Rs. 5 Lakhs is taxed at 1%. The next 2 Lakhs at 10%, next 3 Lakhs at 20%, next 10 Lakhs at 30%, and anything above 20 Lakhs is taxed at 36%. For married couples, the first slab is raised to Rs. 6 Lakhs."
+          "text": "From FY 2083/84 the same slabs apply to single and married individuals: 1% (social security tax) on the first Rs. 10 lakh, 10% on the next Rs. 5 lakh, 20% on the next Rs. 10 lakh, 27% on the next Rs. 15 lakh, and 29% on income above Rs. 40 lakh."
         }
       },
       {
         "@type": "Question",
-        "name": "Do SSF contributors pay 1% Social Security Tax?",
+        "name": "Do SSF contributors pay the 1% Social Security Tax?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "No. If you contribute to the Social Security Fund (SSF), the 1% SST on your first salary slab is legally waived."
+          "text": "No. If you contribute to the Social Security Fund (SSF) or a contributory pension fund, the 1% social security tax on the first slab is waived. Contributing only to CIT or EPF does not waive it."
         }
       }
     ]
@@ -78,50 +93,115 @@
         <section class="card animate-fade">
           <span class="badge" style="margin-bottom:.6rem">💼 Finance/HR</span>
           <h1 style="font-size:1.8rem">Nepal Income Tax Calculator</h1>
-          <p class="help" style="margin-bottom:1.5rem">Calculate your exact monthly take-home salary after SSF and strict TDS deductions for FY 2081/2082.</p>
+          <p class="help" style="margin-bottom:1.5rem">Estimate your yearly income tax and monthly take-home salary after SSF, CIT/PF and TDS, using the FY 2083/84 slabs (or FY 2082/83 for last year).</p>
 
-          <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem">
-            <div class="field" style="grid-column:1/-1">
-              <label>Monthly Gross Salary (Rs.)</label>
-              <input id="salGross" type="number" class="input" value="45000" oninput="calcTax()" placeholder="e.g. 50000">
-            </div>
-            
+          <div class="sal-grid" style="margin-bottom:1rem">
             <div class="field">
-              <label>Marital Status</label>
+              <label for="salYear">Fiscal Year</label>
+              <select id="salYear" class="input" onchange="calcTax()">
+                <option value="2083/84">FY 2083/84 (current, from Shrawan 2083)</option>
+                <option value="2082/83">FY 2082/83 (previous)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="salGross">Monthly Gross Salary (Rs.)</label>
+              <input id="salGross" type="number" min="0" class="input" value="45000" oninput="calcTax()" placeholder="e.g. 50000">
+            </div>
+            <div class="field">
+              <label for="salStatus">Marital Status</label>
               <select id="salStatus" class="input" onchange="calcTax()">
                 <option value="unmarried">Unmarried (Single)</option>
                 <option value="married">Married (Couple)</option>
               </select>
+              <div class="help" id="statusHint"></div>
             </div>
             <div class="field">
-              <label>Yearly Bonus (Months)</label>
+              <label for="salBonus">Salary Payments per Year</label>
               <select id="salBonus" class="input" onchange="calcTax()">
-                <option value="13">13 Months (With Dashain Bonus)</option>
-                <option value="12">12 Months (Standard)</option>
+                <option value="13">13 (12 months + Dashain bonus)</option>
+                <option value="12">12 (no bonus)</option>
               </select>
-            </div>
-
-            <div class="field" style="grid-column:1/-1; display:flex; align-items:center; gap:0.5rem; margin-top:.5rem">
-              <input type="checkbox" id="salSsf" onchange="calcTax()" style="width:1.2rem; height:1.2rem">
-              <label for="salSsf" style="margin:0; font-weight:600; cursor:pointer">I contribute 11% to the Social Security Fund (SSF)</label>
             </div>
           </div>
 
-          <div id="receiptBox" class="receipt" style="margin-top:1.5rem">
-            <div class="receipt-row"><span style="color:var(--muted);font-weight:700">Yearly Breakdown</span></div>
-            <div class="receipt-row"><span>Yearly Gross Salary</span><span id="oYearGross">Rs. 0.00</span></div>
-            <div class="receipt-row" id="rowYearSsf" style="display:none"><span>Yearly SSF Deduction (11%)</span><span class="tax-text" id="oYearSsf">Rs. 0.00</span></div>
-            <div class="receipt-row"><span>Yearly Taxable Income</span><span id="oYearTaxable">Rs. 0.00</span></div>
-            <div class="receipt-row"><span>Total Yearly Income Tax</span><span class="tax-text" id="oYearTax">Rs. 0.00</span></div>
-            
+          <div class="check-row" style="margin-top:.5rem">
+            <input type="checkbox" id="salSsf" onchange="calcTax()">
+            <label for="salSsf">I contribute to the Social Security Fund (SSF) or a contributory pension fund</label>
+          </div>
+          <div class="field" id="basicField" style="margin-top:.75rem; display:none">
+            <label for="salBasic">Monthly Basic Salary (Rs.) — SSF is 11% (you) + 20% (employer) of basic</label>
+            <input id="salBasic" type="number" min="0" class="input" oninput="calcTax()" placeholder="Leave blank to use gross salary">
+          </div>
+          <div class="check-row" style="margin-top:.75rem">
+            <input type="checkbox" id="salFemale" onchange="calcTax()">
+            <label for="salFemale">I am a woman with salary as my only income (10% tax rebate)</label>
+          </div>
+
+          <details class="more">
+            <summary>More deductions (CIT/PF, insurance, remote area)</summary>
+            <div class="sal-grid" style="margin-top:.75rem">
+              <div class="field">
+                <label for="salCit">CIT / PF / other retirement contribution (Rs. per year)</label>
+                <input id="salCit" type="number" min="0" class="input" oninput="calcTax()" placeholder="0">
+              </div>
+              <div class="field">
+                <label for="salLife">Life insurance premium (Rs. per year)</label>
+                <input id="salLife" type="number" min="0" class="input" oninput="calcTax()" placeholder="0">
+                <div class="help">Deduction up to Rs. 40,000</div>
+              </div>
+              <div class="field">
+                <label for="salHealth">Health insurance premium (Rs. per year)</label>
+                <input id="salHealth" type="number" min="0" class="input" oninput="calcTax()" placeholder="0">
+                <div class="help">Deduction up to Rs. 20,000</div>
+              </div>
+              <div class="field">
+                <label for="salHouse">Private house insurance premium (Rs. per year)</label>
+                <input id="salHouse" type="number" min="0" class="input" oninput="calcTax()" placeholder="0">
+                <div class="help" id="houseHint">Deduction up to Rs. 10,000</div>
+              </div>
+              <div class="field">
+                <label for="salRemote">Remote area (working in)</label>
+                <select id="salRemote" class="input" onchange="calcTax()">
+                  <option value="">Not applicable</option>
+                  <option value="A">Category A (Rs. 50,000)</option>
+                  <option value="B">Category B (Rs. 40,000)</option>
+                  <option value="C">Category C (Rs. 30,000)</option>
+                  <option value="D">Category D (Rs. 20,000)</option>
+                  <option value="E">Category E (Rs. 10,000)</option>
+                </select>
+              </div>
+            </div>
+          </details>
+
+          <div id="salError" class="help tax-text" style="margin-top:1rem; display:none"></div>
+
+          <div id="receiptBox" class="receipt" style="margin-top:1.5rem" aria-live="polite">
+            <div class="receipt-row"><span style="color:var(--muted);font-weight:700">Yearly Breakdown</span><span id="oYearLabel" style="color:var(--muted);font-weight:700"></span></div>
+            <div class="receipt-row"><span>Yearly Gross Salary</span><span id="oYearGross">Rs. 0</span></div>
+            <div class="receipt-row" id="rowEmployerSsf" style="display:none"><span>+ Employer SSF contribution (20% of basic)</span><span id="oEmployerSsf">Rs. 0</span></div>
+            <div class="receipt-row" id="rowYearSsf" style="display:none"><span>Your SSF contribution (11% of basic)</span><span id="oYearSsf">Rs. 0</span></div>
+            <div class="receipt-row" id="rowRetire" style="display:none"><span id="oRetireLabel">− Retirement contribution deduction</span><span class="ok-text" id="oRetire">Rs. 0</span></div>
+            <div class="receipt-row" id="rowIns" style="display:none"><span>− Insurance deductions</span><span class="ok-text" id="oIns">Rs. 0</span></div>
+            <div class="receipt-row" id="rowRemote" style="display:none"><span>− Remote area deduction</span><span class="ok-text" id="oRemote">Rs. 0</span></div>
+            <div class="receipt-row"><span>Yearly Taxable Income</span><span id="oYearTaxable">Rs. 0</span></div>
+
+            <div class="slab-wrap"><table class="slab-table" aria-label="Tax by slab">
+              <thead><tr><th>Slab</th><th>Income in slab</th><th>Rate</th><th>Tax</th></tr></thead>
+              <tbody id="slabBody"></tbody>
+            </table></div>
+
+            <div class="receipt-row" id="rowRebate" style="display:none"><span>− Female rebate (10%)</span><span class="ok-text" id="oRebate">Rs. 0</span></div>
+            <div class="receipt-row"><span>Total Yearly Income Tax</span><span class="tax-text" id="oYearTax">Rs. 0</span></div>
+
             <div class="receipt-row" style="margin-top:1rem"><span style="color:var(--muted);font-weight:700">Monthly In Hand (Take Home)</span></div>
-            <div class="receipt-row"><span>Monthly Gross Salary</span><span id="oMonthGross">Rs. 0.00</span></div>
-            <div class="receipt-row" id="rowMonthSsf" style="display:none"><span>Monthly SSF Deduction</span><span class="tax-text" id="oMonthSsf">Rs. 0.00</span></div>
-            <div class="receipt-row"><span>Monthly Tax (TDS)</span><span class="tax-text" id="oMonthTax">Rs. 0.00</span></div>
-            
-            <div class="receipt-row receipt-total"><span>Net Salary In Hand</span><span style="color:#22c55e" id="oNetMonthly">Rs. 0.00</span></div>
-            
-            <div class="help" style="margin-top:1rem; font-size:.8rem; color:var(--muted)">Note: The 1% Social Security Tax is waived if you contribute to SSF. The calculations use precise FY 2081/82 Inland Revenue Department brackets.</div>
+            <div class="receipt-row"><span>Monthly Gross Salary</span><span id="oMonthGross">Rs. 0</span></div>
+            <div class="receipt-row" id="rowMonthSsf" style="display:none"><span>Monthly SSF Deduction (11% of basic)</span><span class="tax-text" id="oMonthSsf">Rs. 0</span></div>
+            <div class="receipt-row" id="rowMonthCit" style="display:none"><span>Monthly CIT / PF</span><span class="tax-text" id="oMonthCit">Rs. 0</span></div>
+            <div class="receipt-row"><span id="oMonthTaxLabel">Monthly Tax (TDS)</span><span class="tax-text" id="oMonthTax">Rs. 0</span></div>
+
+            <div class="receipt-row receipt-total"><span>Net Salary In Hand</span><span style="color:#22c55e" id="oNetMonthly">Rs. 0</span></div>
+
+            <div class="help" style="margin-top:1rem; font-size:.8rem; color:var(--muted)">This is an estimate for resident individuals with salary income. Retirement contributions (SSF + CIT/PF) are deductible up to one-third of income or Rs. 5 lakh, whichever is lower. The 1% social security tax is waived only for SSF / contributory pension contributors. Monthly tax is the yearly tax spread evenly over your salary payments; your employer may deduct the bonus-month tax separately. Rates follow the FY 2083/84 budget (Finance Act 2083) as published — confirm with the Inland Revenue Department before filing.</div>
           </div>
         </section>
 
@@ -129,16 +209,29 @@
         <article class="card" style="margin-top:1rem">
           <h2>How is Nepal's Income Tax Calculated?</h2>
           <div class="help" style="margin-top:1rem; line-height:1.7; font-size:0.95rem">
-            <p>Navigating the Inland Revenue Department (IRD) tax slabs for the Fiscal Year 2081/82 (2024/25) can be incredibly complex. Many employees in Kathmandu and across Nepal are shocked when their HR drops a large Tax Deducted at Source (TDS) cut from their monthly salary. Using our <strong>Nepal Income Tax Calculator</strong>, you can accurately predict your take-home pay.</p>
-            <h3 style="margin-top:1.5rem">The New Tax Slabs (2081/82)</h3>
+            <p>Your employer deducts Tax Deducted at Source (TDS) from your salary every month based on the Inland Revenue Department (IRD) slabs. This <strong>Nepal Income Tax Calculator</strong> adds up your yearly salary (including the Dashain bonus), subtracts the allowed deductions, applies the slabs and spreads the tax back over your monthly payments.</p>
+            <h3 style="margin-top:1.5rem">Tax Slabs for FY 2083/84 (same for single and married)</h3>
             <ul style="margin-top:0.5rem; padding-left:1.5rem">
-              <li><strong>Slab 1 (1%):</strong> Up to Rs. 5 Lakhs for singles (Rs. 6 Lakhs for married couples). <em>This is completely waived to 0% if you put your money in SSF or an approved CIT!</em></li>
-              <li><strong>Slab 2 (10%):</strong> For the next Rs. 2 Lakhs.</li>
-              <li><strong>Slab 3 (20%):</strong> For the next Rs. 3 Lakhs.</li>
-              <li><strong>Slab 4 (30%):</strong> For the next Rs. 10 Lakhs (Single) or Rs. 9 Lakhs (Married).</li>
-              <li><strong>Slab 5 (36%):</strong> For any income above Rs. 20 Lakhs per year. This includes the massive 20% extra surcharge directly placed on high-income earners.</li>
+              <li><strong>1% (Social Security Tax):</strong> first Rs. 10 lakh. <em>Waived if you contribute to SSF or a contributory pension fund (not for CIT/EPF alone).</em></li>
+              <li><strong>10%:</strong> Rs. 10–15 lakh.</li>
+              <li><strong>20%:</strong> Rs. 15–25 lakh.</li>
+              <li><strong>27%:</strong> Rs. 25–40 lakh.</li>
+              <li><strong>29%:</strong> above Rs. 40 lakh.</li>
             </ul>
-            <p style="margin-top:1.5rem">Instead of opening Excel spreadsheets every time you negotiate a highly paid job offer, simply type the monthly gross figure into ToolNepal, toggle your marital status, and get the indisputable net salary breakdown.</p>
+            <h3 style="margin-top:1.5rem">Tax Slabs for FY 2082/83</h3>
+            <ul style="margin-top:0.5rem; padding-left:1.5rem">
+              <li><strong>1%:</strong> first Rs. 5 lakh (single) or Rs. 6 lakh (married).</li>
+              <li><strong>10%:</strong> next Rs. 2 lakh; <strong>20%:</strong> next Rs. 3 lakh.</li>
+              <li><strong>30%:</strong> up to Rs. 20 lakh; <strong>36%:</strong> Rs. 20–50 lakh; <strong>39%:</strong> above Rs. 50 lakh.</li>
+            </ul>
+            <h3 style="margin-top:1.5rem">Deductions included</h3>
+            <ul style="margin-top:0.5rem; padding-left:1.5rem">
+              <li>SSF (11% from you + 20% from your employer, both of basic salary), CIT and PF: combined deduction up to one-third of income or Rs. 5 lakh.</li>
+              <li>Life insurance up to Rs. 40,000, health insurance up to Rs. 20,000, private house insurance up to Rs. 10,000 (Rs. 5,000 in FY 2082/83).</li>
+              <li>Remote area deduction from Rs. 10,000 (Category E) to Rs. 50,000 (Category A).</li>
+              <li>A 10% rebate on tax for women whose only income is salary.</li>
+            </ul>
+            <p style="margin-top:1.5rem">Not included: medical tax credit, foreign income, investment income and other special cases. For anything unusual, check with your employer's payroll team or a tax professional.</p>
           </div>
         </article>
       </div>
@@ -147,7 +240,7 @@
         <div class="card">
           <h3 style="margin-bottom:.75rem">Dashain Bonus</h3>
           <div style="font-size:.88rem; line-height:1.5; color:var(--muted)">
-            <p style="margin-top:0">In Nepal, most full-time employment contracts distribute a basic one-month salary as a designated Dashain Bonus. Because of this, the yearly calculation uses 13 months instead of 12 months for your gross accumulation. Don't forget to select this in the drop-down to avoid paying surprising tax arrears in Ashadh!</p>
+            <p style="margin-top:0">Most full-time contracts in Nepal pay one extra month's salary as a Dashain bonus, so the yearly calculation uses 13 payments instead of 12. Select the right option to avoid a surprise tax bill in Ashadh.</p>
           </div>
         </div>
         <div class="ad" style="margin-top:1rem"><strong>Tools Placeholder</strong></div>
@@ -159,85 +252,156 @@
 <script src="../assets/js/main.js"></script>
 <script src="../assets/js/analytics.js"></script>
 <script>
+/* Tax rules per fiscal year. Each slab is [width of band in Rs., rate]; the first
+   band is the 1% Social Security Tax band (waived for SSF / pension contributors).
+   To add a new year, copy an entry and update the numbers. */
+const TAX_RULES = {
+  "2083/84": {
+    slabs: {
+      unmarried: [[1000000, 0.01], [500000, 0.10], [1000000, 0.20], [1500000, 0.27], [Infinity, 0.29]],
+      married:   [[1000000, 0.01], [500000, 0.10], [1000000, 0.20], [1500000, 0.27], [Infinity, 0.29]]
+    },
+    sameForCouples: true,
+    houseInsuranceCap: 10000
+  },
+  "2082/83": {
+    slabs: {
+      unmarried: [[500000, 0.01], [200000, 0.10], [300000, 0.20], [1000000, 0.30], [3000000, 0.36], [Infinity, 0.39]],
+      married:   [[600000, 0.01], [200000, 0.10], [300000, 0.20], [900000, 0.30], [3000000, 0.36], [Infinity, 0.39]]
+    },
+    sameForCouples: false,
+    houseInsuranceCap: 5000
+  }
+};
+const COMMON_RULES = {
+  retirementCap: 500000,       // Rs. 5 lakh
+  retirementShare: 1 / 3,      // or one-third of income, whichever is lower
+  lifeInsuranceCap: 40000,
+  healthInsuranceCap: 20000,
+  remote: { A: 50000, B: 40000, C: 30000, D: 20000, E: 10000 },
+  femaleRebate: 0.10,
+  ssfEmployee: 0.11,
+  ssfEmployer: 0.20
+};
+
+function num(id) {
+  const v = parseFloat(document.getElementById(id).value);
+  return Number.isFinite(v) ? v : 0;
+}
+
+/* Pure calculation, also used by tests */
+function computeTax(inp) {
+  const rules = TAX_RULES[inp.year];
+  const yGross = inp.monthlyGross * inp.payments;
+  const basic = inp.monthlyBasic > 0 ? inp.monthlyBasic : inp.monthlyGross;
+  const ssfEmployee = inp.ssf ? basic * 12 * COMMON_RULES.ssfEmployee : 0;
+  const ssfEmployer = inp.ssf ? basic * 12 * COMMON_RULES.ssfEmployer : 0;
+  const assessable = yGross + ssfEmployer;
+
+  const retirementPaid = ssfEmployee + ssfEmployer + inp.citPf;
+  const retirementCap = Math.min(COMMON_RULES.retirementCap, assessable * COMMON_RULES.retirementShare);
+  const retirementDed = Math.min(retirementPaid, retirementCap);
+
+  const insuranceDed = Math.min(inp.life, COMMON_RULES.lifeInsuranceCap)
+    + Math.min(inp.health, COMMON_RULES.healthInsuranceCap)
+    + Math.min(inp.house, rules.houseInsuranceCap);
+  const remoteDed = COMMON_RULES.remote[inp.remote] || 0;
+
+  const taxable = Math.max(0, assessable - retirementDed - insuranceDed - remoteDed);
+
+  const slabs = rules.slabs[rules.sameForCouples ? "unmarried" : (inp.married ? "married" : "unmarried")];
+  let left = taxable, from = 0, grossTax = 0;
+  const rows = [];
+  slabs.forEach(([width, rate], i) => {
+    const amt = Math.min(left, width);
+    const effRate = (i === 0 && inp.ssf) ? 0 : rate;
+    const tax = amt * effRate;
+    rows.push({ from, to: width === Infinity ? null : from + width, amount: Math.max(0, amt), rate, effRate, tax: Math.max(0, tax), sst: i === 0 });
+    grossTax += Math.max(0, tax);
+    left -= Math.max(0, amt);
+    from += width;
+  });
+  const rebate = inp.female ? grossTax * COMMON_RULES.femaleRebate : 0;
+  const tax = grossTax - rebate;
+
+  return { yGross, basic, ssfEmployee, ssfEmployer, assessable, retirementPaid, retirementCap, retirementDed,
+           insuranceDed, remoteDed, taxable, rows, grossTax, rebate, tax };
+}
+
+const fmt = (n) => "Rs. " + Math.round(n).toLocaleString("en-IN");
+const lakh = (n) => (n / 100000).toLocaleString("en-IN", { maximumFractionDigits: 2 }) + "L";
+
+function show(id, on) { document.getElementById(id).style.display = on ? "flex" : "none"; }
+function setText(id, t) { document.getElementById(id).textContent = t; }
+
 function calcTax() {
-  const mGross = parseFloat(document.getElementById("salGross").value) || 0;
-  const isMarried = document.getElementById("salStatus").value === "married";
-  const months = parseFloat(document.getElementById("salBonus").value);
-  const hasSsf = document.getElementById("salSsf").checked;
+  const year = document.getElementById("salYear").value;
+  const rules = TAX_RULES[year];
+  const ssf = document.getElementById("salSsf").checked;
+  const inp = {
+    year,
+    monthlyGross: num("salGross"),
+    monthlyBasic: num("salBasic"),
+    payments: parseInt(document.getElementById("salBonus").value, 10),
+    married: document.getElementById("salStatus").value === "married",
+    ssf,
+    female: document.getElementById("salFemale").checked,
+    citPf: num("salCit"),
+    life: num("salLife"),
+    health: num("salHealth"),
+    house: num("salHouse"),
+    remote: document.getElementById("salRemote").value
+  };
 
-  const yGross = mGross * months;
-  let ySsfDeduction = 0;
-  
-  if (hasSsf) {
-    ySsfDeduction = yGross * 0.11;
+  document.getElementById("basicField").style.display = ssf ? "" : "none";
+  const statusSel = document.getElementById("salStatus");
+  statusSel.disabled = rules.sameForCouples;
+  setText("statusHint", rules.sameForCouples ? "From FY 2083/84 the same slabs apply to single and married." : "");
+  setText("houseHint", `Deduction up to Rs. ${rules.houseInsuranceCap.toLocaleString("en-IN")}`);
+
+  const err = document.getElementById("salError");
+  const negatives = ["salGross", "salBasic", "salCit", "salLife", "salHealth", "salHouse"].filter(id => num(id) < 0);
+  if (negatives.length) {
+    err.textContent = "Amounts can't be negative.";
+    err.style.display = "block";
+    return;
   }
+  err.style.display = "none";
 
-  const yTaxable = yGross - ySsfDeduction;
-  let rTaxable = yTaxable;
-  let yTax = 0;
+  const r = computeTax(inp);
 
-  // Define Slab logic FY 2081/82
-  const slab1_limit = isMarried ? 600000 : 500000;
-  const slab2_limit = 200000;
-  const slab3_limit = 300000;
-  const slab4_limit = isMarried ? 900000 : 1000000;
-  
-  // Slab 1 
-  let s1 = Math.min(rTaxable, slab1_limit);
-  if(!hasSsf) {
-    yTax += s1 * 0.01;
-  }
-  rTaxable -= s1;
+  setText("oYearLabel", "FY " + year);
+  setText("oYearGross", fmt(r.yGross));
+  show("rowEmployerSsf", ssf); setText("oEmployerSsf", fmt(r.ssfEmployer));
+  show("rowYearSsf", ssf); setText("oYearSsf", fmt(r.ssfEmployee));
+  show("rowRetire", r.retirementDed > 0);
+  setText("oRetireLabel", r.retirementPaid > r.retirementDed
+    ? `− Retirement deduction (capped at ${fmt(r.retirementCap)})`
+    : "− Retirement contribution deduction");
+  setText("oRetire", fmt(r.retirementDed));
+  show("rowIns", r.insuranceDed > 0); setText("oIns", fmt(r.insuranceDed));
+  show("rowRemote", r.remoteDed > 0); setText("oRemote", fmt(r.remoteDed));
+  setText("oYearTaxable", fmt(r.taxable));
 
-  // Slab 2 (10%)
-  if (rTaxable > 0) {
-    let s2 = Math.min(rTaxable, slab2_limit);
-    yTax += s2 * 0.10;
-    rTaxable -= s2;
-  }
+  const body = document.getElementById("slabBody");
+  body.innerHTML = r.rows.map(row => {
+    const range = row.to === null ? `Above ${lakh(row.from)}` : `${lakh(row.from)}–${lakh(row.to)}`;
+    const rate = (row.sst && row.effRate === 0 && row.rate > 0) ? `<s>${row.rate * 100}%</s> 0% (SSF)` : `${+(row.rate * 100).toFixed(2)}%${row.sst ? " SST" : ""}`;
+    return `<tr><td>${range}</td><td>${fmt(row.amount)}</td><td>${rate}</td><td>${fmt(row.tax)}</td></tr>`;
+  }).join("");
 
-  // Slab 3 (20%)
-  if (rTaxable > 0) {
-    let s3 = Math.min(rTaxable, slab3_limit);
-    yTax += s3 * 0.20;
-    rTaxable -= s3;
-  }
+  show("rowRebate", r.rebate > 0); setText("oRebate", fmt(r.rebate));
+  setText("oYearTax", fmt(r.tax));
 
-  // Slab 4 (30%)
-  if (rTaxable > 0) {
-    let s4 = Math.min(rTaxable, slab4_limit);
-    yTax += s4 * 0.30;
-    rTaxable -= s4;
-  }
-
-  // Slab 5 (36%) 
-  if (rTaxable > 0) {
-    yTax += rTaxable * 0.36;
-  }
-
-  const mTax = yTax / months;
-  const mSsf = ySsfDeduction / months;
-  const mNet = mGross - mTax - mSsf;
-
-  const fmt = (num) => "Rs. " + parseFloat(Math.abs(num).toFixed(2)).toLocaleString('en-IN');
-
-  document.getElementById("oYearGross").textContent = fmt(yGross);
-  document.getElementById("oYearTaxable").textContent = fmt(yTaxable);
-  document.getElementById("oYearTax").textContent = fmt(yTax);
-  
-  document.getElementById("oMonthGross").textContent = fmt(mGross);
-  document.getElementById("oMonthTax").textContent = fmt(mTax);
-  document.getElementById("oNetMonthly").textContent = fmt(mNet);
-
-  if(hasSsf) {
-    document.getElementById("rowYearSsf").style.display = 'flex';
-    document.getElementById("rowMonthSsf").style.display = 'flex';
-    document.getElementById("oYearSsf").textContent = fmt(ySsfDeduction);
-    document.getElementById("oMonthSsf").textContent = fmt(mSsf);
-  } else {
-    document.getElementById("rowYearSsf").style.display = 'none';
-    document.getElementById("rowMonthSsf").style.display = 'none';
-  }
+  const mTax = r.tax / inp.payments;
+  const mSsf = r.ssfEmployee / 12;
+  const mCit = inp.citPf / 12;
+  setText("oMonthGross", fmt(inp.monthlyGross));
+  show("rowMonthSsf", ssf); setText("oMonthSsf", fmt(mSsf));
+  show("rowMonthCit", mCit > 0); setText("oMonthCit", fmt(mCit));
+  setText("oMonthTaxLabel", `Monthly Tax (TDS, yearly tax ÷ ${inp.payments})`);
+  setText("oMonthTax", fmt(mTax));
+  setText("oNetMonthly", fmt(inp.monthlyGross - mSsf - mCit - mTax));
 }
 calcTax();
 </script>

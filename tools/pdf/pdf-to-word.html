@@ -54,7 +54,7 @@
       <div class="card">
         <span class="badge">PDF Tools</span>
         <h1>PDF to Word</h1>
-        <p class="help">Convert PDF files to editable Word documents (.docx) with formatting, images, and styles preserved.</p>
+        <p class="help">Convert PDF files to editable Word documents (.docx). Text is extracted with bold/italic styles and headings, together with embedded images – all in your browser (no upload).</p>
 
         <div class="field" style="margin-top:1rem">
           <label for="pdfFile">Select PDF file</label>
@@ -94,16 +94,16 @@
         <div class="card">
           <h3>Features</h3>
           <ul class="help" style="margin:0; padding-left:1.2rem;">
-            <li>Extracts text with formatting</li>
-            <li>Preserves bold, italic styles</li>
-            <li>Auto-detects headings</li>
+            <li>Extracts text into paragraphs</li>
+            <li>Detects bold &amp; italic text</li>
+            <li>Auto-detects headings (by font size)</li>
             <li>Extracts embedded images</li>
-            <li>Maintains paragraph structure</li>
+            <li>Keeps page breaks</li>
           </ul>
         </div>
         <div class="card">
           <h3>Limitations</h3>
-          <p class="help">Scanned PDFs (images only) won't have extractable text. Complex tables and multi-column layouts may not convert perfectly.</p>
+          <p class="help">Scanned PDFs (images only) have no extractable text – you'll get the page images instead. The exact layout isn't reproduced: images are placed in approximate reading order (by vertical position), not at their exact spot, and fonts, colours, tables, multi-column layouts and vector drawings are not preserved.</p>
         </div>
         <div class="ad">Sidebar Ad</div>
       </aside>
@@ -149,80 +149,204 @@ function updateProgress(percent, message) {
   `;
 }
 
-// Extract images from a PDF page
-async function extractImagesFromPage(page, pageNum) {
-  const images = [];
-  try {
-    const operatorList = await page.getOperatorList();
-    const commonObjs = page.commonObjs;
-    const objs = page.objs;
-    
-    for (let i = 0; i < operatorList.fnArray.length; i++) {
-      if (operatorList.fnArray[i] === pdfjsLib.OPS.paintImageXObject ||
-          operatorList.fnArray[i] === pdfjsLib.OPS.paintJpegXObject) {
-        const imgName = operatorList.argsArray[i][0];
-        try {
-          const imgData = await new Promise((resolve, reject) => {
-            const checkObj = (objStore) => {
-              if (objStore._objs && objStore._objs[imgName]) {
-                resolve(objStore._objs[imgName]);
-                return true;
-              }
-              return false;
-            };
-            if (!checkObj(objs) && !checkObj(commonObjs)) {
-              objs.get(imgName, resolve);
-            }
-          });
-          
-          if (imgData && imgData.data) {
-            // Convert image data to base64
-            const canvas = document.createElement('canvas');
-            canvas.width = imgData.width;
-            canvas.height = imgData.height;
-            const ctx = canvas.getContext('2d');
-            
-            const imgDataObj = ctx.createImageData(imgData.width, imgData.height);
-            
-            // Handle different image formats
-            if (imgData.data.length === imgData.width * imgData.height * 4) {
-              imgDataObj.data.set(imgData.data);
-            } else if (imgData.data.length === imgData.width * imgData.height * 3) {
-              // RGB to RGBA
-              for (let j = 0, k = 0; j < imgData.data.length; j += 3, k += 4) {
-                imgDataObj.data[k] = imgData.data[j];
-                imgDataObj.data[k + 1] = imgData.data[j + 1];
-                imgDataObj.data[k + 2] = imgData.data[j + 2];
-                imgDataObj.data[k + 3] = 255;
-              }
-            } else {
-              // Grayscale
-              for (let j = 0, k = 0; j < imgData.data.length; j++, k += 4) {
-                imgDataObj.data[k] = imgData.data[j];
-                imgDataObj.data[k + 1] = imgData.data[j];
-                imgDataObj.data[k + 2] = imgData.data[j];
-                imgDataObj.data[k + 3] = 255;
-              }
-            }
-            
-            ctx.putImageData(imgDataObj, 0, 0);
-            
-            const base64 = canvas.toDataURL('image/png').split(',')[1];
-            images.push({
-              data: base64,
-              width: imgData.width,
-              height: imgData.height,
-              pageNum: pageNum
-            });
-          }
-        } catch (e) {
-          // Skip problematic images
-          console.log('Could not extract image:', imgName);
-        }
+const TN_IMG_TIMEOUT_MS = 15000;  // max wait for pdf.js to decode one image
+const TN_FONT_TIMEOUT_MS = 3000;  // max wait for one font object
+const TN_MAX_IMAGE_SIDE = 2000;   // downscale huge images to keep the .docx reasonable
+
+// Resolve a pdf.js object (font or image) by id without ever hanging.
+function getPdfObject(store, objId, timeoutMs) {
+  return new Promise(resolve => {
+    let settled = false;
+    const finish = value => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(value);
+    };
+    const timer = setTimeout(() => finish(null), timeoutMs);
+    try {
+      if (store.has(objId)) finish(store.get(objId));
+      else store.get(objId, finish);
+    } catch (e) {
+      finish(null);
+    }
+  });
+}
+
+// Bold/italic from a real font name such as "ABCDEF+Arial-BoldItalicMT"
+function fontStyleFromName(name) {
+  const clean = String(name || '').replace(/^[A-Z]{6}\+/, '');
+  const style = clean.split(/[-,]/).slice(1).join('-'); // part after the family name
+  return {
+    bold: /bold|black|heavy/i.test(clean) || /demi|semi/i.test(style),
+    italic: /italic|oblique|slanted/i.test(clean) || /It$/.test(style)
+  };
+}
+
+function fontStyleFrom(fontObj, fallbackName) {
+  const isObj = fontObj && typeof fontObj === 'object';
+  const byName = fontStyleFromName(isObj && fontObj.name ? fontObj.name : fallbackName);
+  return {
+    bold: !!(isObj && (fontObj.bold || fontObj.black)) || byName.bold,
+    italic: !!(isObj && fontObj.italic) || byName.italic
+  };
+}
+
+// Text items only carry internal font ids (e.g. "g_d1_f1"); the real font
+// object is in page.commonObjs once the operator list has been loaded.
+async function getFontStyles(page, items, fontsLoaded) {
+  const names = [...new Set(items.map(it => it.fontName).filter(Boolean))];
+  const styles = {};
+  await Promise.all(names.map(async name => {
+    const font = fontsLoaded ? await getPdfObject(page.commonObjs, name, TN_FONT_TIMEOUT_MS) : null;
+    styles[name] = fontStyleFrom(font, name);
+  }));
+  return styles;
+}
+
+function mulMatrix(m, n) { // same as pdf.js Util.transform(m, n)
+  return [
+    m[0] * n[0] + m[2] * n[1], m[1] * n[0] + m[3] * n[1],
+    m[0] * n[2] + m[2] * n[3], m[1] * n[2] + m[3] * n[3],
+    m[0] * n[4] + m[2] * n[5] + m[4], m[1] * n[4] + m[3] * n[5] + m[5]
+  ];
+}
+
+// Walk the operator list, tracking the transform, and collect image paint ops.
+function findImageOps(opList) {
+  const OPS = pdfjsLib.OPS;
+  const jpegOp = OPS.paintJpegXObject; // only exists in old pdf.js versions
+  const found = [];
+  const stack = [];
+  let ctm = [1, 0, 0, 1, 0, 0];
+  const { fnArray, argsArray } = opList;
+  for (let i = 0; i < fnArray.length; i++) {
+    const fn = fnArray[i], args = argsArray[i];
+    if (fn === OPS.save) stack.push(ctm);
+    else if (fn === OPS.restore) { if (stack.length) ctm = stack.pop(); }
+    else if (fn === OPS.transform) ctm = mulMatrix(ctm, args);
+    else if (fn === OPS.paintFormXObjectBegin) {
+      stack.push(ctm);
+      if (Array.isArray(args[0]) && args[0].length === 6) ctm = mulMatrix(ctm, args[0]);
+    }
+    else if (fn === OPS.paintFormXObjectEnd) { if (stack.length) ctm = stack.pop(); }
+    else if (fn === OPS.beginAnnotation) {
+      stack.push(ctm);
+      ctm = [1, 0, 0, 1, 0, 0];
+      if (Array.isArray(args[2])) ctm = mulMatrix(ctm, args[2]);
+      if (Array.isArray(args[3])) ctm = mulMatrix(ctm, args[3]);
+    }
+    else if (fn === OPS.endAnnotation) { if (stack.length) ctm = stack.pop(); }
+    else if (fn === OPS.paintImageXObject || fn === OPS.paintInlineImageXObject ||
+             (jpegOp !== undefined && fn === jpegOp)) {
+      found.push({ arg: args[0], ctm });
+    }
+  }
+  return found;
+}
+
+// pdf.js image data ({data, kind, width, height}) -> RGBA pixels
+function pdfImageToRgba(img) {
+  const w = img.width, h = img.height, src = img.data, n = w * h;
+  const K = pdfjsLib.ImageKind || { GRAYSCALE_1BPP: 1, RGB_24BPP: 2, RGBA_32BPP: 3 };
+  const out = new Uint8ClampedArray(n * 4);
+  if (img.kind === K.GRAYSCALE_1BPP) {
+    const rowBytes = (w + 7) >> 3; // 1 bit per pixel, 1 = white, rows padded to bytes
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const v = (src[y * rowBytes + (x >> 3)] >> (7 - (x & 7))) & 1 ? 255 : 0;
+        const o = (y * w + x) * 4;
+        out[o] = out[o + 1] = out[o + 2] = v;
+        out[o + 3] = 255;
       }
     }
-  } catch (e) {
-    console.log('Image extraction error:', e);
+  } else if (img.kind === K.RGBA_32BPP || (img.kind === undefined && src.length === n * 4)) {
+    out.set(src.subarray(0, n * 4));
+  } else if (img.kind === K.RGB_24BPP || src.length === n * 3) {
+    for (let j = 0, k = 0; k < out.length; j += 3, k += 4) {
+      out[k] = src[j]; out[k + 1] = src[j + 1]; out[k + 2] = src[j + 2]; out[k + 3] = 255;
+    }
+  } else if (src.length === n) {
+    for (let j = 0, k = 0; j < n; j++, k += 4) {
+      out[k] = out[k + 1] = out[k + 2] = src[j]; out[k + 3] = 255;
+    }
+  } else {
+    return null;
+  }
+  return out;
+}
+
+// Convert a pdf.js image object (ImageBitmap in `bitmap`, or raw `data`) to PNG bytes
+async function pdfImageToPng(imgData) {
+  if (!imgData || typeof imgData !== 'object') return null;
+  let w = imgData.width, h = imgData.height;
+  if (!w || !h || w < 4 || h < 4) return null; // skip missing/tiny decorative images
+  let canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (imgData.bitmap) {
+    ctx.drawImage(imgData.bitmap, 0, 0);
+  } else if (imgData.data) {
+    const rgba = pdfImageToRgba(imgData);
+    if (!rgba) return null;
+    const id = ctx.createImageData(w, h);
+    id.data.set(rgba);
+    ctx.putImageData(id, 0, 0);
+  } else {
+    return null;
+  }
+  const s = Math.min(1, TN_MAX_IMAGE_SIDE / Math.max(w, h));
+  if (s < 1) {
+    const small = document.createElement('canvas');
+    small.width = Math.max(1, Math.round(w * s));
+    small.height = Math.max(1, Math.round(h * s));
+    small.getContext('2d').drawImage(canvas, 0, 0, small.width, small.height);
+    canvas.width = canvas.height = 0;
+    canvas = small;
+    w = small.width;
+    h = small.height;
+  }
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  canvas.width = canvas.height = 0;
+  if (!blob) return null;
+  return { bytes: new Uint8Array(await blob.arrayBuffer()), width: w, height: h };
+}
+
+// Extract images from a PDF page (needs the page's operator list)
+async function extractImagesFromPage(page, pageNum, opList) {
+  const images = [];
+  if (!opList) return images;
+  const seen = new Set();
+  // Request all images at once; each request gives up after a timeout
+  const jobs = [];
+  for (const op of findImageOps(opList)) {
+    if (typeof op.arg === 'string') {
+      if (seen.has(op.arg)) continue; // same image drawn again on this page
+      seen.add(op.arg);
+      const store = op.arg.startsWith('g_') ? page.commonObjs : page.objs;
+      jobs.push({ op, promise: getPdfObject(store, op.arg, TN_IMG_TIMEOUT_MS) });
+    } else {
+      jobs.push({ op, promise: Promise.resolve(op.arg) }); // inline image: data is in the op
+    }
+  }
+  for (const job of jobs) {
+    try {
+      const png = await pdfImageToPng(await job.promise);
+      if (!png) continue;
+      const m = job.op.ctm;
+      images.push({
+        data: png.bytes,
+        width: png.width,
+        height: png.height,
+        widthPt: Math.hypot(m[0], m[1]),   // displayed size on the PDF page
+        heightPt: Math.hypot(m[2], m[3]),
+        topY: Math.max(m[5], m[1] + m[5], m[3] + m[5], m[1] + m[3] + m[5]),
+        pageNum: pageNum
+      });
+    } catch (e) {
+      console.warn('Could not extract image on page', pageNum, e);
+    }
   }
   return images;
 }
@@ -234,20 +358,34 @@ async function extractContentFromPdf(file, options) {
   
   const pages = [];
   const totalPages = pdf.numPages;
-  
+
+  try {
   for (let i = 1; i <= totalPages; i++) {
     updateProgress(Math.round((i / totalPages) * 50), `Extracting page ${i} of ${totalPages}...`);
-    
+
     const page = await pdf.getPage(i);
+
+    // The operator list loads the page's fonts and images (needed for both)
+    let opList = null;
+    if (options.extractImages || options.detectFormatting) {
+      try {
+        opList = await page.getOperatorList();
+      } catch (e) {
+        console.warn('Could not read page operators', i, e);
+      }
+    }
+
     const content = await page.getTextContent();
     const viewport = page.getViewport({ scale: 1 });
-    
+    const fontStyles = options.detectFormatting ? await getFontStyles(page, content.items, !!opList) : {};
+
     // Extract images if enabled
     let images = [];
     if (options.extractImages) {
-      images = await extractImagesFromPage(page, i);
+      images = await extractImagesFromPage(page, i, opList);
     }
-    
+    page.cleanup(); // free decoded images of this page
+
     // Process text items with formatting info
     const textItems = [];
     let maxFontSize = 0;
@@ -261,7 +399,9 @@ async function extractContentFromPdf(file, options) {
         fontSizeSum += fontSize;
         maxFontSize = Math.max(maxFontSize, fontSize);
         minFontSize = Math.min(minFontSize, fontSize);
-        
+
+        // Bold/italic from the real font (resolved via commonObjs)
+        const fontStyle = fontStyles[item.fontName] || { bold: false, italic: false };
         textItems.push({
           str: item.str,
           x: item.transform[4],
@@ -270,9 +410,8 @@ async function extractContentFromPdf(file, options) {
           height: item.height,
           fontSize: fontSize,
           fontName: item.fontName || '',
-          // Detect bold/italic from font name
-          isBold: /bold|black|heavy/i.test(item.fontName || ''),
-          isItalic: /italic|oblique/i.test(item.fontName || '')
+          isBold: fontStyle.bold,
+          isItalic: fontStyle.italic
         });
       }
     });
@@ -347,7 +486,8 @@ async function extractContentFromPdf(file, options) {
         paragraphs.push({
           segments: segments,
           headingLevel: headingLevel,
-          fontSize: line.fontSize
+          fontSize: line.fontSize,
+          topY: line.y + line.fontSize
         });
       } else if (paragraphs.length > 0) {
         // Append to previous paragraph
@@ -358,11 +498,12 @@ async function extractContentFromPdf(file, options) {
         paragraphs.push({
           segments: segments,
           headingLevel: 0,
-          fontSize: line.fontSize
+          fontSize: line.fontSize,
+          topY: line.y + line.fontSize
         });
       }
     });
-    
+
     pages.push({
       pageNum: i,
       paragraphs: paragraphs,
@@ -371,7 +512,10 @@ async function extractContentFromPdf(file, options) {
       height: viewport.height
     });
   }
-  
+  } finally {
+    pdf.destroy();
+  }
+
   return pages;
 }
 
@@ -389,45 +533,55 @@ async function createWordDocument(pages, filename, options) {
     const page = pages[i];
     updateProgress(50 + Math.round(((i + 1) / totalPages) * 45), `Creating page ${i + 1} of ${totalPages}...`);
     
-    // Add images at the start of each page
-    if (options.extractImages && page.images.length > 0) {
-      for (const img of page.images) {
-        try {
-          // Limit image size for Word document
-          const maxWidth = 500;
-          const maxHeight = 700;
-          let width = img.width;
-          let height = img.height;
-          
-          if (width > maxWidth) {
-            height = Math.round(height * (maxWidth / width));
-            width = maxWidth;
-          }
-          if (height > maxHeight) {
-            width = Math.round(width * (maxHeight / height));
-            height = maxHeight;
-          }
-          
-          children.push(
-            new Paragraph({
-              children: [
-                new ImageRun({
-                  data: Uint8Array.from(atob(img.data), c => c.charCodeAt(0)),
-                  transformation: { width, height },
-                  type: 'png'
-                })
-              ],
-              spacing: { after: 200 }
-            })
-          );
-        } catch (e) {
-          console.log('Could not add image to document:', e);
+    const addImage = (img) => {
+      try {
+        // Use the size shown on the PDF page (points -> 96 dpi pixels), else pixel size
+        let width = img.widthPt * 96 / 72;
+        let height = img.heightPt * 96 / 72;
+        if (!(width >= 8 && height >= 8)) {
+          width = img.width;
+          height = img.height;
         }
+        // Limit image size for Word document
+        const maxWidth = 600;
+        const maxHeight = 850;
+        if (width > maxWidth) {
+          height = height * (maxWidth / width);
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = width * (maxHeight / height);
+          height = maxHeight;
+        }
+
+        children.push(
+          new Paragraph({
+            children: [
+              new ImageRun({
+                data: img.data,
+                transformation: { width: Math.max(1, Math.round(width)), height: Math.max(1, Math.round(height)) },
+                type: 'png'
+              })
+            ],
+            spacing: { after: 200 }
+          })
+        );
+      } catch (e) {
+        console.log('Could not add image to document:', e);
       }
-    }
-    
+    };
+
+    // Images go before the first paragraph that starts below them
+    // (approximate reading order; exact positions are not preserved)
+    const imgKey = img => Number.isFinite(img.topY) ? img.topY : Number.MAX_VALUE;
+    const pageImages = options.extractImages ? page.images.slice().sort((a, b) => imgKey(b) - imgKey(a)) : [];
+    let nextImg = 0;
+
     // Add paragraphs
     for (const para of page.paragraphs) {
+      while (nextImg < pageImages.length && !(imgKey(pageImages[nextImg]) < para.topY)) {
+        addImage(pageImages[nextImg++]);
+      }
       const textRuns = para.segments.map(seg => 
         new TextRun({
           text: seg.text,
@@ -450,7 +604,10 @@ async function createWordDocument(pages, filename, options) {
       
       children.push(new Paragraph(paragraphOptions));
     }
-    
+    while (nextImg < pageImages.length) {
+      addImage(pageImages[nextImg++]);
+    }
+
     // Add page break between pages (except last)
     if (options.preservePageBreaks && i < pages.length - 1) {
       children.push(
@@ -486,7 +643,7 @@ async function convertPdfToWord() {
   
   const file = input.files[0];
   
-  if (!file.type.includes("pdf")) {
+  if (!file.type.includes("pdf") && !/\.pdf$/i.test(file.name)) {
     tnToast("Please select a valid PDF file");
     return;
   }
@@ -533,9 +690,6 @@ async function convertPdfToWord() {
     const totalImages = pages.reduce((sum, p) => sum + p.images.length, 0);
     const totalParagraphs = pages.reduce((sum, p) => sum + p.paragraphs.length, 0);
     
-    // Create download link
-    const url = URL.createObjectURL(blob);
-    
     result.innerHTML = `
       <div class="result">
         <strong>✅ Conversion complete!</strong>
@@ -547,19 +701,32 @@ async function convertPdfToWord() {
             <div>Images: <b>${totalImages}</b></div>
           </div>
         </div>
-        <a id="downloadLink" class="btn btn-primary" href="${url}" download="${originalName}.docx" style="margin-top:1rem;display:inline-flex">
+        <div class="help" style="margin-top:0.5rem">File: <b>${escapeHtml(originalName)}.docx</b></div>
+        <a id="downloadLink" class="btn btn-primary" href="#" style="margin-top:1rem;display:inline-flex">
           Download Word Document
         </a>
       </div>
     `;
-    
+    // A fresh blob URL per click, revoked shortly after the download starts
+    document.getElementById("downloadLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = originalName + ".docx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    });
+
     status.innerHTML = '';
     tnToast("Conversion successful", "Ready to download");
     tnOpenModal("Conversion Complete ✅", `<p class='help'>Your Word document is ready with <b>${totalParagraphs}</b> paragraphs and <b>${totalImages}</b> images. Click <b>Download</b> to save it.</p>`);
     
   } catch (error) {
     console.error("Conversion error:", error);
-    status.innerHTML = `<div class="result" style="border-color:var(--red-500)"><span style="color:var(--red-600)">❌ Error: ${error.message || 'Failed to convert PDF'}</span></div>`;
+    status.innerHTML = `<div class="result" style="border-color:var(--red-500)"><span style="color:var(--red-600)">❌ Error: ${escapeHtml((error && error.message) || 'Failed to convert PDF')}</span></div>`;
     tnToast("Conversion failed", "See error above");
   } finally {
     isConverting = false;

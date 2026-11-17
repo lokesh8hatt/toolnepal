@@ -136,40 +136,32 @@
 <script src="../assets/js/analytics.js"></script>
 
 <script>
-function toDate(v){
-  const d = new Date(v);
-  d.setHours(0,0,0,0);
-  return d;
+/* All dates are handled as plain calendar dates {y, m, d} (m = 1–12) and converted
+   to whole UTC day numbers, so results never shift with the visitor's time zone. */
+const DAY_MS = 86400000;
+
+function parseYMD(v){
+  const p = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || "");
+  return p ? { y: +p[1], m: +p[2], d: +p[3] } : null;
 }
+function dayNum(o){ return Date.UTC(o.y, o.m - 1, o.d) / DAY_MS; }
+function daysInMonth(y, m){ return new Date(Date.UTC(y, m, 0)).getUTCDate(); } // m: 1–12
+function pad2(n){ return String(n).padStart(2, "0"); }
+function fmtYMD(o){ return `${o.y}-${pad2(o.m)}-${pad2(o.d)}`; }
+function localToday(){ const t = new Date(); return { y: t.getFullYear(), m: t.getMonth() + 1, d: t.getDate() }; }
 
-function daysInMonth(y, m){ // m:0-11
-  return new Date(y, m+1, 0).getDate();
-}
-
-function diffYMD(from, to){
-  // Ensure from <= to
-  let start = new Date(from), end = new Date(to);
-  if (start > end) [start, end] = [end, start];
-
-  let y = end.getFullYear() - start.getFullYear();
-  let m = end.getMonth() - start.getMonth();
-  let d = end.getDate() - start.getDate();
-
-  if (d < 0) {
-    m -= 1;
-    const prevMonth = (end.getMonth() - 1 + 12) % 12;
-    const prevYear = prevMonth === 11 ? end.getFullYear() - 1 : end.getFullYear();
-    d += daysInMonth(prevYear, prevMonth);
-  }
-  if (m < 0) {
-    y -= 1;
-    m += 12;
-  }
-  return { y, m, d, start, end };
-}
-
-function fmtDate(d){
-  return d.toISOString().slice(0,10);
+/* Whole months first, then the leftover days counted from the anniversary date
+   (clamped to the month's length, e.g. 31 Jan + 1 month = 29 Feb in 2000). */
+function diffYMD(a, b){
+  let start = a, end = b;
+  if (dayNum(start) > dayNum(end)) [start, end] = [end, start];
+  let months = (end.y - start.y) * 12 + (end.m - start.m);
+  if (end.d < start.d) months -= 1;
+  const ay = start.y + Math.floor((start.m - 1 + months) / 12);
+  const am = ((start.m - 1 + months) % 12) + 1;
+  const anchor = { y: ay, m: am, d: Math.min(start.d, daysInMonth(ay, am)) };
+  const d = dayNum(end) - dayNum(anchor);
+  return { y: Math.floor(months / 12), m: months % 12, d, start, end };
 }
 
 function calcAge(){
@@ -177,19 +169,18 @@ function calcAge(){
   const asofEl = document.getElementById("asof");
   const out = document.getElementById("ageOut");
 
-  if(!dobEl.value){
+  const dob = parseYMD(dobEl.value);
+  if(!dob){
     tnToast("Select date of birth");
     dobEl.focus();
     return;
   }
-
-  const dob = toDate(dobEl.value);
-  const asof = asofEl.value ? toDate(asofEl.value) : toDate(new Date());
+  const asof = parseYMD(asofEl.value) || localToday();
 
   const { y, m, d, start, end } = diffYMD(dob, asof);
-  const totalDays = Math.round((end - start) / (1000*60*60*24));
+  const totalDays = dayNum(end) - dayNum(start);
 
-  const direction = (dob <= asof) ? "" : " (DOB is after As-of date — swapped)";
+  const direction = (dayNum(dob) <= dayNum(asof)) ? "" : " (DOB is after As-of date — swapped)";
 
   out.style.display = "block";
   out.innerHTML = `
@@ -205,7 +196,7 @@ function calcAge(){
       </div>
     </div>
     <div class="help" style="margin-top:.8rem">
-      From <b>${fmtDate(start)}</b> to <b>${fmtDate(end)}</b>
+      From <b>${fmtYMD(start)}</b> to <b>${fmtYMD(end)}</b>
     </div>
   `;
 
@@ -214,20 +205,17 @@ function calcAge(){
 
 function resetAge(){
   document.getElementById("dob").value = "";
-  document.getElementById("asof").value = "";
+  document.getElementById("asof").value = fmtYMD(localToday());
   const out = document.getElementById("ageOut");
   out.style.display = "none";
   out.innerHTML = "";
   tnToast("Reset done");
 }
 
-// Default As-of date = today
+// Default As-of date = today (on the visitor's device)
 (function(){
   const asofEl = document.getElementById("asof");
-  if(asofEl){
-    const t = new Date();
-    asofEl.value = t.toISOString().slice(0,10);
-  }
+  if(asofEl) asofEl.value = fmtYMD(localToday());
 })();
 </script>
 

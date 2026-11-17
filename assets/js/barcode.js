@@ -82,7 +82,19 @@ function _generateBarcodeSilent() {
     });
   } catch (e) {
     if (warningEl) {
-      warningEl.textContent = "Invalid format: " + e.message;
+      // JsBarcode may throw a plain string or an object without .message
+      const detail = (e && e.message) || (typeof e === "string" ? e : "");
+      const hints = {
+        CODE128: "CODE128 accepts standard keyboard characters (A–Z, 0–9, symbols) — not Nepali/Unicode text.",
+        EAN13: "EAN-13 needs 12 digits (the 13th check digit is added for you) or 13 digits with a correct check digit.",
+        EAN8: "EAN-8 needs 7 digits (or 8 with a correct check digit).",
+        UPC: "UPC needs 11 digits (or 12 with a correct check digit).",
+        CODE39: "CODE39 accepts A–Z, 0–9, space and - . $ / + %.",
+        ITF14: "ITF-14 needs 13 digits (or 14 with a correct check digit).",
+        MSI: "MSI accepts digits only.",
+        pharmacode: "Pharmacode needs a whole number from 3 to 131070."
+      };
+      warningEl.textContent = "Can't create this barcode: " + (hints[format] || detail || "check the value for the selected format.");
       warningEl.style.display = "block";
     }
     updateBarcodeButtonsState(false);

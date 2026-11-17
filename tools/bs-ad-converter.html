@@ -4,9 +4,9 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>BS to AD Date Converter (Nepali to English) | ToolNepal</title>
-  <meta name="description" content="Convert Nepali Date (Bikram Sambat BS) to English Date (Anno Domini AD) instantly. Highly accurate BS AD converter for 2000-2090 BS."/>
+  <meta name="description" content="Convert Nepali Date (Bikram Sambat BS) to English Date (Anno Domini AD) instantly. Uses published month lengths for 2000–2099 BS."/>
   <meta property="og:title" content="BS ↔ AD Date Converter — ToolNepal"/>
-  <meta property="og:description" content="Convert Nepali Date (Bikram Sambat BS) to English Date (Anno Domini AD) instantly. Highly accurate BS AD converter for 2000-2090 BS."/>
+  <meta property="og:description" content="Convert Nepali Date (Bikram Sambat BS) to English Date (Anno Domini AD) instantly. Uses published month lengths for 2000–2099 BS."/>
   <meta property="og:image" content="https://toolnepal.pages.dev/assets/img/og-image.jpg"/>
   <meta property="og:url" content="https://toolnepal.pages.dev/tools/bs-ad-converter"/>
   <meta property="og:type" content="website"/>
@@ -62,7 +62,7 @@
       "name": "Is this BS to AD converter accurate for visas?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes, it uses the official day-count data for Nepali months ensuring 100% accuracy required for official international applications."
+        "text": "It uses the published day-count of every Nepali month from 2000 to 2099 BS and matches known calendar dates. For official applications, always double-check the converted date against your documents."
       }
     }
   ]
@@ -100,7 +100,7 @@
             <div class="date-grid">
               <div class="field">
                 <label for="bsYear">BS Year</label>
-                <input id="bsYear" class="input" type="number" value="2081" min="2000" max="2090" oninput="convertBsAd()"/>
+                <input id="bsYear" class="input" type="number" min="2000" max="2099" oninput="convertBsAd()"/>
               </div>
               <div class="field">
                 <label for="bsMonth">BS Month</label>
@@ -196,7 +196,7 @@
                 <div class="help" style="margin-top:1rem; line-height:1.7; font-size:0.95rem">
                     <p>The <strong>Bikram Sambat (BS)</strong> calendar is the official calendar of Nepal. It is historically roughly 56 years and 8.5 months ahead of the Gregorian (AD) calendar. However, converting dates manually is incredibly difficult because Nepali months vary between 29 and 32 days depending on the specific year, completely unlike the fixed AD calendar.</p>
                     <h3 style="margin-top:1.5rem">How does this Date Converter work?</h3>
-                    <p>Our <strong>BS to AD Date Converter</strong> is powered by a massive, hard-coded lookup table containing the exact number of days for every single Nepali month from 2000 BS all the way to 2090 BS. This ensures exactly 100% accuracy matching the official Nepal Panchanga Nirnayak Samiti data.</p>
+                    <p>Our <strong>BS to AD Date Converter</strong> uses a lookup table with the number of days in every Nepali month from 2000 BS to 2099 BS, cross-checked against two open-source Nepali date libraries and known Baisakh 1 dates. Dates are calculated as whole calendar days, so the result is the same in every time zone. Years far in the future are projections and can shift by a day once the official patro is published, so double-check important dates.</p>
                     <h3 style="margin-top:1.5rem">Common Uses in Nepal</h3>
                     <ul style="margin-top:0.5rem; padding-left:1.5rem">
                         <li>Convert your Nepali citizenship (Nagarikta) issue date to English for passport or visa applications.</li>
@@ -218,190 +218,214 @@
 <script src="../assets/js/main.js"></script>
 <script src="../assets/js/analytics.js"></script>
 <script>
-/* ── Bikram Sambat lookup table (month-days per year) ──
-   Source: Government of Nepal / patro.hamropatro.com
-   Array index 0 = BS year 2000, each sub-array = [m1,m2,...,m12] days */
-const BS_DATA = {
-  2000:[30,32,31,32,31,30,30,30,29,30,29,31],
-  2001:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2002:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2003:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2004:[30,32,31,32,31,30,30,30,29,30,29,31],
-  2005:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2006:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2007:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2008:[31,31,31,32,31,31,29,30,30,29,29,31],
-  2009:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2010:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2011:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2012:[31,31,31,32,31,31,29,30,30,29,30,30],
-  2013:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2014:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2015:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2016:[31,31,31,32,31,31,29,30,30,29,30,30],
-  2017:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2018:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2019:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2020:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2021:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2022:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2023:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2024:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2025:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2026:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2027:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2028:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2029:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2030:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2031:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2032:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2033:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2034:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2035:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2036:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2037:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2038:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2039:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2040:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2041:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2042:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2043:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2044:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2045:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2046:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2047:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2048:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2049:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2050:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2051:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2052:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2053:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2054:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2055:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2056:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2057:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2058:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2059:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2060:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2061:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2062:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2063:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2064:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2065:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2066:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2067:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2068:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2069:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2070:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2071:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2072:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2073:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2074:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2075:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2076:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2077:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2078:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2079:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2080:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2081:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2082:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2083:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2084:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2085:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2086:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2087:[31,32,31,32,31,30,30,30,29,29,30,31],
-  2088:[31,31,31,32,31,31,30,29,30,29,30,30],
-  2089:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2090:[31,31,32,32,31,30,30,29,30,29,30,30],
-};
+/* ── Bikram Sambat month lengths, 2000–2099 BS ──
+   Row i = BS year 2000+i, 12 month lengths (Baisakh … Chaitra).
+   Matches the open-source opensource-nepal date libraries (node-nepali-datetime,
+   py-nepali) and checks out against known Baisakh 1 dates (e.g. 2081 → 13 Apr 2024,
+   2082 → 14 Apr 2025, 2083 → 14 Apr 2026). Years beyond the published calendar are
+   projections and may shift by a day once the official patro is released. */
+const BS_START_YEAR = 2000;
+const BS_MONTH_DAYS = [
+  [30,32,31,32,31,30,30,30,29,30,29,31], // 2000
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2001
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2002
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2003
+  [30,32,31,32,31,30,30,30,29,30,29,31], // 2004
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2005
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2006
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2007
+  [31,31,31,32,31,31,29,30,30,29,29,31], // 2008
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2009
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2010
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2011
+  [31,31,31,32,31,31,29,30,30,29,30,30], // 2012
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2013
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2014
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2015
+  [31,31,31,32,31,31,29,30,30,29,30,30], // 2016
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2017
+  [31,32,31,32,31,30,30,29,30,29,30,30], // 2018
+  [31,32,31,32,31,30,30,30,29,30,29,31], // 2019
+  [31,31,31,32,31,31,30,29,30,29,30,30], // 2020
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2021
+  [31,32,31,32,31,30,30,30,29,29,30,30], // 2022
+  [31,32,31,32,31,30,30,30,29,30,29,31], // 2023
+  [31,31,31,32,31,31,30,29,30,29,30,30], // 2024
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2025
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2026
+  [30,32,31,32,31,30,30,30,29,30,29,31], // 2027
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2028
+  [31,31,32,31,32,30,30,29,30,29,30,30], // 2029
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2030
+  [30,32,31,32,31,30,30,30,29,30,29,31], // 2031
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2032
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2033
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2034
+  [30,32,31,32,31,31,29,30,30,29,29,31], // 2035
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2036
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2037
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2038
+  [31,31,31,32,31,31,29,30,30,29,30,30], // 2039
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2040
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2041
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2042
+  [31,31,31,32,31,31,29,30,30,29,30,30], // 2043
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2044
+  [31,32,31,32,31,30,30,29,30,29,30,30], // 2045
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2046
+  [31,31,31,32,31,31,30,29,30,29,30,30], // 2047
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2048
+  [31,32,31,32,31,30,30,30,29,29,30,30], // 2049
+  [31,32,31,32,31,30,30,30,29,30,29,31], // 2050
+  [31,31,31,32,31,31,30,29,30,29,30,30], // 2051
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2052
+  [31,32,31,32,31,30,30,30,29,29,30,30], // 2053
+  [31,32,31,32,31,30,30,30,29,30,29,31], // 2054
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2055
+  [31,31,32,31,32,30,30,29,30,29,30,30], // 2056
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2057
+  [30,32,31,32,31,30,30,30,29,30,29,31], // 2058
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2059
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2060
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2061
+  [30,32,31,32,31,31,29,30,29,30,29,31], // 2062
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2063
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2064
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2065
+  [31,31,31,32,31,31,29,30,30,29,29,31], // 2066
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2067
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2068
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2069
+  [31,31,31,32,31,31,29,30,30,29,30,30], // 2070
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2071
+  [31,32,31,32,31,30,30,29,30,29,30,30], // 2072
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2073
+  [31,31,31,32,31,31,30,29,30,29,30,30], // 2074
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2075
+  [31,32,31,32,31,30,30,30,29,29,30,30], // 2076
+  [31,32,31,32,31,30,30,30,29,30,29,31], // 2077
+  [31,31,31,32,31,31,30,29,30,29,30,30], // 2078
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2079
+  [31,32,31,32,31,30,30,30,29,29,30,30], // 2080
+  [31,32,31,32,31,30,30,30,29,30,29,31], // 2081
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2082
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2083
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2084
+  [30,32,31,32,31,30,30,30,29,30,29,31], // 2085
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2086
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2087
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2088
+  [30,32,31,32,31,30,30,30,29,30,29,31], // 2089
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2090
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2091
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2092
+  [31,31,31,32,31,31,29,30,30,29,29,31], // 2093
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2094
+  [31,31,32,32,31,30,30,29,30,29,30,30], // 2095
+  [31,32,31,32,31,30,30,30,29,29,30,31], // 2096
+  [31,31,31,32,31,31,29,30,30,29,30,30], // 2097
+  [31,31,32,31,31,31,30,29,30,29,30,30], // 2098
+  [31,31,32,32,31,30,30,29,30,29,30,30] // 2099
+];
+const BS_END_YEAR = BS_START_YEAR + BS_MONTH_DAYS.length - 1;
 
-/* BS epoch: 2000 Baisakh 1 = April 13, 1943 AD */
-const BS_EPOCH_AD = new Date(1943, 3, 13); // month is 0-indexed → April
-const BS_EPOCH_BS = { y: 2000, m: 1, d: 1 };
+/* 2000 Baisakh 1 BS = 14 April 1943 AD. All maths uses whole UTC day numbers,
+   so results never depend on the visitor's time zone. */
+const DAY_MS = 86400000;
+const BS_EPOCH_DAY = Date.UTC(1943, 3, 14) / DAY_MS;
 
 const BS_MONTHS = ['Baisakh','Jestha','Ashadh','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'];
 const AD_DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-/* Count total BS days from epoch to (y,m,d) */
-function bsDaysFromEpoch(y, m, d) {
-  let total = 0;
-  for (let yr = 2000; yr < y; yr++) {
-    const data = BS_DATA[yr];
-    if (!data) break;
-    total += data.reduce((a, b) => a + b, 0);
-  }
-  const data = BS_DATA[y];
-  if (!data) return null;
-  for (let mn = 1; mn < m; mn++) total += data[mn - 1];
-  total += d - 1;
-  return total;
+const BS_YEAR_TOTALS = BS_MONTH_DAYS.map(r => r.reduce((a, b) => a + b, 0));
+
+function bsMonthLength(y, m) {
+  const row = BS_MONTH_DAYS[y - BS_START_YEAR];
+  return row ? row[m - 1] : null;
 }
 
+/* Returns {error} or {y,m,d,dayNum} where dayNum is days since 1970-01-01 UTC */
 function bsToAd(y, m, d) {
-  const days = bsDaysFromEpoch(y, m, d);
-  if (days === null) return null;
-  const ad = new Date(BS_EPOCH_AD);
-  ad.setDate(ad.getDate() + days);
-  return ad;
+  if (!Number.isInteger(y) || y < BS_START_YEAR || y > BS_END_YEAR)
+    return { error: `Supported years: ${BS_START_YEAR}–${BS_END_YEAR} BS` };
+  if (!Number.isInteger(m) || m < 1 || m > 12) return { error: 'Choose a month' };
+  const len = bsMonthLength(y, m);
+  if (!Number.isInteger(d) || d < 1 || d > len)
+    return { error: `${BS_MONTHS[m-1]} ${y} has ${len} days` };
+  let days = 0;
+  for (let i = 0; i < y - BS_START_YEAR; i++) days += BS_YEAR_TOTALS[i];
+  const row = BS_MONTH_DAYS[y - BS_START_YEAR];
+  for (let i = 0; i < m - 1; i++) days += row[i];
+  days += d - 1;
+  const dayNum = BS_EPOCH_DAY + days;
+  const dt = new Date(dayNum * DAY_MS);
+  return { y: dt.getUTCFullYear(), m: dt.getUTCMonth() + 1, d: dt.getUTCDate(), dayNum };
 }
 
-function adToBs(adDate) {
-  const diff = Math.floor((adDate - BS_EPOCH_AD) / 86400000);
-  if (diff < 0) return null;
-  let rem = diff;
-  for (let y = 2000; y <= 2090; y++) {
-    const data = BS_DATA[y];
-    if (!data) break;
-    const yearDays = data.reduce((a, b) => a + b, 0);
-    if (rem < yearDays) {
+/* AD calendar date (y, m, d as numbers) → {y,m,d} BS, or null if out of range */
+function adToBs(ay, am, ad) {
+  let rem = Date.UTC(ay, am - 1, ad) / DAY_MS - BS_EPOCH_DAY;
+  if (rem < 0) return null;
+  for (let i = 0; i < BS_MONTH_DAYS.length; i++) {
+    if (rem < BS_YEAR_TOTALS[i]) {
+      const row = BS_MONTH_DAYS[i];
       for (let m = 0; m < 12; m++) {
-        if (rem < data[m]) return { y, m: m + 1, d: rem + 1 };
-        rem -= data[m];
+        if (rem < row[m]) return { y: BS_START_YEAR + i, m: m + 1, d: rem + 1 };
+        rem -= row[m];
       }
     }
-    rem -= yearDays;
+    rem -= BS_YEAR_TOTALS[i];
   }
   return null;
 }
 
+function pad2(n) { return String(n).padStart(2, '0'); }
+function fmtAdLong(dayNum) {
+  return new Date(dayNum * DAY_MS).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric', timeZone:'UTC' });
+}
+function dowOf(dayNum) { return AD_DAYS[new Date(dayNum * DAY_MS).getUTCDay()]; }
+
 function convertBsAd() {
-  const y = parseInt(document.getElementById('bsYear').value);
-  const m = parseInt(document.getElementById('bsMonth').value);
-  const d = parseInt(document.getElementById('bsDay').value);
-  if (!y || !m || !d) return;
-  const ad = bsToAd(y, m, d);
-  if (!ad) { document.getElementById('adResult').textContent = 'Out of range'; return; }
-  const opts = { year:'numeric', month:'long', day:'numeric' };
-  document.getElementById('adResult').textContent = ad.toLocaleDateString('en-US', opts);
-  document.getElementById('adDay').textContent = AD_DAYS[ad.getDay()];
+  const yRaw = document.getElementById('bsYear').value.trim();
+  const dRaw = document.getElementById('bsDay').value.trim();
+  const out = document.getElementById('adResult'), sub = document.getElementById('adDay');
+  if (!yRaw || !dRaw) { out.textContent = '—'; sub.textContent = 'Enter a BS year and day'; return; }
+  const y = Number(yRaw), m = Number(document.getElementById('bsMonth').value), d = Number(dRaw);
+  const r = bsToAd(y, m, d);
+  if (r.error) { out.textContent = '—'; sub.textContent = r.error; return; }
+  out.textContent = fmtAdLong(r.dayNum);
+  sub.textContent = `${dowOf(r.dayNum)} — ${r.y}-${pad2(r.m)}-${pad2(r.d)} AD`;
 }
 
 function convertAdBs() {
   const val = document.getElementById('adDate').value;
-  if (!val) return;
-  const adDate = new Date(val + 'T00:00:00');
-  const bs = adToBs(adDate);
-  if (!bs) { document.getElementById('bsResult').textContent = 'Out of range'; return; }
-  document.getElementById('bsResult').textContent = `${bs.y} ${BS_MONTHS[bs.m-1]} ${bs.d}`;
-  const adDayName = AD_DAYS[adDate.getDay()];
-  document.getElementById('bsDay').textContent = `${adDayName} — ${bs.y}-${String(bs.m).padStart(2,'0')}-${String(bs.d).padStart(2,'0')} BS`;
+  const out = document.getElementById('bsResult'), sub = document.getElementById('bsDay');
+  const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(val);
+  if (!parts) { out.textContent = '—'; sub.textContent = 'Pick an AD date'; return; }
+  const ay = +parts[1], am = +parts[2], ad = +parts[3];
+  const bs = adToBs(ay, am, ad);
+  if (!bs) { out.textContent = '—'; sub.textContent = `Supported range: ${BS_START_YEAR}–${BS_END_YEAR} BS (14 Apr 1943 onwards)`; return; }
+  out.textContent = `${bs.y} ${BS_MONTHS[bs.m-1]} ${bs.d}`;
+  sub.textContent = `${dowOf(Date.UTC(ay, am - 1, ad) / DAY_MS)} — ${bs.y}-${pad2(bs.m)}-${pad2(bs.d)} BS`;
 }
 
+/* "Today" = the calendar date on the visitor's own device */
+function localToday() { const t = new Date(); return { y: t.getFullYear(), m: t.getMonth() + 1, d: t.getDate() }; }
+
 function setTodayBs() {
-  const today = new Date();
-  const bs = adToBs(today);
+  const t = localToday();
+  const bs = adToBs(t.y, t.m, t.d);
   if (!bs) return;
   document.getElementById('bsYear').value = bs.y;
   document.getElementById('bsMonth').value = bs.m;
   document.getElementById('bsDay').value = bs.d;
   convertBsAd();
-  tnToast(`Today is ${bs.y} ${BS_MONTHS[bs.m-1]} ${bs.d} BS`);
+  if (typeof tnToast === 'function') tnToast(`Today is ${bs.y} ${BS_MONTHS[bs.m-1]} ${bs.d} BS`);
 }
 
 function setTodayAd() {
-  const today = new Date();
-  const iso = today.toISOString().split('T')[0];
-  document.getElementById('adDate').value = iso;
+  const t = localToday();
+  document.getElementById('adDate').value = `${t.y}-${pad2(t.m)}-${pad2(t.d)}`;
   convertAdBs();
 }
 
@@ -413,6 +437,7 @@ function switchTab(t) {
 }
 
 // Init
+document.getElementById('bsYear').max = BS_END_YEAR;
 setTodayBs();
 </script>
 </body>

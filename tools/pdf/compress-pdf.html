@@ -47,7 +47,8 @@
       <div class="card">
         <h1>Compress PDF (Basic)</h1>
         <p class="help">
-          Best for scanned/image-heavy PDFs. This tool re-renders pages to reduce size (no upload).
+          Best for scanned/image-heavy PDFs. Each page is re-rendered as a compressed JPEG image in your browser (no upload).
+          Because pages become images, text in the result can't be selected or searched, and links, form fields and bookmarks are removed.
         </p>
 
         <div class="field">
@@ -73,7 +74,7 @@
               <option value="1.5">High (1.5x)</option>
               <option value="2">Very High (2x)</option>
             </select>
-            <div class="help">Higher scale = sharper but bigger.</div>
+            <div class="help">Higher scale = sharper but bigger. Page size stays the same.</div>
           </div>
 
           <div class="field" style="grid-column:1/-1">
@@ -105,7 +106,7 @@
             <li>Certificates/photos in PDF</li>
           </ul>
           <p class="help" style="margin-top:.8rem">
-            For text-only PDFs, size reduction may be small.
+            Text-only or already-optimized PDFs may not get smaller – the result can even be larger. The tool tells you when that happens so you can keep your original.
           </p>
         </div>
       </aside>
@@ -127,18 +128,56 @@
 </script>
 
 <!-- ✅ pdf-lib (to rebuild PDF) -->
-<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
 <script>
 function bytesToSize(b){
-  const u=["B","KB","MB","GB"]; let i=0,x=b;
+  if(!Number.isFinite(b)) return "—";
+  const sign = b < 0 ? "-" : "";
+  const u=["B","KB","MB","GB"]; let i=0,x=Math.abs(b);
   while(x>=1024 && i<u.length-1){x/=1024;i++;}
-  return (i===0?x.toFixed(0):x.toFixed(2))+" "+u[i];
+  return sign+(i===0?x.toFixed(0):x.toFixed(2))+" "+u[i];
 }
 
 function clamp(n, min, max){
   n = Number(n);
   return Math.min(max, Math.max(min, n));
+}
+
+const CMP_MAX_PIXELS = 16000000; // keeps canvases inside mobile browser limits
+
+// Output page keeps the original size in PDF points (from the scale-1 viewport);
+// only the rendered image gets the higher resolution.
+function cmpPageGeometry(baseW, baseH, scale){
+  let s = scale;
+  if(baseW * baseH * s * s > CMP_MAX_PIXELS) s = Math.sqrt(CMP_MAX_PIXELS / (baseW * baseH));
+  return {
+    pageW: baseW,
+    pageH: baseH,
+    renderScale: s,
+    canvasW: Math.max(1, Math.ceil(baseW * s)),
+    canvasH: Math.max(1, Math.ceil(baseH * s))
+  };
+}
+
+function canvasToBlob(canvas, type, quality){
+  return new Promise((resolve,reject)=>{
+    canvas.toBlob(b => b ? resolve(b) : reject(new Error("Canvas export failed")), type, quality);
+  });
+}
+
+function cmpDownload(url, name){
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+let cmpLastUrl = null; // kept for "Download anyway"; revoked on next run/reset
+function cmpReleaseUrl(){
+  if(cmpLastUrl){ URL.revokeObjectURL(cmpLastUrl); cmpLastUrl = null; }
 }
 
 async function compressPdf(){
@@ -160,12 +199,14 @@ async function compressPdf(){
   const srcFile = input.files[0];
   const originalSize = srcFile.size;
 
+  cmpReleaseUrl();
   status.textContent = "Loading PDF...";
   stats.textContent = "";
 
+  let pdf = null;
   try {
     const buf = await srcFile.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    pdf = await pdfjsLib.getDocument({ data: buf }).promise;
 
     const outPdf = await PDFLib.PDFDocument.create();
 
@@ -176,56 +217,86 @@ async function compressPdf(){
       status.textContent = `Processing page ${p}/${total}...`;
 
       const page = await pdf.getPage(p);
-      const viewport = page.getViewport({ scale });
+      const base = page.getViewport({ scale: 1 }); // original page size in points
+      const g = cmpPageGeometry(base.width, base.height, scale);
+      const viewport = page.getViewport({ scale: g.renderScale });
 
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d", { alpha:false });
 
-      canvas.width = Math.floor(viewport.width);
-      canvas.height = Math.floor(viewport.height);
+      canvas.width = g.canvasW;
+      canvas.height = g.canvasH;
 
       await page.render({ canvasContext: ctx, viewport }).promise;
 
       // Convert canvas to JPEG (smaller than PNG)
-      const jpegDataUrl = canvas.toDataURL("image/jpeg", quality);
-      const jpgBytes = await fetch(jpegDataUrl).then(r=>r.arrayBuffer());
+      const jpgBlob = await canvasToBlob(canvas, "image/jpeg", quality);
+      const jpgBytes = await jpgBlob.arrayBuffer();
       const jpgEmbed = await outPdf.embedJpg(jpgBytes);
 
-      // New PDF page size matches rendered image size
-      const newPage = outPdf.addPage([canvas.width, canvas.height]);
-      newPage.drawImage(jpgEmbed, { x:0, y:0, width: canvas.width, height: canvas.height });
+      // Same page size as the original; the higher-resolution image fills it
+      const newPage = outPdf.addPage([g.pageW, g.pageH]);
+      newPage.drawImage(jpgEmbed, { x:0, y:0, width: g.pageW, height: g.pageH });
+
+      canvas.width = canvas.height = 0; // free canvas memory early
+      page.cleanup();
     }
 
     status.textContent = "Finalizing PDF...";
     const outBytes = await outPdf.save();
     const blob = new Blob([outBytes], { type: "application/pdf" });
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = outName;
-    a.click();
-    URL.revokeObjectURL(url);
-
     const newSize = blob.size;
     const saved = originalSize - newSize;
     const pct = originalSize > 0 ? ((saved / originalSize) * 100) : 0;
+    const url = URL.createObjectURL(blob);
 
-    status.textContent = "Done ✅";
-    stats.innerHTML =
-      `<b>Original:</b> ${bytesToSize(originalSize)} • <b>Compressed:</b> ${bytesToSize(newSize)} • <b>Saved:</b> ${bytesToSize(saved)} (${pct.toFixed(1)}%)`;
+    if(saved > 0){
+      cmpDownload(url, outName);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
 
-    tnToast("PDF compressed", "Downloaded");
+      status.textContent = "Done ✅";
+      stats.innerHTML =
+        `<b>Original:</b> ${bytesToSize(originalSize)} • <b>Compressed:</b> ${bytesToSize(newSize)} • <b>Saved:</b> ${bytesToSize(saved)} (${pct.toFixed(1)}%)`;
+
+      tnToast("PDF compressed", "Downloaded");
+    } else {
+      // Not smaller: don't present it as a success and don't auto-download
+      cmpLastUrl = url;
+      const diff = saved === 0
+        ? "is the same size as"
+        : `is <b>${bytesToSize(-saved)}</b> (${Math.abs(pct).toFixed(1)}%) larger than`;
+      status.innerHTML = `<span style="color:var(--red-600)"><b>⚠️ No size reduction – keep your original file.</b></span>`;
+      stats.innerHTML =
+        `The re-rendered PDF (<b>${bytesToSize(newSize)}</b>) ${diff} your original (<b>${bytesToSize(originalSize)}</b>). ` +
+        `This PDF is probably text-based or already optimized. You can try Small quality / Normal scale, ` +
+        `or download the result anyway (its pages are images).<br>`;
+      const a = document.createElement("a");
+      a.className = "btn btn-secondary";
+      a.href = url;
+      a.download = outName;
+      a.textContent = "Download anyway";
+      a.style.marginTop = ".6rem";
+      stats.appendChild(a);
+
+      tnToast("No size reduction", "Original is smaller");
+    }
 
   } catch(err){
     console.error(err);
-    tnToast("Compression failed");
-    status.textContent = "";
+    const msg = err && err.name === "PasswordException" ? "This PDF is password-protected."
+      : err && err.name === "InvalidPDFException" ? "This file is not a valid PDF."
+      : "";
+    tnToast("Compression failed", msg);
+    status.textContent = msg;
     stats.textContent = "";
+  } finally {
+    if(pdf) pdf.destroy();
   }
 }
 
 function resetCompress(){
+  cmpReleaseUrl();
   document.getElementById("cmpFile").value = "";
   document.getElementById("cmpQuality").value = "0.7";
   document.getElementById("cmpScale").value = "1";
