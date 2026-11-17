@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Nepali Calendar 2083 &amp; Today's Nepali Date (आजको मिति) | ToolNepal</title>
+  <meta name="description" content="आजको मिति: today's Nepali date and a free Nepali calendar (नेपाली पात्रो / Nepali patro) for 2000–2099 BS, with every BS day shown beside its English date."/>
+  <meta property="og:title" content="Nepali Calendar &amp; Today's Nepali Date (आजको मिति) — ToolNepal"/>
+  <meta property="og:description" content="आजको मिति: today's Nepali date and a free Nepali calendar (नेपाली पात्रो / Nepali patro) for 2000–2099 BS, with every BS day shown beside its English date."/>
+  <meta property="og:image" content="https://toolnepal.pages.dev/assets/img/og-image.jpg"/>
+  <meta property="og:url" content="https://toolnepal.pages.dev/tools/nepali-calendar"/>
+  <meta property="og:type" content="website"/>
+  <link rel="canonical" href="https://toolnepal.pages.dev/tools/nepali-calendar"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    :root{--cal-red:var(--red-600)}
+    html[data-theme="dark"]{--cal-red:#ff6b6b}
+    .cal-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+    /* Today card */
+    .cal-today-box{margin-top:1rem}
+    .cal-today-label{color:var(--muted);font-weight:800;font-size:.9rem}
+    .cal-today-ne{font-size:clamp(1.45rem,3.2vw + .8rem,2.3rem);font-weight:800;line-height:1.35;margin:.35rem 0 .25rem;color:var(--text);overflow-wrap:anywhere}
+    .cal-today-en{color:var(--muted);font-weight:700}
+
+    /* Calendar header + controls */
+    .cal-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.5rem}
+    .cal-head .icon-btn{font-size:1.5rem;line-height:1}
+    .cal-head .icon-btn:disabled{opacity:.35;cursor:not-allowed}
+    .cal-head .icon-btn:focus-visible{outline:2px solid var(--red-500);outline-offset:2px}
+    .cal-title{text-align:center;min-width:0}
+    .cal-title h2{font-size:clamp(1.05rem,1.2vw + .8rem,1.45rem);line-height:1.3;margin:0}
+    .cal-adspan{color:var(--muted);font-weight:700;font-size:.88rem}
+    .cal-controls{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:.5rem;margin:1rem 0 .9rem}
+    .cal-controls .input{padding:.55rem .7rem;min-width:0}
+    .cal-controls .btn{width:auto;padding:.55rem 1rem;white-space:nowrap;color:var(--text)}
+
+    /* Month grid: each row is its own 7-column grid, so nothing can overflow */
+    .cal-grid{display:flex;flex-direction:column;gap:4px}
+    .cal-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+    .cal-wd{text-align:center;font-weight:800;font-size:.85rem;color:var(--muted);padding:.25rem 0;line-height:1.2;min-width:0}
+    .cal-wd small{display:block;font-size:.66rem;font-weight:700;opacity:.85}
+    .cal-wd.is-sat{color:var(--cal-red)}
+    .cal-cell{min-width:0}
+    .cal-day{width:100%;min-height:3.4rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:.25rem 0;border:1px solid var(--border);border-radius:calc(var(--radius-sm) - 4px);background:var(--panel);color:var(--text);font:inherit;cursor:pointer;transition:background var(--t),box-shadow var(--t)}
+    .cal-day:hover{background:rgba(211,47,47,.08)}
+    .cal-day:focus-visible{outline:2px solid var(--red-500);outline-offset:2px}
+    .cal-bs{font-size:1.2rem;font-weight:800;line-height:1.1}
+    .cal-ad{font-size:.7rem;font-weight:700;color:var(--muted);line-height:1.1;white-space:nowrap}
+    .cal-cell.is-sat .cal-day{color:var(--cal-red)}
+    .cal-cell.is-sat .cal-ad{color:inherit;opacity:.85}
+    .cal-cell.is-selected .cal-day{box-shadow:inset 0 0 0 2px var(--red-500)}
+    .cal-day[aria-current="date"]{background:var(--red-500);border-color:var(--red-500);color:#fff}
+    .cal-cell .cal-day[aria-current="date"] .cal-ad{color:#fff;opacity:.92}
+    .cal-cell.is-selected .cal-day[aria-current="date"]{box-shadow:inset 0 0 0 2px var(--red-500),inset 0 0 0 4px #fff}
+
+    .cal-legend{display:flex;flex-wrap:wrap;gap:.35rem 1rem;margin:.9rem 0 0;color:var(--muted);font-weight:700;font-size:.82rem}
+    .cal-legend > span{display:inline-flex;align-items:center;gap:.4rem}
+    .cal-sw{display:inline-block;width:.85rem;height:.85rem;border-radius:4px;flex:none}
+    .cal-sw.today{background:var(--red-500)}
+    .cal-sw.sat{border:2px solid var(--cal-red)}
+    .cal-detail{margin-top:1rem}
+    .detail-label{color:var(--muted);font-weight:800;font-size:.85rem}
+    .detail-ne{font-size:1.35rem;font-weight:800;line-height:1.35;margin:.2rem 0;overflow-wrap:anywhere}
+    .detail-en{font-weight:700}
+    .detail-rel{color:var(--muted);font-weight:700;font-size:.88rem;margin-top:.2rem}
+
+    /* Sidebar + content */
+    .side-links{display:flex;flex-direction:column;gap:.6rem}
+    .side-links a{display:block;padding:.75rem .9rem;border:1px solid var(--border);border-radius:var(--radius-sm);transition:var(--t)}
+    .side-links a:hover,.side-links a:focus-visible{border-color:var(--red-500);background:rgba(211,47,47,.06)}
+    .side-links strong{display:block;color:var(--text)}
+    .side-links span{display:block;color:var(--muted);font-weight:700;font-size:.85rem}
+    .side-note{color:var(--muted);font-weight:700;font-size:.88rem;display:flex;flex-direction:column;gap:.6rem}
+    .side-note p{margin:0}
+    .cal-content{line-height:1.7;font-size:.95rem}
+    .cal-content h3{margin-top:1.4rem}
+    .month-table{width:100%;border-collapse:collapse;margin-top:.5rem;border:1px solid var(--border)}
+    .month-table th,.month-table td{padding:.45rem .6rem;text-align:left;border-bottom:1px solid var(--border)}
+    .month-table td{color:var(--text)}
+
+    @media(max-width:480px){
+      .cal-card{padding:.9rem}
+      .cal-grid,.cal-row{gap:3px}
+      .cal-day{min-height:2.8rem;border-radius:7px;gap:1px}
+      .cal-bs{font-size:1rem}
+      .cal-ad{font-size:.62rem}
+      .cal-wd{font-size:.72rem}
+      .cal-wd small,.cal-admon{display:none}
+      .cal-controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+      .cal-controls .btn{grid-column:1 / -1}
+      .month-table th,.month-table td{padding:.4rem .45rem}
+    }
+    @media(max-width:400px){
+      .main .container{padding-left:1rem;padding-right:1rem}
+      .cal-head .icon-btn{width:38px;height:38px}
+    }
+  </style>
+
+  <!-- SEO Schema Markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Nepali Calendar (नेपाली पात्रो)",
+    "url": "https://toolnepal.pages.dev/tools/nepali-calendar",
+    "description": "Today's Nepali date (आजको मिति) and a month-by-month Bikram Sambat calendar for 2000–2099 BS with matching English (AD) dates.",
+    "inLanguage": ["en", "ne"],
+    "operatingSystem": "All",
+    "applicationCategory": "UtilitiesApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is today's Nepali date?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Today's Nepali date (आजको मिति) is shown at the top of this page in Bikram Sambat (BS), in Nepali and English, together with the English (AD) date. It is worked out from the date on your own device, so it changes automatically every day."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How many days are there in a Nepali (BS) month?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "A Bikram Sambat month has 29, 30, 31 or 32 days, and the length of the same month changes from year to year. A full BS year has 365 or 366 days."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "When does the Nepali (BS) year start?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The Bikram Sambat year starts on Baisakh 1 (बैशाख १), the Nepali New Year, which falls in mid-April, usually on 13 or 14 April."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- PWA & Mobile Icons -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#d32f2f" />
+  <link rel="apple-touch-icon" href="/assets/img/logo.svg" />
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+</head>
+<body>
+<div id="siteHeader"></div>
+<main id="main" class="main">
+  <div class="container">
+    <section class="split">
+      <div class="stack">
+
+        <!-- Today -->
+        <section class="card animate-fade" aria-labelledby="pageTitle">
+          <span class="badge" style="margin-bottom:.6rem">🇳🇵 Bikram Sambat (BS)</span>
+          <h1 id="pageTitle">Nepali Calendar (<span lang="ne">नेपाली पात्रो</span>)</h1>
+          <p class="help" style="margin:0">Today's Nepali date and a month-by-month BS calendar with English (AD) dates, for 2000–2099 BS.</p>
+          <div class="result cal-today-box">
+            <div class="cal-today-label"><span lang="ne">आजको मिति</span> · Today's Nepali date</div>
+            <div class="cal-today-ne" id="todayNe" lang="ne">—</div>
+            <div class="cal-today-en" id="todayEn">
+              <noscript>Please turn on JavaScript to see today's date and the calendar.</noscript>
+            </div>
+          </div>
+        </section>
+
+        <!-- Month calendar -->
+        <section class="card cal-card" aria-labelledby="calTitle">
+          <div class="cal-head">
+            <button type="button" class="icon-btn" id="calPrev" aria-label="Previous month" title="Previous month">‹</button>
+            <div class="cal-title">
+              <h2 id="calTitle"><span id="calTitleNe" lang="ne">पात्रो</span> · <span id="calTitleEn">Calendar</span></h2>
+              <div class="cal-adspan" id="calAdSpan"></div>
+            </div>
+            <button type="button" class="icon-btn" id="calNext" aria-label="Next month" title="Next month">›</button>
+          </div>
+
+          <div class="cal-controls">
+            <select id="calMonth" class="input" aria-label="BS month"></select>
+            <select id="calYear" class="input" aria-label="BS year"></select>
+            <button type="button" class="btn btn-secondary" id="calToday" aria-label="Go to today's date"><span><span lang="ne">आज</span> · Today</span></button>
+          </div>
+
+          <div class="cal-grid" role="grid" aria-labelledby="calTitle calAdSpan" aria-describedby="calLegend">
+            <div role="rowgroup">
+              <div class="cal-row" role="row">
+                <div class="cal-wd" role="columnheader" aria-label="Sunday (आइतबार)"><span lang="ne">आइत</span><small>Sun</small></div>
+                <div class="cal-wd" role="columnheader" aria-label="Monday (सोमबार)"><span lang="ne">सोम</span><small>Mon</small></div>
+                <div class="cal-wd" role="columnheader" aria-label="Tuesday (मंगलबार)"><span lang="ne">मंगल</span><small>Tue</small></div>
+                <div class="cal-wd" role="columnheader" aria-label="Wednesday (बुधबार)"><span lang="ne">बुध</span><small>Wed</small></div>
+                <div class="cal-wd" role="columnheader" aria-label="Thursday (बिहीबार)"><span lang="ne">बिही</span><small>Thu</small></div>
+                <div class="cal-wd" role="columnheader" aria-label="Friday (शुक्रबार)"><span lang="ne">शुक्र</span><small>Fri</small></div>
+                <div class="cal-wd is-sat" role="columnheader" aria-label="Saturday (शनिबार), weekly holiday"><span lang="ne">शनि</span><small>Sat</small></div>
+              </div>
+            </div>
+            <div role="rowgroup" id="calBody"></div>
+          </div>
+
+          <div class="cal-legend" id="calLegend">
+            <span><i class="cal-sw today" aria-hidden="true"></i>Today</span>
+            <span><i class="cal-sw sat" aria-hidden="true"></i><span>Saturday – weekly holiday (<span lang="ne">शनिबार बिदा</span>)</span></span>
+            <span>Big number: BS date · small number: AD date</span>
+          </div>
+
+          <div class="result cal-detail" aria-live="polite">
+            <div class="detail-label">Selected date</div>
+            <div class="detail-ne" id="detailNe" lang="ne">—</div>
+            <div class="detail-en" id="detailBs">Tap any date in the calendar to see it in full.</div>
+            <div class="detail-en" id="detailAd"></div>
+            <div class="detail-rel" id="detailRel"></div>
+          </div>
+        </section>
+
+        <!-- About the BS calendar -->
+        <section class="card cal-content" aria-labelledby="aboutTitle">
+          <h2 id="aboutTitle">About the Nepali calendar (<span lang="ne">विक्रम संवत्</span>)</h2>
+          <p>Nepal officially uses the <strong>Bikram Sambat (BS)</strong> calendar, written <span lang="ne">विक्रम संवत्</span> in Nepali. It runs about 56 years and 8 months ahead of the Gregorian (AD) calendar, so 2083 BS lasts from mid-April 2026 to mid-April 2027. Government offices, schools, banks and documents such as the citizenship certificate (<span lang="ne">नागरिकता</span>) use BS dates, which is why so many people check <span lang="ne">आजको मिति</span> (today's date) every day.</p>
+          <p>BS months follow the sun: a new month begins when the sun moves into the next zodiac sign (<span lang="ne">संक्रान्ति</span>). Because of this, a month can have 29, 30, 31 or 32 days, and the same month can be a different length in different years. A full year still has 365 or 366 days. The year starts on Baisakh 1 (<span lang="ne">बैशाख १</span>), the Nepali New Year, which falls on 13 or 14 April. Month lengths and festival dates for each year are decided by the Nepal Panchanga Nirnayak Samiti (<span lang="ne">नेपाल पञ्चाङ्ग निर्णायक समिति</span>).</p>
+          <p>Saturday (<span lang="ne">शनिबार</span>) is the weekly holiday in Nepal, so Saturdays are shown in red. Festival and public holidays change every year and are announced by the government, so they are not listed here.</p>
+
+          <h3>The 12 Nepali months (<span lang="ne">नेपाली महिना</span>)</h3>
+          <table class="month-table">
+            <caption class="cal-sr">Nepali months with their approximate English months</caption>
+            <thead>
+              <tr><th scope="col">#</th><th scope="col">Month</th><th scope="col">Nepali</th><th scope="col">≈ AD</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>Baisakh</td><td lang="ne">बैशाख</td><td>Apr–May</td></tr>
+              <tr><td>2</td><td>Jestha</td><td lang="ne">जेठ</td><td>May–Jun</td></tr>
+              <tr><td>3</td><td>Ashadh</td><td lang="ne">असार</td><td>Jun–Jul</td></tr>
+              <tr><td>4</td><td>Shrawan</td><td lang="ne">साउन</td><td>Jul–Aug</td></tr>
+              <tr><td>5</td><td>Bhadra</td><td lang="ne">भदौ</td><td>Aug–Sep</td></tr>
+              <tr><td>6</td><td>Ashwin</td><td lang="ne">असोज</td><td>Sep–Oct</td></tr>
+              <tr><td>7</td><td>Kartik</td><td lang="ne">कात्तिक</td><td>Oct–Nov</td></tr>
+              <tr><td>8</td><td>Mangsir</td><td lang="ne">मंसिर</td><td>Nov–Dec</td></tr>
+              <tr><td>9</td><td>Poush</td><td lang="ne">पुस</td><td>Dec–Jan</td></tr>
+              <tr><td>10</td><td>Magh</td><td lang="ne">माघ</td><td>Jan–Feb</td></tr>
+              <tr><td>11</td><td>Falgun</td><td lang="ne">फागुन</td><td>Feb–Mar</td></tr>
+              <tr><td>12</td><td>Chaitra</td><td lang="ne">चैत</td><td>Mar–Apr</td></tr>
+            </tbody>
+          </table>
+          <p class="help" style="margin-top:.5rem;font-size:.85rem">Each Nepali month starts around the middle of the English month shown first.</p>
+
+          <h3>Frequently asked questions</h3>
+          <h4 style="margin:.8rem 0 .2rem">What is today's Nepali date?</h4>
+          <p style="margin:0">Today's Nepali date (<span lang="ne">आजको मिति</span>) is shown at the top of this page in Bikram Sambat (BS), in Nepali and English, together with the English (AD) date. It is worked out from the date on your own device, so it changes automatically every day.</p>
+          <h4 style="margin:.8rem 0 .2rem">How many days are there in a Nepali (BS) month?</h4>
+          <p style="margin:0">A Bikram Sambat month has 29, 30, 31 or 32 days, and the length of the same month changes from year to year. A full BS year has 365 or 366 days.</p>
+          <h4 style="margin:.8rem 0 .2rem">When does the Nepali (BS) year start?</h4>
+          <p style="margin:0">The Bikram Sambat year starts on Baisakh 1 (<span lang="ne">बैशाख १</span>), the Nepali New Year, which falls in mid-April, usually on 13 or 14 April.</p>
+        </section>
+      </div>
+
+      <aside class="sidebar">
+        <div class="card">
+          <h3 style="margin-bottom:.75rem">More date tools</h3>
+          <nav class="side-links" aria-label="More date tools">
+            <a href="../tools/bs-ad-converter.html"><strong>BS ↔ AD Date Converter</strong><span>Convert any Nepali date to English and back</span></a>
+            <a href="../tools/age-calculator.html"><strong>Age Calculator</strong><span>Find your exact age in years, months and days</span></a>
+          </nav>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:.75rem">About these dates</h3>
+          <div class="side-note">
+            <p>Dates are calculated in your browser from published BS month lengths for 2000–2099 BS. Nothing is sent to a server.</p>
+            <p>"Today" follows your device's date, so outside Nepal it can differ from the date in Nepal for a few hours.</p>
+            <p>Years whose official calendar is not out yet are projections and may shift by a day. Check the official calendar for festivals and public holidays.</p>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </div>
+</main>
+<div id="siteFooter"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">Info</h3><div id="modalBody" class="help"></div>
+    <div class="actions"><button class="btn btn-secondary" onclick="tnCloseModal()">Close</button></div>
+  </div>
+</div>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/bs-date.js"></script>
+<script>
+(function () {
+  'use strict';
+  function $(id) { return document.getElementById(id); }
+  var BS = window.TN_BS;
+  if (!BS) {
+    $('todayEn').textContent = 'The calendar could not load. Please refresh the page.';
+    return;
+  }
+
+  var AD_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var AD_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var ne = BS.toNepaliDigits;
+  var el = {
+    todayNe: $('todayNe'), todayEn: $('todayEn'),
+    titleNe: $('calTitleNe'), titleEn: $('calTitleEn'), adSpan: $('calAdSpan'),
+    prev: $('calPrev'), next: $('calNext'), month: $('calMonth'), year: $('calYear'), todayBtn: $('calToday'),
+    body: $('calBody'),
+    detailNe: $('detailNe'), detailBs: $('detailBs'), detailAd: $('detailAd'), detailRel: $('detailRel')
+  };
+
+  var today = null;    // {ad:{y,m,d,dow}, bs:{y,m,d,dow}|null, dayNum}
+  var view = null;     // BS month on screen {y, m}
+  var selected = null; // BS date picked by the user {y, m, d}
+
+  function fmtBsNe(b, dow) { return ne(b.y) + ' ' + BS.MONTHS_NE[b.m - 1] + ' ' + ne(b.d) + ', ' + BS.DAYS_NE[dow]; }
+  function fmtBsEn(b) { return BS.MONTHS_EN[b.m - 1] + ' ' + b.d + ', ' + b.y + ' BS'; }
+  function fmtAd(a) { return BS.DAYS_EN[a.dow] + ', ' + a.d + ' ' + AD_MONTHS[a.m - 1] + ' ' + a.y; }
+  function sameDay(a, b) { return !!a && !!b && a.y === b.y && a.m === b.m && a.d === b.d; }
+  function inView(b) { return !!b && b.y === view.y && b.m === view.m; }
+
+  /* "Today" is the calendar date on the visitor's own device */
+  function computeToday() {
+    var ad = BS.todayAd();
+    return { ad: ad, bs: BS.adToBs(ad.y, ad.m, ad.d), dayNum: BS.adDayNum(ad.y, ad.m, ad.d) };
+  }
+
+  function renderToday() {
+    if (!today.bs) {
+      el.todayNe.textContent = '—';
+      el.todayEn.textContent = 'Your device date (' + fmtAd(today.ad) + ') is outside the supported range of ' + BS.START_YEAR + '–' + BS.END_YEAR + ' BS.';
+      return;
+    }
+    el.todayNe.textContent = fmtBsNe(today.bs, today.ad.dow);
+    el.todayEn.textContent = fmtBsEn(today.bs) + ' · ' + fmtAd(today.ad);
+  }
+
+  function adSpanText(a, b) {
+    if (a.y !== b.y) return AD_SHORT[a.m - 1] + ' ' + a.y + ' – ' + AD_SHORT[b.m - 1] + ' ' + b.y;
+    if (a.m !== b.m) return AD_SHORT[a.m - 1] + '–' + AD_SHORT[b.m - 1] + ' ' + a.y;
+    return AD_MONTHS[a.m - 1] + ' ' + a.y;
+  }
+
+  var EMPTY = '<div role="gridcell" class="cal-cell cal-empty"></div>';
+
+  /* Draws the month in `view`. `tabDay` is the day that gets tabindex=0 (roving focus). */
+  function render(tabDay) {
+    var y = view.y, m = view.m, len = BS.monthLength(y, m);
+    var first = BS.bsToAd(y, m, 1), last = BS.fromDayNum(first.dayNum + len - 1);
+    el.titleNe.textContent = BS.MONTHS_NE[m - 1] + ' ' + ne(y);
+    el.titleEn.textContent = BS.MONTHS_EN[m - 1] + ' ' + y;
+    el.adSpan.textContent = adSpanText(first, last);
+    el.month.value = String(m);
+    el.year.value = String(y);
+    el.prev.disabled = y === BS.START_YEAR && m === 1;
+    el.next.disabled = y === BS.END_YEAR && m === 12;
+    if (!tabDay) tabDay = inView(selected) ? selected.d : inView(today.bs) ? today.bs.d : 1;
+
+    var cells = [], i, d;
+    for (i = 0; i < first.dow; i++) cells.push(EMPTY);
+    for (d = 1; d <= len; d++) {
+      var ad = BS.fromDayNum(first.dayNum + d - 1), bs = { y: y, m: m, d: d };
+      var isSat = ad.dow === 6, isSel = sameDay(bs, selected);
+      var adTxt = ad.d === 1 ? '<span class="cal-admon">' + AD_SHORT[ad.m - 1] + ' </span>1' : String(ad.d);
+      cells.push(
+        '<div role="gridcell" class="cal-cell' + (isSat ? ' is-sat' : '') + (isSel ? ' is-selected' : '') + '" aria-selected="' + isSel + '">' +
+          '<button type="button" class="cal-day" data-d="' + d + '" tabindex="' + (d === tabDay ? 0 : -1) + '"' +
+          (sameDay(bs, today.bs) ? ' aria-current="date"' : '') +
+          ' aria-label="' + fmtBsEn(bs) + ', ' + fmtAd(ad) + (isSat ? ' (weekly holiday)' : '') + '">' +
+            '<span class="cal-bs" lang="ne">' + ne(d) + '</span><span class="cal-ad">' + adTxt + '</span>' +
+          '</button>' +
+        '</div>');
+    }
+    while (cells.length % 7) cells.push(EMPTY);
+    var html = '';
+    for (i = 0; i < cells.length; i += 7) html += '<div class="cal-row" role="row">' + cells.slice(i, i + 7).join('') + '</div>';
+    el.body.innerHTML = html;
+  }
+
+  function renderDetail() {
+    if (!selected) {
+      el.detailNe.textContent = '—';
+      el.detailBs.textContent = 'Tap any date in the calendar to see it in full.';
+      el.detailAd.textContent = el.detailRel.textContent = '';
+      return;
+    }
+    var ad = BS.bsToAd(selected.y, selected.m, selected.d);
+    el.detailNe.textContent = fmtBsNe(selected, ad.dow);
+    el.detailBs.textContent = fmtBsEn(selected);
+    el.detailAd.textContent = fmtAd(ad) + ' AD';
+    var diff = ad.dayNum - today.dayNum;
+    el.detailRel.textContent = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : diff === -1 ? 'Yesterday'
+      : diff > 0 ? 'In ' + diff + ' days' : (-diff) + ' days ago';
+  }
+
+  function focusDay(d) {
+    var target = el.body.querySelector('.cal-day[data-d="' + d + '"]');
+    if (!target) return;
+    el.body.querySelectorAll('.cal-day').forEach(function (b) { b.tabIndex = b === target ? 0 : -1; });
+    target.focus();
+  }
+
+  function setView(y, m, focusD) {
+    if (y < BS.START_YEAR || y > BS.END_YEAR || m < 1 || m > 12) return;
+    view = { y: y, m: m };
+    render(focusD);
+    if (focusD) focusDay(focusD);
+  }
+
+  function shiftMonth(delta) {
+    var idx = view.y * 12 + view.m - 1 + delta;
+    setView(Math.floor(idx / 12), idx % 12 + 1);
+  }
+
+  function selectDay(d) {
+    selected = { y: view.y, m: view.m, d: d };
+    el.body.querySelectorAll('.cal-cell:not(.cal-empty)').forEach(function (cell) {
+      var btn = cell.querySelector('.cal-day'), on = Number(btn.getAttribute('data-d')) === d;
+      cell.classList.toggle('is-selected', on);
+      cell.setAttribute('aria-selected', String(on));
+      btn.tabIndex = on ? 0 : -1;
+    });
+    renderDetail();
+  }
+
+  /* Picks up a new day if the tab stayed open past midnight */
+  function refreshToday() {
+    var prev = today;
+    today = computeToday();
+    if (prev.dayNum === today.dayNum) return;
+    renderToday();
+    if (prev.bs && today.bs) {
+      if (inView(prev.bs)) view = { y: today.bs.y, m: today.bs.m };
+      if (sameDay(selected, prev.bs)) selected = { y: today.bs.y, m: today.bs.m, d: today.bs.d };
+    }
+    render();
+    renderDetail();
+  }
+
+  function goToday() {
+    refreshToday();
+    if (!today.bs) { if (typeof tnToast === 'function') tnToast('Today is outside ' + BS.START_YEAR + '–' + BS.END_YEAR + ' BS'); return; }
+    selected = { y: today.bs.y, m: today.bs.m, d: today.bs.d };
+    setView(today.bs.y, today.bs.m);
+    renderDetail();
+  }
+
+  /* ── Events ── */
+  el.prev.addEventListener('click', function () {
+    shiftMonth(-1);
+    if (el.prev.disabled) el.next.focus();
+  });
+  el.next.addEventListener('click', function () {
+    shiftMonth(1);
+    if (el.next.disabled) el.prev.focus();
+  });
+  el.month.addEventListener('change', function () { setView(view.y, Number(el.month.value)); });
+  el.year.addEventListener('change', function () { setView(Number(el.year.value), view.m); });
+  el.todayBtn.addEventListener('click', goToday);
+
+  el.body.addEventListener('click', function (e) {
+    var b = e.target.closest('.cal-day');
+    if (b) selectDay(Number(b.getAttribute('data-d')));
+  });
+
+  /* Arrow keys move by day/week, Home/End to the start/end of the week, PageUp/PageDown by month */
+  el.body.addEventListener('keydown', function (e) {
+    var b = e.target.closest('.cal-day');
+    if (!b) return;
+    var d = Number(b.getAttribute('data-d')), cur = BS.bsToAd(view.y, view.m, d), n;
+    switch (e.key) {
+      case 'ArrowLeft': n = cur.dayNum - 1; break;
+      case 'ArrowRight': n = cur.dayNum + 1; break;
+      case 'ArrowUp': n = cur.dayNum - 7; break;
+      case 'ArrowDown': n = cur.dayNum + 7; break;
+      case 'Home': n = cur.dayNum - cur.dow; break;
+      case 'End': n = cur.dayNum + 6 - cur.dow; break;
+      case 'PageUp':
+      case 'PageDown': {
+        e.preventDefault();
+        var idx = view.y * 12 + view.m - 1 + (e.key === 'PageUp' ? -1 : 1);
+        var y = Math.floor(idx / 12), m = idx % 12 + 1;
+        if (y >= BS.START_YEAR && y <= BS.END_YEAR) setView(y, m, Math.min(d, BS.monthLength(y, m)));
+        return;
+      }
+      default: return;
+    }
+    e.preventDefault();
+    var a = BS.fromDayNum(n), t = BS.adToBs(a.y, a.m, a.d);
+    if (!t) return;
+    if (t.y !== view.y || t.m !== view.m) setView(t.y, t.m, t.d);
+    else focusDay(t.d);
+  });
+
+  /* ── Init ── */
+  var opts = '', i;
+  for (i = 0; i < 12; i++) opts += '<option value="' + (i + 1) + '">' + BS.MONTHS_EN[i] + ' · ' + BS.MONTHS_NE[i] + '</option>';
+  el.month.innerHTML = opts;
+  opts = '';
+  for (i = BS.START_YEAR; i <= BS.END_YEAR; i++) opts += '<option value="' + i + '">' + i + ' · ' + ne(i) + '</option>';
+  el.year.innerHTML = opts;
+
+  today = computeToday();
+  renderToday();
+  if (today.bs) {
+    view = { y: today.bs.y, m: today.bs.m };
+    selected = { y: today.bs.y, m: today.bs.m, d: today.bs.d };
+  } else {
+    view = today.dayNum < BS.bsToAd(BS.START_YEAR, 1, 1).dayNum ? { y: BS.START_YEAR, m: 1 } : { y: BS.END_YEAR, m: 12 };
+  }
+  render();
+  renderDetail();
+
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) refreshToday(); });
+  (function scheduleMidnight() {
+    var now = new Date(), next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
+    setTimeout(function () { refreshToday(); scheduleMidnight(); }, Math.max(1000, next - now));
+  })();
+})();
+</script>
+</body>
+</html>

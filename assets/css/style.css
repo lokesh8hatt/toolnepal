@@ -45,41 +45,6 @@ h1{font-size:clamp(1.85rem,2.6vw + 1rem,3.1rem);letter-spacing:-.02em;margin:0 0
 .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:var(--s5);box-shadow:var(--shadow)}
 .card:hover{box-shadow:var(--shadow-lg)}
 .badge{display:inline-flex;align-items:center;gap:.45rem;padding:.3rem .7rem;border-radius:999px;font-size:.82rem;font-weight:900;color:var(--red-700);background:rgba(211,47,47,.11);border:1px solid rgba(211,47,47,.25)}
-/* Native-looking ad blocks */
-.ad{
-  position: relative;
-  border-radius:var(--radius);
-  padding:var(--s4) var(--s5);
-  text-align:center;
-  background: linear-gradient(135deg, rgba(211,47,47,.04), transparent);
-  border:1px solid rgba(211,47,47,.15);
-  color:var(--text);
-  overflow:hidden;
-  transition:var(--t);
-  cursor:pointer;
-}
-.ad:hover {
-  background: rgba(211,47,47,.08);
-  border-color: rgba(211,47,47,.3);
-}
-.ad::before {
-  content: "TOOLS PLACEMENT";
-  position: absolute;
-  top: 0; left: 0;
-  background: var(--red-600);
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 900;
-  padding: 0.2rem 0.6rem;
-  border-bottom-right-radius: var(--radius-sm);
-}
-html[data-theme="dark"] .ad{
-  background: linear-gradient(135deg, rgba(238,243,255,.04), transparent);
-  border-color:rgba(238,243,255,.1);
-}
-html[data-theme="dark"] .ad:hover {
-  background: rgba(238,243,255,.06);
-}
 .row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
 .stack{display:flex;flex-direction:column;gap:1rem}
 .hero{display:grid;grid-template-columns:1.35fr .65fr;gap:1.6rem}
@@ -267,6 +232,22 @@ tbody tr:hover {
   from { transform:translateX(-100%); }
   to   { transform:translateX(100%); }
 }
+
+/* ---------- Homepage: today's Nepali date strip ---------- */
+.today-strip{display:flex;align-items:center;flex-wrap:wrap;gap:.35rem 1rem;margin-bottom:1.25rem;padding:.9rem 1.2rem;border-radius:var(--radius);background:var(--panel);border:1px solid rgba(211,47,47,.28);box-shadow:var(--shadow-sm);transition:var(--t)}
+.today-strip:hover{border-color:var(--red-500);box-shadow:var(--shadow)}
+.today-label{font-size:.78rem;font-weight:900;color:#fff;background:var(--red-500);padding:.2rem .6rem;border-radius:999px}
+.today-ne{font-size:1.2rem;font-weight:800}
+.today-en{color:var(--muted);font-weight:700;font-size:.92rem}
+.today-go{margin-left:auto;font-weight:900;color:var(--red-500)}
+
+/* ---------- Share bar + related tools (added by main.js) ---------- */
+.tn-share{display:flex;flex-wrap:wrap;gap:.5rem}
+.tn-share .btn{width:auto;flex:1 1 auto;padding:.55rem .85rem;font-size:.88rem}
+.tn-related{display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem}
+.tn-related a{display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:.6rem .85rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-weight:700;transition:var(--t)}
+.tn-related a:hover{border-color:var(--red-500);color:var(--red-600)}
+.tn-extras{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:1rem;margin-top:1.6rem}
 
 /* ---------- Never wider than the screen ---------- */
 .grid>*,.split>*,.stack>*{min-width:0}

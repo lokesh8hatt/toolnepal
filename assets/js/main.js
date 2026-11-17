@@ -146,6 +146,8 @@ function tnInjectLayout(){
     ];
     if (isPdf && !isHub) breadcrumbItems.push({ "@type": "ListItem", "position": 3, "name": "PDF Converter", "item": "https://toolnepal.pages.dev/tools/pdf/pdf-tools" });
     breadcrumbItems.push({ "@type": "ListItem", "position": breadcrumbItems.length + 1, "name": title, "item": location.href.split(/[?#]/)[0] });
+
+    tnToolExtras(base);
   }
 
   // Sitewide Organization + WebSite structured data
@@ -187,6 +189,106 @@ function tnInjectLayout(){
     document.head.appendChild(bcSchema);
   }
 }
+/* ---------- Share bar + related tools on every tool page ---------- */
+// [path from site root, short title, categories]
+const TN_TOOLS = [
+  ["tools/nepali-calendar.html", "Nepali Calendar (आजको मिति)", "nepal daily"],
+  ["tools/bs-ad-converter.html", "BS ↔ AD Date Converter", "nepal daily"],
+  ["tools/preeti-to-unicode.html", "Preeti ↔ Unicode Converter", "nepal writing"],
+  ["tools/roman-to-nepali.html", "Roman to Nepali Typing", "nepal writing"],
+  ["tools/salary-tax-calculator.html", "Salary Tax Calculator", "finance nepal"],
+  ["tools/ipo-calculator.html", "IPO Profit Calculator", "finance"],
+  ["tools/emi-calculator.html", "EMI Calculator", "finance"],
+  ["tools/vat-calculator.html", "13% VAT Calculator", "finance"],
+  ["tools/number-to-words.html", "Number to Words (Lakh/Crore)", "finance writing"],
+  ["tools/percentage-calculator.html", "Percentage Calculator", "finance students"],
+  ["tools/see-gpa-calculator.html", "SEE GPA to Percentage", "students"],
+  ["tools/plus2-gpa-calculator.html", "+2 GPA Calculator", "students"],
+  ["tools/gpa-percentage-converter.html", "GPA ⇄ Percentage", "students"],
+  ["tools/cgpa-calculator.html", "CGPA Calculator", "students"],
+  ["tools/age-calculator.html", "Age Calculator", "daily nepal"],
+  ["tools/bmi-calculator.html", "BMI Calculator", "daily"],
+  ["tools/unit-converter.html", "Unit Converter (Ropani/Aana)", "daily nepal"],
+  ["tools/word-counter.html", "Word Counter", "writing students"],
+  ["tools/case-converter.html", "Case Converter", "writing dev"],
+  ["tools/json-formatter.html", "JSON Formatter", "dev"],
+  ["tools/password-generator.html", "Password Generator", "dev daily"],
+  ["tools/qr-code-generator.html", "QR Code Generator", "business"],
+  ["tools/barcode-generator.html", "Barcode Generator", "business"],
+  ["tools/image-compressor.html", "Image Compressor", "images"],
+  ["tools/watermark-remover.html", "Watermark Remover", "images"],
+  ["tools/pdf/pdf-tools.html", "All PDF Tools", "pdf"],
+  ["tools/pdf/merge-pdf.html", "Merge PDF", "pdf"],
+  ["tools/pdf/split-pdf.html", "Split PDF", "pdf"],
+  ["tools/pdf/compress-pdf.html", "Compress PDF", "pdf"],
+  ["tools/pdf/rotate-pdf.html", "Rotate PDF", "pdf"],
+  ["tools/pdf/image-to-pdf.html", "Image to PDF", "pdf images"],
+  ["tools/pdf/pdf-to-image.html", "PDF to Image", "pdf images"],
+  ["tools/pdf/pdf-to-word.html", "PDF to Word", "pdf"]
+];
+
+function tnRelatedTools(currentPath, max){
+  const norm = p => p.replace(/\.html$/, "").replace(/\/$/, "");
+  const cur = norm(currentPath);
+  const me = TN_TOOLS.find(t => cur.endsWith("/" + norm(t[0])) || cur === norm(t[0]));
+  const myCats = me ? me[2].split(" ") : [];
+  const others = TN_TOOLS.filter(t => t !== me);
+  const scored = others.map((t, i) => ({ t, i, score: t[2].split(" ").filter(c => myCats.includes(c)).length }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score || a.i - b.i)
+    .map(x => x.t);
+  for (const t of others) { if (scored.length >= max) break; if (!scored.includes(t)) scored.push(t); } // fill with popular tools
+  return scored.slice(0, max);
+}
+
+function tnToolExtras(base){
+  const main = document.getElementById("main");
+  if(!main || !location.pathname.includes("/tools/") || document.querySelector(".tn-share-card")) return;
+  const canon = document.querySelector('link[rel="canonical"]');
+  const url = canon ? canon.href : location.href.split(/[?#]/)[0];
+  const title = (document.querySelector("h1")?.textContent || document.title.split(/[|—–]/)[0]).trim();
+  const text = `${title} – free on ToolNepal`;
+  const enc = encodeURIComponent;
+
+  const share = document.createElement("div");
+  share.className = "card tn-share-card";
+  share.innerHTML = `
+    <h3>Share this tool</h3>
+    <p class="help" style="margin:0 0 .75rem">Found it useful? Send it to a friend or your class/office group.</p>
+    <div class="tn-share">
+      ${navigator.share ? `<button type="button" class="btn btn-primary" data-tn-share>📤 Share</button>` : ""}
+      <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://wa.me/?text=${enc(text + " " + url)}">WhatsApp</a>
+      <a class="btn btn-secondary" target="_blank" rel="noopener" href="viber://forward?text=${enc(text + " " + url)}">Viber</a>
+      <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=${enc(url)}">Facebook</a>
+      <button type="button" class="btn btn-secondary" data-tn-copy>🔗 Copy link</button>
+    </div>`;
+  share.querySelector("[data-tn-share]")?.addEventListener("click", () => {
+    navigator.share({ title, text, url }).catch(() => {});
+  });
+  share.querySelector("[data-tn-copy]").addEventListener("click", () => {
+    navigator.clipboard.writeText(url).then(() => tnToast("Link copied", "Paste it anywhere")).catch(() => tnToast("Copy failed", url));
+  });
+
+  const related = document.createElement("div");
+  related.className = "card tn-related-card";
+  related.innerHTML = `<h3>Related tools</h3><nav class="tn-related" aria-label="Related tools">` +
+    tnRelatedTools(location.pathname, 6).map(t => `<a href="${base}${t[0]}">${escapeHtml(t[1])}<span aria-hidden="true">→</span></a>`).join("") +
+    `</nav>`;
+
+  const aside = main.querySelector("aside.sidebar");
+  if (aside) {
+    aside.prepend(share);
+    aside.append(related);
+  } else {
+    const wrap = document.createElement("section");
+    wrap.className = "tn-extras";
+    wrap.append(share, related);
+    // the tool's own container (the first .container is the breadcrumb added above)
+    const container = main.querySelector("h1")?.closest(".container") || main;
+    container.append(wrap);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", tnInjectLayout);
 
 if ("serviceWorker" in navigator) {

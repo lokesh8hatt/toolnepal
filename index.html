@@ -6,10 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ToolNepal — Fast Free Online Tools for Nepal</title>
   <meta name="description"
-    content="Premium, mobile-first tools for Nepal: CGPA, percentage, word counter, password generator, image compressor and QR generator." />
+    content="Free tools for Nepal: today's Nepali date & calendar, BS to AD converter, Preeti to Unicode, salary tax FY 2083/84, GPA calculators and PDF tools." />
   <meta property="og:title" content="ToolNepal — Fast Free Online Tools for Nepal" />
   <meta property="og:description"
-    content="Premium, mobile-first tools for Nepal: CGPA, percentage, word counter, password generator, image compressor and QR generator." />
+    content="Free tools for Nepal: today's Nepali date & calendar, BS to AD converter, Preeti to Unicode, salary tax FY 2083/84, GPA calculators and PDF tools." />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://toolnepal.pages.dev/assets/img/og-image.jpg" />
   <meta property="og:url" content="https://toolnepal.pages.dev/" />
@@ -34,7 +34,12 @@
   <div id='siteHeader'></div>
   <main id='main' class='main'>
     <div class='container'>
-      <div class="ad"><strong>Tools Placeholder</strong></div>
+      <a class='today-strip' id='todayStrip' href='tools/nepali-calendar.html' aria-label="Open the Nepali calendar">
+        <span class='today-label'>आज · Today</span>
+        <span class='today-ne' id='todayNe'>नेपाली पात्रो</span>
+        <span class='today-en' id='todayEn'>Open the Nepali calendar</span>
+        <span class='today-go' aria-hidden='true'>→</span>
+      </a>
       <section class='hero'>
         <div class='card'>
           <span class='badge'>100% Free • No Signup Required</span>
@@ -73,6 +78,10 @@
           <h2>Popular tools</h2>
           <p class='help'>Popular tools commonly used by students and professionals in Nepal.</p>
           <div class='stack' style='margin-top:.75rem'>
+            <a class='tool-card' href='tools/nepali-calendar.html'>
+              <h3>Nepali Calendar 2083 (आजको मिति)</h3>
+              <p>Today's Nepali date and a full BS month calendar with English dates.</p>
+            </a>
             <a class='tool-card' href='tools/roman-to-nepali.html'>
               <h3>Roman to Nepali Typing</h3>
               <p>Type English spelling and hit Space to instantly get perfect Nepali Unicode.</p>
@@ -104,7 +113,19 @@
     </div>
   </div>
   <script src='assets/js/main.js'></script>
-  <script src='assets/js/analytics.js'></script>
+  <script src='assets/js/bs-date.js'></script>
+  <script>
+    (function () {
+      if (!window.TN_BS) return;
+      const B = TN_BS, bs = B.todayBs(), ad = B.todayAd();
+      if (!bs) return;
+      document.getElementById('todayNe').textContent =
+        B.toNepaliDigits(bs.y) + ' ' + B.MONTHS_NE[bs.m - 1] + ' ' + B.toNepaliDigits(bs.d) + ', ' + B.DAYS_NE[bs.dow];
+      document.getElementById('todayEn').textContent =
+        B.MONTHS_EN[bs.m - 1] + ' ' + bs.d + ', ' + bs.y + ' BS · ' +
+        new Date(ad.y, ad.m - 1, ad.d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    })();
+  </script>
 </body>
 
 </html>
